@@ -8,7 +8,8 @@ async function startNewGame(page: Page): Promise<string[]> {
   });
   await page.goto('/');
   await page.getByRole('button', { name: /Neues Spiel/ }).click();
-  await expect(page.locator('.hud')).toBeVisible();
+  // The HUD appears after the loading screen (renderer + 3D models).
+  await expect(page.locator('.hud')).toBeVisible({ timeout: 60_000 });
   await page.waitForTimeout(2500);
   return errors;
 }
@@ -50,5 +51,6 @@ test('the game saves and can continue', async ({ page }) => {
   await page.getByRole('button', { name: /Zum Hauptmenü/ }).click();
   await expect(page.getByRole('button', { name: /Weiterspielen/ })).toBeVisible();
   await page.getByRole('button', { name: /Weiterspielen/ }).click();
-  await expect(page.locator('.hud')).toBeVisible();
+  // The HUD appears after the loading screen (renderer + 3D models).
+  await expect(page.locator('.hud')).toBeVisible({ timeout: 60_000 });
 });
