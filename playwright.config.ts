@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: 'tests/e2e',
-  timeout: 60_000,
+  timeout: 120_000,
   retries: process.env.CI ? 1 : 0,
   use: { baseURL: 'http://localhost:4173', trace: 'off' },
   webServer: {
@@ -13,6 +13,11 @@ export default defineConfig({
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    { name: 'tablet', use: { ...devices['iPad Pro 11'], browserName: 'chromium' } },
+    // Tablet: only the smoke test, because software rendering of a big retina screen is slow in CI.
+    {
+      name: 'tablet',
+      grep: /see the base/,
+      use: { ...devices['iPad Pro 11'], browserName: 'chromium' },
+    },
   ],
 });

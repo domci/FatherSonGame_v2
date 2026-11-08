@@ -30,8 +30,10 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
 
+  # Runs only when the repo variable PAGES_ENABLED is 'true'
+  # (Settings → Pages → Source: GitHub Actions, then Settings → Variables → PAGES_ENABLED = true).
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.PAGES_ENABLED == 'true'
     needs: check
     runs-on: ubuntu-latest
     permissions:
