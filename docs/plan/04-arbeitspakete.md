@@ -119,5 +119,7 @@ Ziel: 1 gegen 1 gegen die Alien-KI, Bodenkampf, Sieg oder Niederlage. Man kann a
 - Server mit Colyseus, Login, Lobby.
 - Simulation läuft auf dem Server, Clients schicken Befehle.
 - Schutz für neue Spieler, Stärke-Bereich für Angriffe.
-- Kinderschutz: kein freier Chat (nur feste Nachrichten), keine echten Namen, DSGVO.
+- Allianzen: gründen, Anfragen, Einladungen, gemeinsame Angriffe.
+- Chat (Allianz und privat) mit KI-Moderation vor dem Anzeigen, Melden-Knopf, Strafen (Warnung → Sperre → Ausschluss).
+- Kinderschutz: keine echten Namen, DSGVO.
 - Hosting und Kosten klären (braucht Dom: Konto und ggf. Bezahlung).

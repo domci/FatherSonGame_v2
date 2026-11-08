@@ -25,7 +25,7 @@ Es kommt zum Krieg, bis eine Seite besiegt ist.
 - Spinnenwesen: gruselig durch Form, 6 leuchtende Augen und Geräusche, nicht durch eklige Details.
 - Jagen und Essen: wird nur als Symbol gezeigt (Spinne besiegt → Nahrung +10), keine Schlacht-Szenen.
 - Klare Sprache, einfache Menüs, große Knöpfe.
-- Online (M7): **kein freier Chat** für Kinder. Nur feste Nachrichten ("Hilfe!", "Angriff!", "Danke!"). Datenschutz (DSGVO) beachten, keine echten Namen.
+- Online (M7): Chat nur **automatisch moderiert** (siehe unten). Datenschutz (DSGVO) beachten, keine echten Namen.
 
 ## Wissens-Quiz (später, ab M5)
 
@@ -156,6 +156,16 @@ Alle Gebäude können einzeln aufgelevelt werden.
 - Mehrere KI-Gegner, die sich auch gegenseitig bekämpfen.
 - Allianzen, auch zwischen Menschen und Aliens.
 - Online-Multiplayer mit Login: gegeneinander oder in Allianzen.
+
+## Allianzen und Chat (M7)
+
+- Spieler können **Allianzen gründen**, **Beitritts-Anfragen** stellen und Einladungen schicken.
+- **Chat** in der Allianz und auch mit Spielern ohne Allianz (z.B. um gemeinsame Angriffe abzusprechen).
+- **Automatische Moderation:** Jede Nachricht wird von einem KI-Modell geprüft, **bevor** der andere sie sieht.
+  Verstöße (Beleidigung, persönliche Daten wie Adresse/Telefon, gemeine oder unpassende Inhalte) werden nicht gezeigt.
+- **Strafen** in Stufen: Warnung → Chat-Sperre auf Zeit → Ausschluss vom Spiel.
+- Melden-Knopf für Spieler. Eltern-/Admin-Ansicht für gemeldete Fälle.
+- Unsere Grundsätze stehen in einer kurzen, kindgerechten Chat-Regel-Seite.
 
 ## Multiplayer-Schutz für neue Spieler (Ideen für M7)
 
