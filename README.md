@@ -49,3 +49,8 @@ Neue Version holen: `git pull` und dann wieder `bun run dev`.
 ## Für Entwickler
 
 Siehe [CLAUDE.md](CLAUDE.md). Wichtige Befehle: `bun run check` (alles prüfen), `bun run e2e` (Browser-Tests).
+
+## Danke / Lizenzen
+
+- 3D-Modelle: [Kenney](https://kenney.nl) (Space Kit) und [Quaternius](https://quaternius.com) – beide CC0. Details: `public/models/CREDITS.md`.
+- Icons: [Lucide](https://lucide.dev) (ISC). Schriften: Rajdhani und Inter (SIL OFL) über Fontsource.

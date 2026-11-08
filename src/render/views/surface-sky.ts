@@ -9,6 +9,7 @@ import {
   Points,
   PointsNodeMaterial,
   SphereGeometry,
+  type NodeMaterial,
 } from 'three/webgpu';
 import { color, float, positionLocal, sin, time, vec3 } from 'three/tsl';
 import { atmosphereMaterial, planetMaterial } from '../space-materials';
@@ -34,6 +35,10 @@ export function createSky(): Group {
   const halo = new Mesh(new SphereGeometry(22, 32, 16), atmosphereMaterial(0xffb060, 1.5));
   halo.position.copy(sun.position);
   g.add(giant, sun, halo);
+  // The sky is far away: fog must not paint it black.
+  g.traverse((o) => {
+    if (o instanceof Mesh || o instanceof Points) (o.material as NodeMaterial).fog = false;
+  });
   return g;
 }
 

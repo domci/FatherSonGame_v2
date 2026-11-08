@@ -15,7 +15,7 @@ async function startNewGame(page: Page): Promise<string[]> {
 
 test('start a new game and see the base', async ({ page }, info) => {
   const errors = await startNewGame(page);
-  await expect(page.locator('.build-menu')).toBeVisible();
+  await expect(page.locator('.build-bar')).toBeVisible();
   await page.screenshot({ path: `test-results/surface-${info.project.name}.png` });
   expect(errors).toEqual([]);
 });
@@ -46,7 +46,7 @@ test('switch to planet and solar system view', async ({ page }, info) => {
 
 test('the game saves and can continue', async ({ page }) => {
   await startNewGame(page);
-  await page.getByRole('button', { name: '☰' }).click();
+  await page.getByTitle('Menü').click();
   await page.getByRole('button', { name: /Zum Hauptmenü/ }).click();
   await expect(page.getByRole('button', { name: /Weiterspielen/ })).toBeVisible();
   await page.getByRole('button', { name: /Weiterspielen/ }).click();

@@ -1,10 +1,10 @@
 import { RESOURCE_IDS, RESOURCE_INFO, type ResourceAmounts } from '../content/resources';
 import { formatNumber } from './dom';
 
-/** "🪨 60  💧 10" */
+/** "60 Regolith, 10 Wasser" (for tooltips). */
 export function costText(cost: ResourceAmounts): string {
   const parts = RESOURCE_IDS.filter((id) => cost[id]).map(
-    (id) => `${RESOURCE_INFO[id].icon} ${formatNumber(cost[id] ?? 0)}`,
+    (id) => `${formatNumber(cost[id] ?? 0)} ${RESOURCE_INFO[id].name}`,
   );
-  return parts.length ? parts.join('  ') : 'kostenlos';
+  return parts.length ? parts.join(', ') : 'gratis';
 }

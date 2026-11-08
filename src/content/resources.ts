@@ -15,19 +15,18 @@ export type ResourceAmounts = Partial<Record<ResourceId, number>>;
 
 export interface ResourceInfo {
   name: string;
-  icon: string;
   color: string;
 }
 
 export const RESOURCE_INFO: Record<ResourceId, ResourceInfo> = {
-  regolith: { name: 'Regolith', icon: '🪨', color: '#b8a58a' },
-  metal: { name: 'Metall', icon: '⚙️', color: '#9fb3c8' },
-  gas: { name: 'Gas', icon: '💨', color: '#f2c879' },
-  diamonds: { name: 'Diamanten', icon: '💎', color: '#8fe3ff' },
-  pinkLiquid: { name: 'Pinke Flüssigkeit', icon: '🧪', color: '#ff6ec7' },
-  water: { name: 'Wasser', icon: '💧', color: '#4aa8ff' },
-  oxygen: { name: 'Sauerstoff', icon: '🫧', color: '#b8f0ff' },
-  food: { name: 'Nahrung', icon: '🥚', color: '#9be36b' },
+  regolith: { name: 'Regolith', color: '#b8a58a' },
+  metal: { name: 'Metall', color: '#9fb3c8' },
+  gas: { name: 'Gas', color: '#f2c879' },
+  diamonds: { name: 'Diamanten', color: '#8fe3ff' },
+  pinkLiquid: { name: 'Pinke Flüssigkeit', color: '#ff6ec7' },
+  water: { name: 'Wasser', color: '#4aa8ff' },
+  oxygen: { name: 'Sauerstoff', color: '#b8f0ff' },
+  food: { name: 'Nahrung', color: '#9be36b' },
 };
 
 export const START_RESOURCES: ResourceAmounts = {

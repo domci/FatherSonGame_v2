@@ -20,7 +20,7 @@ import { solidMaterial } from '../materials';
 export const UNIT_SCALE: Record<UnitId, number> = {
   drone: 1.7,
   hunter: 1.8,
-  spider: 2,
+  spider: 1.5,
   miningShip: 1.4,
 };
 

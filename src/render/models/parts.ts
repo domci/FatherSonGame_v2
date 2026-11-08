@@ -8,8 +8,10 @@ import {
   TorusGeometry,
   type BufferGeometry,
   type Material,
+  type Object3D,
 } from 'three/webgpu';
 import { glassMaterial, solidMaterial } from '../materials';
+import { kitModel, remapMaterials, type KitName } from './kit';
 
 export type MaterialName =
   | 'metal'
@@ -37,11 +39,24 @@ export interface Part {
   mat: MaterialName;
 }
 
+/** A ready-made model from the kit (see kit.ts). Sizes in tiles. */
+export interface KitPart {
+  kit: KitName;
+  pos?: [number, number, number];
+  rot?: [number, number, number];
+  /** One number or [x, y, z]. */
+  scale?: number | [number, number, number];
+  /** Replace kit materials, e.g. { dark: 'glass' }. */
+  mats?: Partial<Record<string, MaterialName>>;
+}
+
+export type ModelPart = Part | KitPart;
+
 const MATERIALS: Record<MaterialName, () => Material> = {
   metal: () => solidMaterial(0xc9ced6, { metal: 0.8, rough: 0.35 }),
   dark: () => solidMaterial(0x3a4048, { metal: 0.7, rough: 0.5 }),
   glass: () => glassMaterial(),
-  solar: () => solidMaterial(0x1d3b6e, { metal: 0.9, rough: 0.15 }),
+  solar: () => solidMaterial(0x2a5aa8, { metal: 0.35, rough: 0.3 }),
   glowBlue: () => solidMaterial(0x4fc3ff, { glow: 2.5 }),
   glowPink: () => solidMaterial(0xff5ec4, { glow: 2.5 }),
   glowYellow: () => solidMaterial(0xffd36b, { glow: 2.5 }),
@@ -74,15 +89,32 @@ function geometry(p: Part): BufferGeometry {
   }
 }
 
-export function buildModel(parts: readonly Part[]): Group {
+function kitMesh(p: KitPart): Object3D {
+  const obj = kitModel(p.kit);
+  if (p.mats) {
+    const map: Partial<Record<string, () => Material>> = {};
+    for (const [from, to] of Object.entries(p.mats)) if (to) map[from] = MATERIALS[to];
+    remapMaterials(obj, map);
+  }
+  if (typeof p.scale === 'number') obj.scale.setScalar(p.scale);
+  else if (p.scale) obj.scale.set(...p.scale);
+  return obj;
+}
+
+function shapeMesh(p: Part): Object3D {
+  const mesh = new Mesh(geometry(p), MATERIALS[p.mat]());
+  mesh.castShadow = p.mat !== 'glass';
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+export function buildModel(parts: readonly ModelPart[]): Group {
   const group = new Group();
   for (const p of parts) {
-    const mesh = new Mesh(geometry(p), MATERIALS[p.mat]());
-    if (p.pos) mesh.position.set(...p.pos);
-    if (p.rot) mesh.rotation.set(...p.rot);
-    mesh.castShadow = p.mat !== 'glass';
-    mesh.receiveShadow = true;
-    group.add(mesh);
+    const obj = 'kit' in p ? kitMesh(p) : shapeMesh(p);
+    if (p.pos) obj.position.set(...p.pos);
+    if (p.rot) obj.rotation.set(...p.rot);
+    group.add(obj);
   }
   return group;
 }

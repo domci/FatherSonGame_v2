@@ -1,0 +1,176 @@
+/* Design tokens and base elements. Orange = colony paint (matches the 3D buildings), cyan = tech. */
+:root {
+  --bg: #05070c;
+  --panel: rgba(10, 14, 22, 0.8);
+  --panel-solid: #0c111b;
+  --panel-hi: rgba(22, 30, 44, 0.9);
+  --stroke: rgba(160, 190, 225, 0.14);
+  --stroke-hi: rgba(190, 215, 245, 0.32);
+  --text: #e8edf4;
+  --muted: #8592a6;
+  --accent: #ff8a2a;
+  --accent-hi: #ffab5c;
+  --tech: #52d0ff;
+  --good: #5fe08a;
+  --warn: #ffc94d;
+  --bad: #ff5d6c;
+  --radius: 6px;
+  --font: 'Inter', system-ui, sans-serif;
+  --display: 'Rajdhani', 'Inter', system-ui, sans-serif;
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+button:disabled {
+  cursor: default;
+}
+button:focus-visible {
+  outline: 2px solid var(--tech);
+  outline-offset: 2px;
+}
+[hidden] {
+  display: none !important;
+}
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--display);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+.ico {
+  display: inline-flex;
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}
+.ico svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* A panel: dark glass, thin line, small orange corner mark. */
+.panel {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.panel::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  width: 14px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: var(--radius) 0 0 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+.good {
+  color: var(--good);
+}
+.bad {
+  color: var(--bad);
+}
+
+.game-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.fade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s;
+}
+.fade.on {
+  opacity: 1;
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  color: var(--muted);
+}
+.icon-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Cost chips: icon + number */
+.cost {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.chip-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.chip-cost .ico {
+  width: 13px;
+  height: 13px;
+}
+.chip-cost.short {
+  color: var(--bad);
+}
+.cost.free {
+  color: var(--good);
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

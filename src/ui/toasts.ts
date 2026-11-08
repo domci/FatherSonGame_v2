@@ -1,6 +1,13 @@
 import type { Session } from '../app/session';
 import type { GameEvent } from '../sim/state';
 import { el } from './dom';
+import { icon, type IconName } from './icons';
+
+const ICON: Record<GameEvent['kind'], IconName> = {
+  info: 'info',
+  good: 'circle-check',
+  bad: 'triangle-alert',
+};
 
 /** Short messages that appear and fade away. */
 export class Toasts {
@@ -19,8 +26,8 @@ export class Toasts {
     this.last = events.at(-1);
   }
 
-  show(text: string, kind: 'info' | 'good' | 'bad'): void {
-    const t = el('div', { class: `toast ${kind}` }, text);
+  show(text: string, kind: GameEvent['kind']): void {
+    const t = el('div', { class: `toast ${kind}` }, icon(ICON[kind]), el('span', {}, text));
     this.root.prepend(t);
     while (this.root.children.length > 4) this.root.lastElementChild?.remove();
     window.setTimeout(() => t.classList.add('out'), 3500);

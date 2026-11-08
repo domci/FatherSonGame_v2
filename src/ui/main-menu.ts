@@ -1,4 +1,5 @@
 import { el } from './dom';
+import { icon, type IconName } from './icons';
 
 export interface MenuActions {
   newGame(): void;
@@ -6,40 +7,40 @@ export interface MenuActions {
   importGame(): void;
 }
 
-/** Animated space scene behind the start menu (pure CSS). */
-function menuBackdrop(): HTMLElement {
+function menuItem(ico: IconName, label: string, onclick: () => void, primary = false): HTMLElement {
   return el(
-    'div',
-    { class: 'backdrop' },
-    el('div', { class: 'stars s1' }),
-    el('div', { class: 'stars s2' }),
-    el('div', { class: 'big-planet' }, el('div', { class: 'surface' })),
-    el('div', { class: 'moon' }),
-    el('div', { class: 'ship-trail' }),
+    'button',
+    { class: primary ? 'm-item primary' : 'm-item', onclick },
+    icon(ico),
+    el('span', {}, label),
+    el('span', { class: 'm-arrow' }, icon('chevron-right')),
   );
 }
 
-/** Start screen. */
+/** Start screen: key art in the back, title and menu on the left. */
 export function mainMenu(actions: MenuActions): HTMLElement {
+  const items = [
+    actions.continueGame && menuItem('play', 'Weiterspielen', actions.continueGame, true),
+    menuItem('rocket', 'Neues Spiel', actions.newGame, !actions.continueGame),
+    menuItem('upload', 'Spielstand laden', actions.importGame),
+  ];
   return el(
     'div',
-    { class: 'overlay menu start' },
-    menuBackdrop(),
+    { class: 'screen start' },
+    el('div', { class: 'keyart' }),
+    el('div', { class: 'keyart-shade' }),
     el(
       'div',
-      { class: 'card' },
-      el('div', { class: 'kicker' }, 'Notlandung auf einem fremden Planeten'),
-      el('h1', {}, 'Bruchlandung'),
-      el('p', { class: 'muted' }, 'Ein Weltraum-Strategiespiel'),
-      actions.continueGame &&
-        el('button', { class: 'big', onclick: actions.continueGame }, '▶ Weiterspielen'),
-      el('button', { class: 'big', onclick: actions.newGame }, '✨ Neues Spiel (Menschen)'),
+      { class: 'start-col' },
+      el('div', { class: 'kicker' }, 'Ein Weltraum-Strategiespiel'),
+      el('h1', { class: 'title' }, 'Bruchlandung'),
       el(
-        'button',
-        { class: 'big secondary', onclick: actions.importGame },
-        '📂 Spielstand-Datei laden',
+        'p',
+        { class: 'lead' },
+        'Euer Schiff ist abgestürzt. Baut eine Kuppel-Basis, holt Rohstoffe aus dem All und behauptet euch gegen Spinnenwesen und Aliens.',
       ),
-      el('p', { class: 'muted small' }, 'Aliens als spielbares Volk kommen in Meilenstein 3.'),
+      el('nav', { class: 'm-list' }, ...items),
+      el('div', { class: 'start-foot' }, 'Volk: Menschen  ·  Aliens folgen in Meilenstein 3'),
     ),
   );
 }
@@ -54,20 +55,37 @@ export interface PauseActions {
 export function pauseMenu(actions: PauseActions): HTMLElement {
   return el(
     'div',
-    { class: 'overlay menu' },
+    { class: 'screen modal' },
     el(
       'div',
-      { class: 'card' },
+      { class: 'panel dialog' },
+      el('div', { class: 'p-sub' }, 'Pause'),
       el('h2', {}, 'Menü'),
-      el('button', { class: 'big', onclick: actions.resume }, '▶ Weiter'),
-      el('button', { class: 'big secondary', onclick: actions.save }, '💾 Jetzt speichern'),
       el(
-        'button',
-        { class: 'big secondary', onclick: actions.exportFile },
-        '📤 Spielstand als Datei',
+        'nav',
+        { class: 'm-list' },
+        menuItem('play', 'Weiter', actions.resume, true),
+        menuItem('save', 'Jetzt speichern', actions.save),
+        menuItem('download', 'Spielstand als Datei', actions.exportFile),
+        menuItem('log-out', 'Zum Hauptmenü', actions.quit),
       ),
-      el('button', { class: 'big secondary', onclick: actions.quit }, '🏁 Zum Hauptmenü'),
-      el('p', { class: 'muted small' }, 'Das Spiel speichert alle 2 Minuten von selbst.'),
+      el('p', { class: 'p-text muted' }, 'Das Spiel speichert alle 2 Minuten von selbst.'),
+    ),
+  );
+}
+
+/** Shown while the 3D world loads. */
+export function loadingScreen(): HTMLElement {
+  return el(
+    'div',
+    { class: 'screen loading' },
+    el('div', { class: 'keyart' }),
+    el('div', { class: 'keyart-shade' }),
+    el(
+      'div',
+      { class: 'load-box' },
+      el('div', { class: 'spinner' }),
+      el('span', {}, 'Landeanflug …'),
     ),
   );
 }

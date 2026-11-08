@@ -3,12 +3,13 @@ import { tick, TICK_MS } from '../sim/update';
 import { toSaveData } from '../sim/save/save';
 import { createRenderer } from '../render/renderer';
 import { ViewManager } from '../render/view-manager';
+import { loadKit } from '../render/models/kit';
 import { exportSave } from '../platform/storage';
 import { Hud } from '../ui/hud';
 import { BuildMenu } from '../ui/build-menu';
 import { InfoPanel } from '../ui/info-panel';
 import { Toasts } from '../ui/toasts';
-import { pauseMenu } from '../ui/main-menu';
+import { loadingScreen, pauseMenu } from '../ui/main-menu';
 import { el } from '../ui/dom';
 import { Session } from './session';
 import { startLoop } from './loop';
@@ -36,6 +37,20 @@ function startAutosave(session: Session): void {
   });
 }
 
+/** Shows a loading screen while the renderer starts and the 3D models load. */
+async function createViews(
+  root: HTMLElement,
+  canvas: HTMLCanvasElement,
+  state: GameState,
+): Promise<ViewManager> {
+  const fade = el('div', { class: 'fade' });
+  const loading = loadingScreen();
+  root.replaceChildren(canvas, fade, loading);
+  const [renderer] = await Promise.all([createRenderer(canvas), loadKit()]);
+  loading.remove();
+  return new ViewManager(state, renderer, canvas, fade);
+}
+
 /** Starts one game: canvas, 3D views, HUD, input, loop and autosave. */
 export async function startGame(
   root: HTMLElement,
@@ -44,9 +59,7 @@ export async function startGame(
 ): Promise<Session> {
   const session = new Session(state);
   const canvas = el('canvas', { class: 'game-canvas' });
-  const fade = el('div', { class: 'fade' });
-  root.replaceChildren(canvas, fade);
-  const views = new ViewManager(state, await createRenderer(canvas), canvas, fade);
+  const views = await createViews(root, canvas, state);
   views.onChange = (name) => {
     session.ui.view = name;
     session.startPlacing(undefined);
@@ -73,6 +86,6 @@ export async function startGame(
     slow: () => parts.forEach((p) => p.update()),
   });
   startAutosave(session);
-  exposeDebug(session, makeProjector(session, views, canvas));
+  exposeDebug(session, makeProjector(session, views, canvas), views);
   return session;
 }

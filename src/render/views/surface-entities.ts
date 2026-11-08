@@ -5,11 +5,22 @@ import type { GameState } from '../../sim/state';
 import { BUILDINGS } from '../../content/buildings';
 import { visualHeight } from '../terrain-shape';
 import { makeModel, modelKey, selectionRing } from './entity-models';
+import { Animator, type Pose } from '../models/animator';
+import { kitAnimations } from '../models/kit';
+import { UNIT_KIT } from '../models/unit-models';
+import { animateSpider } from '../models/spider-model';
 import { toWorldX } from './surface-terrain';
 
 interface Shown {
   obj: Object3D;
   key: string;
+  animator?: Animator;
+}
+
+function poseOf(e: Entity): Pose {
+  if (e.mover) return 'move';
+  if (e.busyWith || e.attacker?.targetId !== undefined) return 'attack';
+  return 'idle';
 }
 
 /** Keeps 3D objects in sync with the entities of one surface. */
@@ -27,6 +38,9 @@ export class SurfaceEntities {
       if (e.zone !== this.map.bodyId || (e.ship && e.ship.phase !== 'docked')) continue;
       seen.add(e.id);
       this.place(e, this.ensure(e), selected.has(e.id), timeMs);
+      const anim = this.shown.get(e.id)?.animator;
+      anim?.set(poseOf(e));
+      anim?.update(dtMs / 1000);
     }
     for (const [id, s] of this.shown) {
       if (seen.has(id)) continue;
@@ -52,7 +66,10 @@ export class SurfaceEntities {
     const obj = makeModel(e);
     obj.userData.entityId = e.id;
     this.group.add(obj);
-    this.shown.set(e.id, { obj, key });
+    const kit = e.unit && UNIT_KIT[e.unit.type];
+    const body = obj.getObjectByName('body');
+    const animator = kit && body ? new Animator(body, kitAnimations(kit)) : undefined;
+    this.shown.set(e.id, { obj, key, animator });
     return obj;
   }
 
@@ -60,7 +77,7 @@ export class SurfaceEntities {
     if (!e.position) return;
     const { x, y } = e.position;
     const t = this.clock / 1000 + e.id;
-    const bob = e.unit?.type === 'drone' ? 1.4 + Math.sin(t * 2.5) * 0.12 : 0;
+    const bob = e.unit?.type === 'drone' ? 0.9 + Math.sin(t * 2.5) * 0.1 : 0;
     obj.position.set(
       toWorldX(this.map, x),
       visualHeight(this.map, x, y) + bob,
@@ -83,15 +100,7 @@ export class SurfaceEntities {
     this.turnTowardsPath(e, obj);
     const body = obj.getObjectByName('body');
     if (!body) return;
-    if (e.unit?.type === 'spider') {
-      const walking = e.mover ? 1 : 0.15;
-      body.position.y = Math.abs(Math.sin(t * 9)) * 0.06 * walking;
-      body.rotation.z = Math.sin(t * 9) * 0.06 * walking;
-    } else if (e.unit?.type === 'hunter' && e.mover) {
-      body.position.y = Math.abs(Math.sin(t * 8)) * 0.05;
-    } else if (e.unit?.type === 'drone') {
-      body.rotation.y = t * 1.5;
-    }
+    if (e.unit?.type === 'spider') animateSpider(body, t, e.mover ? 1 : 0.1);
   }
 
   private shapeBuilding(e: Entity, obj: Object3D, timeMs: number): void {

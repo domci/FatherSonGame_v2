@@ -1,41 +1,58 @@
+import { CircleGeometry, ConeGeometry, Group, Mesh, MeshStandardNodeMaterial } from 'three/webgpu';
 import {
-  CircleGeometry,
-  ConeGeometry,
-  Group,
-  Mesh,
-  MeshStandardNodeMaterial,
-  RingGeometry,
-} from 'three/webgpu';
-import { color, float, mix, mx_noise_float, positionWorld, sin, time, vec3 } from 'three/tsl';
+  color,
+  float,
+  length,
+  mix,
+  mx_noise_float,
+  positionLocal,
+  positionWorld,
+  sin,
+  time,
+  vec3,
+} from 'three/tsl';
+import { buildModel } from '../models/parts';
 import type { SurfaceMap } from '../../sim/generation/surface';
 import { visualHeight } from '../terrain-shape';
 import { solidMaterial } from '../materials';
 
-/** Glowing pink liquid that slowly swirls. */
+/** Glowing pink liquid that slowly swirls: dark and deep in the middle, bright at the edge. */
 function pinkMaterial(): MeshStandardNodeMaterial {
-  const m = new MeshStandardNodeMaterial({ metalness: 0.2, roughness: 0.08 });
+  const m = new MeshStandardNodeMaterial({ metalness: 0.1, roughness: 0.05 });
   const p = positionWorld.xz;
-  const swirl = mx_noise_float(vec3(p.mul(1.4), time.mul(0.3)));
-  const ripple = sin(positionWorld.x.mul(5).add(positionWorld.z.mul(3)).add(time.mul(1.5)))
+  const swirl = mx_noise_float(vec3(p.mul(1.6), time.mul(0.25)))
     .mul(0.5)
     .add(0.5);
-  m.colorNode = mix(color(0x8a1458), color(0xff4fb8), swirl.mul(0.5).add(0.5));
-  m.emissiveNode = color(0xff3aa8).mul(float(0.25).add(ripple.mul(0.25)).add(swirl.mul(0.2)));
+  const edge = length(positionLocal.xy).div(1.05).pow(2);
+  const ripple = sin(length(positionLocal.xy).mul(14).sub(time.mul(2)))
+    .mul(0.5)
+    .add(0.5);
+  m.colorNode = mix(color(0x3a0628), color(0xff4fb8), edge.mul(0.6).add(swirl.mul(0.4)));
+  m.emissiveNode = color(0xff2fa0).mul(
+    float(0.08).add(edge.mul(0.35)).add(swirl.mul(0.15)).add(ripple.mul(0.06)),
+  );
   return m;
 }
 
 function pool(map: SurfaceMap, cx: number, cy: number): Group {
   const g = new Group();
   const y = visualHeight(map, cx, cy);
-  const liquid = new Mesh(new CircleGeometry(1.05, 40), pinkMaterial());
+  const liquid = new Mesh(new CircleGeometry(1.05, 48), pinkMaterial());
   liquid.rotation.x = -Math.PI / 2;
-  const rim = new Mesh(
-    new RingGeometry(1.0, 1.35, 40),
-    solidMaterial(0x5a3a4a, { metal: 0.1, rough: 0.9 }),
-  );
-  rim.rotation.x = -Math.PI / 2;
-  rim.position.y = 0.01;
-  g.add(liquid, rim);
+  g.add(liquid);
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2 + Math.sin(i * 3.1) * 0.2;
+    const rock = buildModel([
+      {
+        kit: i % 2 ? 'rocks_smallA' : 'rocks_smallB',
+        scale: 0.7 + ((i * 5) % 4) * 0.12,
+        mats: { rock: 'dark', rockTrack: 'dark', rockDark: 'dark' },
+      },
+    ]);
+    rock.position.set(Math.cos(a) * 1.2, -0.05, Math.sin(a) * 1.2);
+    rock.rotation.y = a * 2.3;
+    g.add(rock);
+  }
   g.position.set(cx - map.size / 2, y + 0.04, cy - map.size / 2);
   return g;
 }

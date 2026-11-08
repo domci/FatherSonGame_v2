@@ -1,116 +1,82 @@
 import type { BuildingId } from '../../content/buildings';
-import type { Part } from './parts';
+import type { ModelPart, Part } from './parts';
 import { ADVANCED_SPECS } from './specs-advanced';
-import { ringOfLights, row } from './specs-helpers';
+import { cornerLights, pad, row } from './specs-helpers';
 
-const commandDome: Part[] = [
-  { shape: 'cyl', size: [1.95, 0.25], pos: [0, 0.12, 0], mat: 'dark' },
-  { shape: 'torus', size: [1.9, 0.06], pos: [0, 0.26, 0], rot: [Math.PI / 2, 0, 0], mat: 'steel' },
-  ...ringOfLights(10, 1.95, 0.3),
-  { shape: 'box', size: [0.7, 0.6, 0.7], pos: [-0.7, 0.55, -0.4], mat: 'white' },
-  { shape: 'box', size: [0.5, 0.9, 0.5], pos: [-0.2, 0.7, -0.9], mat: 'white' },
-  { shape: 'box', size: [0.3, 0.1, 0.02], pos: [-0.7, 0.65, -0.04], mat: 'window' },
-  { shape: 'sphere', size: [0.3], pos: [-0.9, 0.45, 0.7], mat: 'plant' },
-  {
-    shape: 'box',
-    size: [2.6, 0.62, 1.0],
-    pos: [0.9, 0.55, 0.45],
-    rot: [0.12, 0.45, 0.32],
-    mat: 'metal',
-  },
-  {
-    shape: 'box',
-    size: [1.2, 0.08, 1.9],
-    pos: [0.7, 0.55, 0.5],
-    rot: [0.12, 0.45, 0.32],
-    mat: 'steel',
-  },
-  { shape: 'cone', size: [0.48, 1.0], pos: [2.1, 0.95, 1.05], rot: [0.3, 0, -1.25], mat: 'white' },
-  { shape: 'cyl', size: [0.28, 0.4], pos: [-0.25, 0.25, 0.0], rot: [0, 0, 1.3], mat: 'dark' },
-  { shape: 'sphere', size: [0.2], pos: [-0.45, 0.2, 0.0], mat: 'glowBlue' },
-  { shape: 'dome', size: [1.85], pos: [0, 0.25, 0], mat: 'glass' },
-  { shape: 'cyl', size: [0.05, 2.2], pos: [-1.3, 1.3, -1.2], mat: 'steel' },
-  { shape: 'cone', size: [0.35, 0.18], pos: [-1.3, 2.3, -1.2], rot: [Math.PI, 0, 0], mat: 'white' },
-  { shape: 'sphere', size: [0.09], pos: [-1.3, 2.45, -1.2], mat: 'glowBlue' },
+const Y = 0.1; // top of the landing pad
+
+const commandDome: ModelPart[] = [
+  pad(4),
+  ...cornerLights(4),
+  { kit: 'hangar_roundGlass', pos: [-0.4, Y, 0.35], scale: 1, mats: { dark: 'glass' } },
+  { shape: 'sphere', size: [0.32], pos: [-0.9, 0.45, 0.55], mat: 'plant' },
+  { shape: 'sphere', size: [0.25], pos: [0.1, 0.4, 0.8], mat: 'plant' },
+  { shape: 'box', size: [0.6, 0.55, 0.6], pos: [-0.3, 0.38, -0.1], mat: 'white' },
+  { shape: 'box', size: [0.3, 0.08, 0.02], pos: [-0.3, 0.5, 0.21], mat: 'window' },
+  { kit: 'craft_cargoA', pos: [1.3, 0.25, -1.05], rot: [0.18, 0.75, 0.32], scale: 1.05 },
+  { kit: 'rocks_smallB', pos: [1.6, Y, -0.1], scale: 1.1 },
+  { kit: 'satelliteDish_large', pos: [-1.45, Y, -1.4], scale: 1.1, rot: [0, 0.6, 0] },
+  { kit: 'machine_wireless', pos: [1.4, Y, 1.4], scale: 0.9, rot: [0, -0.8, 0] },
+  { kit: 'barrels', pos: [-1.55, Y, 1.5], scale: 1 },
 ];
 
-const solarField: Part[] = [
-  ...[-0.45, 0.45].flatMap((x): Part[] => [
-    { shape: 'box', size: [0.85, 0.04, 1.75], pos: [x, 0.55, 0], rot: [0, 0, 0.4], mat: 'solar' },
-    { shape: 'box', size: [0.9, 0.06, 0.05], pos: [x, 0.56, 0.88], rot: [0, 0, 0.4], mat: 'steel' },
-    {
-      shape: 'box',
-      size: [0.9, 0.06, 0.05],
-      pos: [x, 0.56, -0.88],
-      rot: [0, 0, 0.4],
-      mat: 'steel',
-    },
-    { shape: 'cyl', size: [0.05, 0.55], pos: [x, 0.27, 0], mat: 'steel' },
-  ]),
-  { shape: 'box', size: [0.25, 0.2, 0.25], pos: [0, 0.1, 0.8], mat: 'dark' },
-  { shape: 'sphere', size: [0.04], pos: [0, 0.22, 0.8], mat: 'glowBlue' },
-];
-
-const regolithExcavator: Part[] = [
-  { shape: 'box', size: [1.3, 0.25, 1.6], pos: [0, 0.13, 0], mat: 'dark' },
-  { shape: 'box', size: [1.1, 0.5, 1.0], pos: [0, 0.5, -0.2], mat: 'orange' },
-  { shape: 'box', size: [0.5, 0.35, 0.4], pos: [-0.3, 0.92, -0.4], mat: 'orange' },
-  { shape: 'box', size: [0.45, 0.2, 0.02], pos: [-0.3, 0.95, -0.19], mat: 'window' },
+const panel = (x: number): Part[] => [
+  { shape: 'box', size: [0.62, 0.04, 1.6], pos: [x, 0.62, 0], rot: [0, 0, 0.42], mat: 'solar' },
+  { shape: 'box', size: [0.66, 0.06, 0.05], pos: [x, 0.63, 0.81], rot: [0, 0, 0.42], mat: 'white' },
   {
-    shape: 'torus',
-    size: [0.45, 0.08],
-    pos: [0.2, 0.55, 0.75],
-    rot: [0, Math.PI / 2, 0],
-    mat: 'steel',
-  },
-  ...row(4, -0.0, 0.0, {
     shape: 'box',
-    size: [0.1, 0.9, 0.14],
-    pos: [0.2, 0.55, 0.75],
-    mat: 'dark',
-  }).map((p, i): Part => ({ ...p, rot: [i * 0.8, 0, 0] })),
-  { shape: 'box', size: [0.2, 0.08, 1.2], pos: [0.45, 0.6, 0.1], rot: [0.3, 0, 0], mat: 'steel' },
-  { shape: 'cone', size: [0.35, 0.4], pos: [0.45, 0.3, -0.75], mat: 'metal' },
-  { shape: 'sphere', size: [0.06], pos: [0.5, 0.8, -0.7], mat: 'glowYellow' },
+    size: [0.66, 0.06, 0.05],
+    pos: [x, 0.63, -0.81],
+    rot: [0, 0, 0.42],
+    mat: 'white',
+  },
+  { shape: 'cyl', size: [0.04, 0.5], pos: [x, 0.35, 0.5], mat: 'steel' },
+  { shape: 'cyl', size: [0.04, 0.5], pos: [x, 0.35, -0.5], mat: 'steel' },
 ];
 
-const habitatDome: Part[] = [
-  { shape: 'cyl', size: [1.42, 0.22], pos: [0, 0.11, 0], mat: 'steel' },
-  ...ringOfLights(8, 1.45, 0.24),
-  { shape: 'box', size: [0.55, 0.55, 0.5], pos: [0.35, 0.5, 0.15], mat: 'white' },
-  { shape: 'box', size: [0.45, 0.8, 0.45], pos: [-0.35, 0.6, -0.3], mat: 'white' },
-  ...row(3, 0.18, 0.17, {
+const solarField: ModelPart[] = [
+  pad(2),
+  ...panel(-0.5),
+  ...panel(0.2),
+  { kit: 'machine_generator', pos: [0.72, Y, 0.55], scale: 0.7, rot: [0, -Math.PI / 2, 0] },
+  { shape: 'sphere', size: [0.04], pos: [0.72, 0.45, 0.2], mat: 'glowBlue' },
+];
+
+const regolithExcavator: ModelPart[] = [
+  pad(2),
+  { kit: 'machine_generatorLarge', pos: [-0.3, Y, -0.15], scale: 1.05 },
+  { kit: 'rocks_smallA', pos: [0.55, Y, 0.6], scale: 1.4 },
+  { kit: 'rover', pos: [0.55, Y, -0.25], scale: 2.2, rot: [0, 0.9, 0] },
+  { kit: 'pipe_straight', pos: [-0.3, Y, 0.72], scale: [0.5, 0.5, 0.5], rot: [0, Math.PI / 2, 0] },
+  { shape: 'sphere', size: [0.05], pos: [-0.3, 0.95, 0.4], mat: 'glowYellow' },
+];
+
+const habitatDome: ModelPart[] = [
+  pad(3),
+  ...cornerLights(3),
+  { kit: 'hangar_roundGlass', pos: [0, Y, 0], scale: 0.85, mats: { dark: 'glass' } },
+  { shape: 'box', size: [0.45, 0.5, 0.45], pos: [0.3, 0.35, 0.1], mat: 'white' },
+  { shape: 'box', size: [0.4, 0.7, 0.4], pos: [-0.35, 0.45, -0.2], mat: 'white' },
+  ...row(3, 0.15, 0.15, {
     shape: 'box',
-    size: [0.1, 0.1, 0.02],
-    pos: [0, 0.6, 0.41],
+    size: [0.09, 0.09, 0.02],
+    pos: [0, 0.45, 0.33],
     mat: 'window',
   }),
-  ...row(2, -0.45, 0.2, {
-    shape: 'box',
-    size: [0.1, 0.1, 0.02],
-    pos: [0, 0.8, -0.07],
-    mat: 'window',
-  }),
-  { shape: 'sphere', size: [0.28], pos: [-0.5, 0.35, 0.55], mat: 'plant' },
-  { shape: 'sphere', size: [0.2], pos: [0.6, 0.3, -0.6], mat: 'plant' },
-  { shape: 'dome', size: [1.38], pos: [0, 0.22, 0], mat: 'glass' },
-  { shape: 'box', size: [0.5, 0.45, 0.6], pos: [0, 0.3, 1.45], mat: 'steel' },
-  { shape: 'box', size: [0.3, 0.3, 0.02], pos: [0, 0.3, 1.76], mat: 'window' },
+  { shape: 'sphere', size: [0.22], pos: [-0.5, 0.3, 0.45], mat: 'plant' },
+  { shape: 'sphere', size: [0.18], pos: [0.55, 0.28, -0.45], mat: 'plant' },
 ];
 
-const storage: Part[] = [
-  { shape: 'box', size: [1.8, 0.1, 1.8], pos: [0, 0.05, 0], mat: 'dark' },
-  { shape: 'box', size: [0.8, 0.45, 0.5], pos: [-0.4, 0.33, -0.4], mat: 'orange' },
-  { shape: 'box', size: [0.8, 0.45, 0.5], pos: [-0.4, 0.33, 0.15], mat: 'white' },
-  { shape: 'box', size: [0.8, 0.45, 0.5], pos: [-0.4, 0.78, -0.4], mat: 'red' },
-  { shape: 'box', size: [0.8, 0.45, 0.5], pos: [0.45, 0.33, -0.4], mat: 'steel' },
-  { shape: 'cyl', size: [0.3, 0.8], pos: [0.5, 0.45, 0.45], mat: 'metal' },
-  { shape: 'box', size: [0.08, 1.6, 0.08], pos: [0.8, 0.8, 0.8], mat: 'steel' },
-  { shape: 'box', size: [1.2, 0.08, 0.08], pos: [0.3, 1.6, 0.8], mat: 'steel' },
-  { shape: 'sphere', size: [0.05], pos: [0.8, 1.68, 0.8], mat: 'glowYellow' },
+const storage: ModelPart[] = [
+  pad(2),
+  { kit: 'structure_closed', pos: [-0.38, Y, -0.38], scale: 0.72 },
+  { kit: 'structure_closed', pos: [0.38, Y, -0.38], scale: 0.72 },
+  { kit: 'structure_closed', pos: [-0.38, 0.82, -0.38], scale: 0.72 },
+  { kit: 'structure_closed', pos: [-0.38, Y, 0.38], scale: 0.72 },
+  { kit: 'barrels', pos: [0.5, Y, 0.5], scale: 0.9 },
 ];
 
-export const HUMAN_BUILDINGS: Record<BuildingId, readonly Part[]> = {
+export const HUMAN_BUILDINGS: Record<BuildingId, readonly ModelPart[]> = {
   commandDome,
   solarField,
   regolithExcavator,

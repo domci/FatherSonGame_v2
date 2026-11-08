@@ -1,12 +1,14 @@
 import type { Session } from '../app/session';
 import { findEntity } from '../sim/spawn';
-import { clear, el, formatDuration } from './dom';
+import { clear, el } from './dom';
+import { icon } from './icons';
+import { header, tickTimers } from './panel-kit';
 import { buildingKey, buildingPanel } from './panel-building';
 import { bodyPanel, unitPanel, wildPanel } from './panel-other';
 
 /** Right side panel: details and actions for what is selected. */
 export class InfoPanel {
-  readonly root = el('div', { class: 'info-panel' });
+  readonly root = el('div', { class: 'panel info-panel' });
   private key = '';
 
   constructor(private session: Session) {}
@@ -20,13 +22,15 @@ export class InfoPanel {
       this.root.hidden = parts.length === 0;
       if (parts.length)
         this.root.append(
-          el('button', { class: 'close', onclick: () => this.session.select([]) }, '✖'),
+          el(
+            'button',
+            { class: 'icon-btn close', title: 'Schließen', onclick: () => this.session.select([]) },
+            icon('x'),
+          ),
           ...parts,
         );
     }
-    for (const t of this.root.querySelectorAll<HTMLElement>('.timer')) {
-      t.textContent = formatDuration(Number(t.dataset.until) - this.session.state.time);
-    }
+    tickTimers(this.root, this.session.state.time);
   }
 
   private content(): { key: string; build: () => HTMLElement[] } {
@@ -46,7 +50,7 @@ export class InfoPanel {
     if (ids.length > 1)
       return {
         key: `multi:${ids.join()}`,
-        build: () => [el('h3', {}, `${ids.length} Einheiten ausgewählt`)],
+        build: () => [header(`${ids.length} Einheiten`, 'Auswahl')],
       };
     if (first.building)
       return {

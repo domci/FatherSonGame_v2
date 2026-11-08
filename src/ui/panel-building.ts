@@ -1,109 +1,104 @@
-import { BUILDINGS, buildingLevel } from '../content/buildings';
+import { BUILDINGS, buildingLevel, type BuildingCategory } from '../content/buildings';
 import { RESEARCH_LIST } from '../content/research';
 import { stageSeconds } from '../content/time-curve';
 import { UNITS } from '../content/units';
 import type { Session } from '../app/session';
 import type { Entity } from '../sim/entity';
-import { el } from './dom';
-import { costText } from './format';
+import { thumb } from './build-menu';
+import { action, header, levelPips, progress, section, text } from './panel-kit';
 
-export function timer(until: number): HTMLElement {
-  return el('span', { class: 'timer', 'data-until': String(until) }, '…');
-}
+export { timer } from './panel-kit';
+
+const CATEGORY: Record<BuildingCategory, string> = {
+  command: 'Kommando',
+  energy: 'Energie',
+  mining: 'Abbau',
+  housing: 'Wohnen',
+  processing: 'Verarbeitung',
+  food: 'Nahrung',
+  military: 'Militär',
+  research: 'Forschung',
+  space: 'Raumfahrt',
+};
 
 function upgradeRow(session: Session, e: Entity): HTMLElement | null {
   if (!e.building || e.construction) return null;
   const def = BUILDINGS[e.building.type];
   const next = e.building.level + 1;
-  if (next > def.levels.length) return el('p', { class: 'muted' }, 'Höchste Stufe erreicht.');
-  const time = stageSeconds(def.tier + next - 1) * 1000;
-  const cost = costText(buildingLevel(def, next).cost);
-  return el(
-    'button',
-    {
-      class: 'action',
-      onclick: () => session.command({ type: 'upgrade', player: 'player', entityId: e.id }),
-    },
-    `⬆ Auf Stufe ${next} (${cost}, ${Math.round(time / 60000) || '<1'} Min)`,
-  );
+  if (next > def.levels.length) return text('Höchste Stufe erreicht.', 'p-text muted');
+  return action('arrow-up', `Ausbauen auf Stufe ${next}`, {
+    cost: buildingLevel(def, next).cost,
+    have: session.state.players.player?.resources,
+    timeMs: stageSeconds(def.tier + next - 1) * 1000,
+    onclick: () => session.command({ type: 'upgrade', player: 'player', entityId: e.id }),
+  });
 }
 
-function trainRows(session: Session, e: Entity): HTMLElement[] {
-  if (!e.building || e.building.level < 1) return [];
-  const rows: HTMLElement[] = (BUILDINGS[e.building.type].trains ?? []).map((unit) =>
-    el(
-      'button',
-      {
-        class: 'action',
-        onclick: () => session.command({ type: 'train', player: 'player', buildingId: e.id, unit }),
-      },
-      `➕ ${UNITS[unit].name} (${costText(UNITS[unit].cost)})`,
-    ),
-  );
+function trainRows(session: Session, e: Entity): HTMLElement | null {
+  const trains = e.building ? (BUILDINGS[e.building.type].trains ?? []) : [];
+  if (!e.building || e.building.level < 1 || !trains.length) return null;
+  const rows: HTMLElement[] = [];
   if (e.training) {
+    const u = UNITS[e.training.unit];
     const q = e.training.queue.length;
-    rows.unshift(
-      el(
-        'p',
-        {},
-        `Baut: ${UNITS[e.training.unit].name} – `,
-        timer(e.training.finishAt),
-        q ? ` (+${q} warten)` : '',
-      ),
-    );
+    const label = `${u.name}${q ? ` (+${q} in Warteschlange)` : ''}`;
+    rows.push(progress(label, e.training.finishAt - u.trainSeconds * 1000, e.training.finishAt));
   }
-  return rows;
+  for (const unit of trains)
+    rows.push(
+      action('plus', UNITS[unit].name, {
+        cost: UNITS[unit].cost,
+        have: session.state.players.player?.resources,
+        timeMs: UNITS[unit].trainSeconds * 1000,
+        onclick: () => session.command({ type: 'train', player: 'player', buildingId: e.id, unit }),
+      }),
+    );
+  return section('Einheiten', ...rows);
 }
 
-function researchRows(session: Session, e: Entity): HTMLElement[] {
-  if (e.building?.type !== 'lab' || e.building.level < 1) return [];
+function researchRows(session: Session, e: Entity): HTMLElement | null {
   const player = session.state.players.player;
-  if (!player) return [];
+  if (e.building?.type !== 'lab' || e.building.level < 1 || !player) return null;
   const current = player.research.current;
-  const rows: HTMLElement[] = [el('h4', {}, '🔬 Forschung')];
-  if (current)
+  const rows: HTMLElement[] = [];
+  const cur = current && RESEARCH_LIST.find((r) => r.id === current.id);
+  if (current && cur)
     rows.push(
-      el(
-        'p',
-        {},
-        `Forscht: ${RESEARCH_LIST.find((r) => r.id === current.id)?.name} – `,
-        timer(current.finishAt),
-      ),
+      progress(cur.name, current.finishAt - stageSeconds(cur.stage) * 1000, current.finishAt),
     );
   for (const r of RESEARCH_LIST.filter(
     (x) => !player.research.done.includes(x.id) && x.id !== current?.id,
-  )) {
-    const mins = Math.max(1, Math.round(stageSeconds(r.stage) / 60));
+  ))
     rows.push(
-      el(
-        'button',
-        {
-          class: 'action',
-          title: r.description,
-          onclick: () => session.command({ type: 'research', player: 'player', research: r.id }),
-        },
-        `${r.name} (${costText(r.cost)}, ${mins} Min)`,
-      ),
+      action('flask-round', r.name, {
+        cost: r.cost,
+        have: player.resources,
+        timeMs: stageSeconds(r.stage) * 1000,
+        title: r.description,
+        disabled: !!current,
+        onclick: () => session.command({ type: 'research', player: 'player', research: r.id }),
+      }),
     );
-  }
   if (player.research.done.length)
-    rows.push(el('p', { class: 'muted' }, `Fertig: ${player.research.done.length}`));
-  return rows;
+    rows.push(text(`Schon erforscht: ${player.research.done.length}`, 'p-text muted'));
+  return section('Forschung', ...rows);
 }
 
 export function buildingPanel(session: Session, e: Entity): HTMLElement[] {
   if (!e.building) return [];
   const def = BUILDINGS[e.building.type];
-  const out: HTMLElement[] = [
-    el('h3', {}, `${def.name}`),
-    el('p', { class: 'muted' }, def.description),
+  const out: (HTMLElement | null)[] = [
+    header(def.name, CATEGORY[def.category], thumb(def.id, 'p-thumb')),
+    levelPips(e.building.level, def.levels.length),
+    text(def.description, 'p-text muted'),
   ];
-  out.push(el('p', {}, `Stufe ${e.building.level} von ${def.levels.length}`));
-  if (e.construction)
-    out.push(el('p', { class: 'busy' }, `🛠 Bau läuft – `, timer(e.construction.finishAt)));
-  const up = upgradeRow(session, e);
-  if (up) out.push(up);
-  return [...out, ...trainRows(session, e), ...researchRows(session, e)];
+  const c = e.construction;
+  if (c)
+    out.push(
+      progress(e.building.level === 0 ? 'Wird gebaut' : 'Wird ausgebaut', c.startedAt, c.finishAt),
+    );
+  out.push(upgradeRow(session, e), trainRows(session, e), researchRows(session, e));
+  return out.filter((x): x is HTMLElement => !!x);
 }
 
 /** Changes when the building panel must be rebuilt (not every second). */

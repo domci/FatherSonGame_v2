@@ -1,14 +1,16 @@
 import { findEntity } from '../sim/spawn';
 import type { Session } from './session';
 import type { Projector } from './screen-pos';
+import type { ViewManager } from '../render/view-manager';
 
 /**
  * Small helper for automatic browser tests (Playwright):
  * window.gameDebug.screenOf(x, y) gives the pixel position of a surface point.
  */
-export function exposeDebug(session: Session, project: Projector): void {
+export function exposeDebug(session: Session, project: Projector, views: ViewManager): void {
   const api = {
     session,
+    views,
     screenOf: (x: number, y: number) => project(x, y),
     screenOfEntity: (id: number) => {
       const p = findEntity(session.state, id)?.position;
