@@ -43,6 +43,29 @@ Es kommt zum Krieg, bis eine Seite besiegt ist.
 - **Sieg (Vorschlag):** Alle Haupt-Kuppeln (Kommandozentralen) des Gegners sind zerstört.
 - **Sonnensystem:** bei jeder Partie zufällig neu (aus einer Zahl, dem "Seed").
 
+## Zeit: das Spiel läuft weiter, auch wenn man weg ist
+
+Wie bei Clash of Clans:
+- Bauen, Forschen und Produktion laufen in **echter Zeit**, auch wenn das Spiel zu ist.
+- **Am Anfang schnell** (Sekunden bis Minuten), **später immer langsamer** (Stunden bis Tage).
+- Kämpfe laufen live in Echtzeit, wenn man zuschaut (wie C&C).
+
+Zeit-Kurve (Vorschlag, Werte in Tabellen, leicht änderbar):
+
+| Gebäude-/Forschungs-Stufe | Bauzeit |
+|---|---|
+| 1 | 10–60 Sekunden |
+| 2 | 2–5 Minuten |
+| 3 | 15–30 Minuten |
+| 4 | 1–3 Stunden |
+| 5 | 6–12 Stunden |
+| 6+ | 1–3 Tage |
+
+Regeln (Vorschlag):
+- Anzahl gleichzeitiger Bauaufträge = Anzahl Bau-Drohnen (wie die "Baumeister" in Clash of Clans). Mehr Drohnen kann man sich erarbeiten.
+- **Wissenskristalle** (aus dem Quiz, M5) verkürzen Bau- und Forschungszeit.
+- Für Tests und zum Ausprobieren gibt es einen **Entwickler-Schalter "Zeit x100"**.
+
 ## Ansichten (Zoom)
 
 1. **Sonnensystem:** Sonne in der Mitte, Planeten auf Bahnen, Asteroidenring, Schiffe.
@@ -146,4 +169,4 @@ Vorschlag für unser Spiel:
 3. **Erholungs-Schild:** nach einer schweren Niederlage ein paar Stunden Schutz.
 4. **Urlaubs-Modus:** Basis eingefroren und geschützt, wenn man länger weg ist.
 
-Wichtige offene Frage für M7: Ist Multiplayer eine **Partie** (alle spielen gleichzeitig, wie C&C) oder eine **dauerhafte Welt** (läuft weiter, auch wenn man offline ist, wie OGame/Clash of Clans)? Die Schutz-Regeln passen vor allem zur dauerhaften Welt. Das ändert den Server-Aufbau stark. Entscheidung spätestens vor M7.
+Wegen der langen Bauzeiten ist Multiplayer eine **dauerhafte Welt** (läuft weiter, auch wenn man offline ist, wie OGame/Clash of Clans). Dazu passen die Schutz-Regeln.

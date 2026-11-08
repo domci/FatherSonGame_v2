@@ -80,6 +80,18 @@ export const SOLAR_FIELD = {
 
 Neues Gebäude = neue Tabelle + Modell. Kein neuer Spiel-Code nötig. Balancing ist leicht.
 
+## Zwei Zeit-Arten
+
+Das Spiel hat lange Bauzeiten (bis Tage) und läuft weiter, wenn es zu ist. Darum:
+
+1. **Wirtschafts-Zeit (echte Uhr):** Bauaufträge und Forschung speichern ihren **Endzeitpunkt** (`finishAt`, echte Uhrzeit),
+   nicht "noch 1000 Takte". Produktion = Rate × vergangene Zeit.
+   Beim Laden rechnet das Spiel die Zeit seit dem letzten Speichern in einem Schritt nach ("Aufholen"), auch für die KI.
+2. **Kampf-Zeit (Takte):** Bewegung und Kampf laufen in festen Takten (20/s), nur solange live gespielt wird.
+
+Eine `Clock`-Schnittstelle liefert die Zeit. In Tests und im Entwickler-Modus kann man sie vorspulen oder beschleunigen.
+Später (M7) liefert der Server die Uhrzeit, damit niemand schummelt, indem er die Geräte-Uhr verstellt.
+
 ## Zoom-Ansichten
 
 - **System-Ansicht:** Sonne (TSL-Shader + Bloom), Planeten auf Bahnen, Asteroidenring (Instancing für tausende Steine).

@@ -22,6 +22,7 @@ Ziel: leeres, aber sauberes Projekt. Alles Wichtige wird automatisch geprüft.
 | M0-5 | Veröffentlichung | GitHub Pages Deploy bei Merge auf `main` | Spiel per Link erreichbar |
 | M0-6 | Agenten-Regeln | `CLAUDE.md`/`AGENTS.md` mit Regeln aus 05, Lerntagebuch `docs/learnings.md`, ADR-Ordner | Dateien vorhanden |
 | M0-7 | Spiel-Kern | Game-Loop mit festen Takten, Seed-Zufall, ECS-Welt, Befehls-System (leer) | Tests: gleicher Seed = gleiches Ergebnis |
+| M0-7b | Spiel-Uhr | `Clock`-Schnittstelle: echte Uhr, Test-Uhr, Zeit-Beschleunigung | Tests: Vorspulen um 3 Tage |
 | M0-8 | 3D-Grundgerüst | WebGPURenderer (mit WebGL-Fallback), Kamera, Licht, Bloom, Testobjekt | Screenshot-Test auf Chrome + iPad-Emulation |
 
 ## M1 – Die Landung (Planet und Basis)
@@ -33,7 +34,7 @@ Ziel: Auf einer flachen Bauzone eine Kuppel-Basis bauen, Rohstoffe sammeln, Spin
 | M1-1 | Bauzone | Flache Oberfläche mit Raster, Höhen, Regolith-Look (Poly-Haven-Textur), Sternenhimmel | Screenshot ok, Raster-Tests |
 | M1-2 | Kamera Oberfläche | Verschieben, Zoomen, Drehen: Maus **und** Touch (zwei Finger) | e2e-Test für Maus und Touch |
 | M1-3 | Rohstoff-System | Rohstoff-Konto pro Spieler, Tabellen in `content/` | Unit-Tests Einnahme/Ausgabe |
-| M1-4 | Gebäude platzieren | Befehl `build`, Prüfung Platz/Kosten, Bauzeit, Baustelle | Tests: ungültige Plätze abgelehnt |
+| M1-4 | Gebäude platzieren | Befehl `build`, Prüfung Platz/Kosten, Bauzeit mit `finishAt`, Baustelle, Bauaufträge = Anzahl Drohnen | Tests: ungültige Plätze abgelehnt |
 | M1-5 | Erste Gebäude | Kommando-Kuppel (Wrack), Solarfeld, Regolith-Bagger, Wohn-Kuppel, Lager | Jedes Gebäude produziert laut Tabelle |
 | M1-6 | Energie | Energie aus Sonne, Verbrauch, zu wenig Energie = Gebäude langsamer | Tests Energie-Bilanz |
 | M1-7 | Pinke Flüssigkeit | Quelle, Pumpe, Anlage → Wasser + Sauerstoff | Produktionskette getestet |
@@ -45,6 +46,8 @@ Ziel: Auf einer flachen Bauzone eine Kuppel-Basis bauen, Rohstoffe sammeln, Spin
 | M1-13 | Gebäude-Upgrade | Level 1–3 pro Gebäude | Tests |
 | M1-14 | HUD und Menüs | Rohstoff-Leiste, Bau-Menü, Info-Panel, Touch-tauglich (große Knöpfe) | e2e-Screenshot PC + Tablet |
 | M1-15 | Speichern/Laden | IndexedDB, Auto-Save, Export/Import, Versionsnummer | Test: speichern → laden = gleicher Stand |
+| M1-15b | Offline-Fortschritt | Beim Laden vergangene Zeit nachrechnen (Bau, Forschung, Produktion), Anzeige "Während du weg warst …" | Test: 2 Tage offline = richtiges Ergebnis |
+| M1-15c | Zeit-Kurve | Bau-/Forschungszeiten pro Stufe aus Tabelle (Sekunden → Tage) | Tests Kurve |
 | M1-16 | Hauptmenü | Neues Spiel (Volk: zunächst nur Menschen), Laden, Einstellungen | e2e Durchklick |
 | M1-17 | Grafik-Runde 1 | Glas-Kuppeln mit Spiegelung, Licht, Schatten, Staub-Partikel | Screenshot-Vergleich vorher/nachher |
 
@@ -80,7 +83,7 @@ Ziel: 1 gegen 1 gegen die Alien-KI, Bodenkampf, Sieg oder Niederlage. Man kann a
 | M3-7 | Schildreaktor + Kraftfeld | Kraftfeld-Kuppel und -Wand, braucht Energie, lädt sich auf | Tests |
 | M3-8 | Nebel des Krieges | Man sieht nur, was eigene Einheiten sehen | Tests |
 | M3-9 | KI Wirtschaft | Alien-KI baut Basis auf (nur über Befehle) | Simulations-Test: KI wächst |
-| M3-10 | KI Angriff | KI baut Armee, greift ab und zu an, verteidigt sich | Simulations-Test: KI greift an |
+| M3-10 | KI Angriff | KI baut Armee, greift ab und zu an, verteidigt sich. KI wächst auch offline mit (Aufholen) | Simulations-Test: KI greift an |
 | M3-11 | Landung beim Gegner | Truppen per Transportschiff zum Alien-Planeten bringen | Tests |
 | M3-12 | Sieg/Niederlage | Kommando-Zentrale zerstört = Ende, Endbildschirm | Tests |
 | M3-13 | Volk wählen | Im Menü Menschen oder Aliens wählen | e2e |
@@ -111,7 +114,7 @@ Ziel: 1 gegen 1 gegen die Alien-KI, Bodenkampf, Sieg oder Niederlage. Man kann a
 
 ## M7 – Online (grob)
 
-- Entscheidung: Partie oder dauerhafte Welt (siehe Spieldesign).
+- Dauerhafte Welt (läuft weiter, wenn man offline ist).
 - Server mit Colyseus, Login, Lobby.
 - Simulation läuft auf dem Server, Clients schicken Befehle.
 - Schutz für neue Spieler, Stärke-Bereich für Angriffe.
