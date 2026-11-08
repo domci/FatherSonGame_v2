@@ -1,0 +1,62 @@
+.bars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 7px;
+  border-radius: 4px;
+  background: rgba(5, 8, 16, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+}
+.bar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #3ddc84, #a6ff7a);
+  transition: width 0.15s linear;
+}
+.bar.build > i {
+  background: linear-gradient(90deg, #ff9d2e, #ffd36b);
+}
+.bar.train > i {
+  background: linear-gradient(90deg, #3aa8ff, #9be3ff);
+}
+.bar.hp.low > i {
+  background: linear-gradient(90deg, #ff4d4d, #ff9a6b);
+}
+
+/* Glass look for HUD panels */
+.resources,
+.build-menu,
+.chip,
+.info-panel,
+.toast {
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.build-btn {
+  transition:
+    transform 0.12s,
+    border-color 0.12s,
+    box-shadow 0.12s;
+}
+.build-btn:hover:not(.poor) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(124, 199, 255, 0.25);
+}
+.build-btn.active {
+  transform: translateY(-3px);
+}
+.build-btn.poor {
+  opacity: 0.45;
+  filter: grayscale(0.7);
+}

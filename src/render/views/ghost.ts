@@ -1,6 +1,7 @@
 import { Group, Mesh, BoxGeometry, MeshBasicNodeMaterial } from 'three/webgpu';
 import { BUILDINGS, type BuildingId } from '../../content/buildings';
-import { surfaceHeight, type SurfaceMap } from '../../sim/generation/surface';
+import type { SurfaceMap } from '../../sim/generation/surface';
+import { visualHeight } from '../terrain-shape';
 import { buildModel } from '../models/parts';
 import { HUMAN_BUILDINGS } from '../models/building-specs';
 import type { ViewUi } from './view';
@@ -26,11 +27,7 @@ export class Ghost {
     const size = BUILDINGS[ghost.type].size;
     const cx = ghost.tileX + size / 2;
     const cy = ghost.tileY + size / 2;
-    this.group.position.set(
-      cx - map.size / 2,
-      surfaceHeight(map, cx, cy) + 0.05,
-      cy - map.size / 2,
-    );
+    this.group.position.set(cx - map.size / 2, visualHeight(map, cx, cy) + 0.05, cy - map.size / 2);
     this.box.scale.set(size, 1, size);
     const mat = this.box.material;
     if (mat instanceof MeshBasicNodeMaterial) mat.color.set(ghost.ok ? 0x4cff7a : 0xff4c4c);

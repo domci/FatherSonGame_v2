@@ -4,20 +4,17 @@ import {
   DirectionalLight,
   Fog,
   HemisphereLight,
-  Mesh,
-  MeshBasicNodeMaterial,
   PerspectiveCamera,
   Plane,
   Raycaster,
   Scene,
-  SphereGeometry,
   Vector3,
   type Vector2,
 } from 'three/webgpu';
 import { MapControls } from 'three/addons/controls/MapControls.js';
 import type { SurfaceMap } from '../../sim/generation/surface';
 import type { GameState } from '../../sim/state';
-import { createStars } from '../stars';
+import { createDust, createSky } from './surface-sky';
 import { createTerrain } from './surface-terrain';
 import { SurfaceEntities } from './surface-entities';
 import { Ghost } from './ghost';
@@ -25,21 +22,24 @@ import type { Pick, View, ViewUi } from './view';
 
 const MIN_DIST = 6;
 const MAX_DIST = 42;
+const SUN_DIR = new Vector3(38, 24, 26).normalize();
 
-function lights(scene: Scene): void {
-  const sun = new DirectionalLight(0xfff1dd, 3.2);
-  sun.position.set(30, 40, 18);
+/** Low sun = long, dramatic shadows. Blue fill light from the sky. */
+function createSun(scene: Scene): DirectionalLight {
+  const sun = new DirectionalLight(0xfff0dc, 3.6);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.bias = -0.0005;
+  sun.shadow.normalBias = 0.03;
   const cam = sun.shadow.camera;
-  [cam.left, cam.right, cam.top, cam.bottom] = [-32, 32, 32, -32];
-  scene.add(sun, new HemisphereLight(0x8899bb, 0x3a3028, 0.5), new AmbientLight(0x404a60, 0.4));
-  const disc = new Mesh(
-    new SphereGeometry(6, 24, 12),
-    new MeshBasicNodeMaterial({ color: new Color(4, 3.6, 3) }),
+  [cam.left, cam.right, cam.top, cam.bottom, cam.far] = [-28, 28, 28, -28, 200];
+  scene.add(
+    sun,
+    sun.target,
+    new HemisphereLight(0x6a80b0, 0x2a2420, 0.55),
+    new AmbientLight(0x30384a, 0.35),
   );
-  disc.position.set(300, 380, 180);
-  scene.add(disc);
+  return sun;
 }
 
 export class SurfaceView implements View {
@@ -51,36 +51,39 @@ export class SurfaceView implements View {
   private ghost = new Ghost();
   private ray = new Raycaster();
   private groundPlane = new Plane(new Vector3(0, 1, 0), 0);
+  private sun: DirectionalLight;
 
   constructor(
     private map: SurfaceMap,
     dom: HTMLElement,
   ) {
     this.scene.background = new Color(0x02030a);
-    this.scene.fog = new Fog(0x0a0c14, 60, 140);
-    this.scene.add(createStars(900), createTerrain(map));
-    lights(this.scene);
+    this.scene.fog = new Fog(0x07080d, 55, 130);
+    this.scene.add(createSky(), createTerrain(map), createDust(map.size + 30));
+    this.sun = createSun(this.scene);
     this.entities = new SurfaceEntities(map);
     this.scene.add(this.entities.group, this.ghost.group);
-    this.camera.position.set(0, 26, 22);
+    this.camera.position.set(4, 15, 17);
     this.controls = new MapControls(this.camera, dom);
     Object.assign(this.controls, {
       enableDamping: true,
       minDistance: MIN_DIST,
       maxDistance: MAX_DIST,
-      maxPolarAngle: 1.25,
+      maxPolarAngle: 1.3,
       screenSpacePanning: false,
     });
   }
 
   update(state: GameState, ui: ViewUi, dtMs: number): void {
-    this.entities.update(state, ui.selectedIds, state.time);
+    this.entities.update(state, ui.selectedIds, state.time, dtMs);
     this.ghost.update(this.map, ui.ghost);
     this.controls.update(dtMs / 1000);
     const t = this.controls.target;
     const half = this.map.size / 2;
     t.x = Math.max(-half, Math.min(half, t.x));
     t.z = Math.max(-half, Math.min(half, t.z));
+    this.sun.target.position.copy(t);
+    this.sun.position.copy(t).addScaledVector(SUN_DIR, 60);
   }
 
   pick(_state: GameState, ndc: Vector2): Pick | null {

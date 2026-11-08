@@ -21,11 +21,15 @@ export type MaterialName =
   | 'glowYellow'
   | 'green'
   | 'orange'
-  | 'white';
+  | 'white'
+  | 'window'
+  | 'plant'
+  | 'red'
+  | 'steel';
 
 /** One simple shape of a model. Sizes in tiles. */
 export interface Part {
-  shape: 'box' | 'cyl' | 'dome' | 'sphere' | 'cone' | 'torus';
+  shape: 'box' | 'cyl' | 'dome' | 'sphere' | 'cone' | 'torus' | 'halfcyl';
   /** box: [w, h, d]; cyl/cone: [radius, height]; dome/sphere: [radius]; torus: [radius, tube]. */
   size: number[];
   pos?: [number, number, number];
@@ -43,7 +47,11 @@ const MATERIALS: Record<MaterialName, () => Material> = {
   glowYellow: () => solidMaterial(0xffd36b, { glow: 2.5 }),
   green: () => solidMaterial(0x4caf50, { metal: 0, rough: 0.8 }),
   orange: () => solidMaterial(0xe8873a, { metal: 0.5, rough: 0.5 }),
-  white: () => solidMaterial(0xeeeeee, { metal: 0.3, rough: 0.5 }),
+  white: () => solidMaterial(0xe8eaee, { metal: 0.3, rough: 0.45 }),
+  window: () => solidMaterial(0xffc46b, { glow: 1.8 }),
+  plant: () => solidMaterial(0x58d66a, { glow: 0.35, metal: 0, rough: 0.8 }),
+  red: () => solidMaterial(0xd8402f, { metal: 0.4, rough: 0.5 }),
+  steel: () => solidMaterial(0x7d8794, { metal: 0.9, rough: 0.25 }),
 };
 
 function geometry(p: Part): BufferGeometry {
@@ -61,6 +69,8 @@ function geometry(p: Part): BufferGeometry {
       return new SphereGeometry(a, 24, 16);
     case 'torus':
       return new TorusGeometry(a, b, 12, 32);
+    case 'halfcyl':
+      return new CylinderGeometry(a, a, b, 24, 1, true, 0, Math.PI);
   }
 }
 

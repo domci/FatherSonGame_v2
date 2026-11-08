@@ -13,6 +13,9 @@ import { el } from '../ui/dom';
 import { Session } from './session';
 import { startLoop } from './loop';
 import { wireInput } from './wire-input';
+import { exposeDebug } from './debug';
+import { makeProjector } from './screen-pos';
+import { Bars } from '../ui/bars';
 
 const AUTOSAVE_MS = 2 * 60 * 1000;
 
@@ -53,7 +56,8 @@ export async function startGame(
     openMenu: () => openMenu(root, session, onQuit),
   });
   const parts = [hud, new BuildMenu(session), new InfoPanel(session), new Toasts(session)];
-  root.append(...parts.map((p) => p.root));
+  const bars = new Bars(makeProjector(session, views, canvas));
+  root.append(bars.root, ...parts.map((p) => p.root));
   wireInput(canvas, session, views);
   const resize = (): void => views.resize(root.clientWidth, root.clientHeight);
   window.addEventListener('resize', resize);
@@ -62,10 +66,13 @@ export async function startGame(
     tickMs: TICK_MS,
     speed: () => session.speed,
     tick: () => tick(session.state),
-    frame: (dt) => views.frame(session.state, session.ui, dt),
+    frame: (dt) => {
+      views.frame(session.state, session.ui, dt);
+      bars.update(session.state, session.ui.selectedIds);
+    },
     slow: () => parts.forEach((p) => p.update()),
   });
   startAutosave(session);
-  (window as unknown as { game?: Session }).game = session;
+  exposeDebug(session, makeProjector(session, views, canvas));
   return session;
 }

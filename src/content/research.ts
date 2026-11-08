@@ -25,7 +25,7 @@ export const RESEARCH_LIST: readonly ResearchDef[] = [
     id: 'betterSolar',
     name: 'Bessere Solarzellen',
     description: '+25 % Energie aus Solarfeldern.',
-    cost: { regolith: 150, water: 20 },
+    cost: { regolith: 150 },
     stage: 1,
     labLevel: 1,
   },

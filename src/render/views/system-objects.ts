@@ -1,3 +1,4 @@
+import { textLabel } from './labels';
 import {
   BufferGeometry,
   DodecahedronGeometry,
@@ -50,6 +51,12 @@ export function planetObject(body: Body, isHome: boolean): Group {
       atmosphereMaterial(body.kind === 'gas' ? body.color : 0x88b8ff, 0.8),
     ),
   );
+  const label = textLabel(
+    isHome ? `${body.name} (Heimat)` : body.name,
+    isHome ? '#a6ff7a' : '#e8eef8',
+  );
+  label.position.y = body.radius * 1.25;
+  g.add(label);
   if (isHome) {
     const ring = new Mesh(
       new TorusGeometry(body.radius * 1.6, 0.06, 8, 64),

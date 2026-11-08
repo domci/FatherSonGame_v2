@@ -32,7 +32,7 @@ export const RESOURCE_INFO: Record<ResourceId, ResourceInfo> = {
 
 export const START_RESOURCES: ResourceAmounts = {
   regolith: 400,
-  water: 60,
+  water: 150,
   oxygen: 60,
   food: 120,
 };

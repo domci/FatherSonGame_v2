@@ -4,24 +4,15 @@ import {
   MeshStandardNodeMaterial,
   Color,
 } from 'three/webgpu';
-import {
-  color,
-  mix,
-  mx_fractal_noise_float,
-  mx_noise_float,
-  positionWorld,
-  smoothstep,
-  vec3,
-} from 'three/tsl';
+import { mx_noise_float, positionWorld, vec3, vertexColor } from 'three/tsl';
 
-/** Dusty regolith ground made with noise (no texture files needed). */
+/** Dusty regolith ground: vertex colors (craters, patches) plus fine grain noise. */
 export function groundMaterial(): MeshStandardNodeMaterial {
-  const m = new MeshStandardNodeMaterial({ roughness: 0.95, metalness: 0 });
+  const m = new MeshStandardNodeMaterial({ roughness: 0.97, metalness: 0 });
   const p = positionWorld.xz;
-  const big = mx_fractal_noise_float(vec3(p.mul(0.06), 0), 4, 2, 0.5);
-  const fine = mx_noise_float(vec3(p.mul(1.7), 1));
-  const base = mix(color(0x4a433d), color(0x8a7d6e), smoothstep(-0.5, 0.6, big));
-  m.colorNode = base.mul(fine.mul(0.2).add(0.9));
+  const grain = mx_noise_float(vec3(p.mul(6), 1)).mul(0.08);
+  const pebbles = mx_noise_float(vec3(p.mul(1.6), 2)).mul(0.1);
+  m.colorNode = vertexColor().mul(grain.add(pebbles).add(0.95));
   return m;
 }
 

@@ -1,5 +1,6 @@
 import {
   ACESFilmicToneMapping,
+  PCFSoftShadowMap,
   RenderPipeline,
   WebGPURenderer,
   type Camera,
@@ -37,6 +38,7 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<GameRen
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
   renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = PCFSoftShadowMap;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   await renderer.init();
   const backend = renderer.backend as { isWebGPUBackend?: boolean };

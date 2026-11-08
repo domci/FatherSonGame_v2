@@ -6,14 +6,29 @@ export interface MenuActions {
   importGame(): void;
 }
 
+/** Animated space scene behind the start menu (pure CSS). */
+function menuBackdrop(): HTMLElement {
+  return el(
+    'div',
+    { class: 'backdrop' },
+    el('div', { class: 'stars s1' }),
+    el('div', { class: 'stars s2' }),
+    el('div', { class: 'big-planet' }, el('div', { class: 'surface' })),
+    el('div', { class: 'moon' }),
+    el('div', { class: 'ship-trail' }),
+  );
+}
+
 /** Start screen. */
 export function mainMenu(actions: MenuActions): HTMLElement {
   return el(
     'div',
-    { class: 'overlay menu' },
+    { class: 'overlay menu start' },
+    menuBackdrop(),
     el(
       'div',
       { class: 'card' },
+      el('div', { class: 'kicker' }, 'Notlandung auf einem fremden Planeten'),
       el('h1', {}, 'Bruchlandung'),
       el('p', { class: 'muted' }, 'Ein Weltraum-Strategiespiel'),
       actions.continueGame &&
