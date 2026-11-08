@@ -85,6 +85,7 @@ Ziel: 1 gegen 1 gegen die Alien-KI, Bodenkampf, Sieg oder Niederlage. Man kann a
 | M3-9 | KI Wirtschaft | Alien-KI baut Basis auf (nur über Befehle) | Simulations-Test: KI wächst |
 | M3-10 | KI Angriff | KI baut Armee, greift ab und zu an, verteidigt sich. KI wächst auch offline mit (Aufholen) | Simulations-Test: KI greift an |
 | M3-11 | Landung beim Gegner | Truppen per Transportschiff zum Alien-Planeten bringen | Tests |
+| M3-11b | Offline-Angriffe (Einstellung) | Einstellung "Angriffe, wenn offline" (Standard AUS). Wenn AN: Kampf wird beim Aufholen berechnet + Wiederholung | Tests beide Fälle |
 | M3-12 | Sieg/Niederlage | Kommando-Zentrale zerstört = Ende, Endbildschirm | Tests |
 | M3-13 | Volk wählen | Im Menü Menschen oder Aliens wählen | e2e |
 | M3-14 | Balancing-Lauf | KI gegen KI 100× automatisch, Statistik | Bericht in `docs/` |

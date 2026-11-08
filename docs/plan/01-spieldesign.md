@@ -66,6 +66,10 @@ Regeln (Vorschlag):
 - **Wissenskristalle** (aus dem Quiz, M5) verkürzen Bau- und Forschungszeit.
 - Für Tests und zum Ausprobieren gibt es einen **Entwickler-Schalter "Zeit x100"**.
 
+**Angriffe, wenn man offline ist:** Einstellung pro Spieler.
+- **Standard: AUS.** Wer offline ist, kann nicht angegriffen werden.
+- Wer es einschaltet: Die Basis verteidigt sich allein, danach gibt es eine Wiederholung des Kampfes.
+
 ## Ansichten (Zoom)
 
 1. **Sonnensystem:** Sonne in der Mitte, Planeten auf Bahnen, Asteroidenring, Schiffe.
