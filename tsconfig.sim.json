@@ -1,0 +1,9 @@
+{
+  "//": "Game logic must run without a browser (later also on a server). No DOM types here.",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"]
+  },
+  "include": ["src/sim", "src/content"],
+  "exclude": ["src/**/*.test.ts"]
+}
