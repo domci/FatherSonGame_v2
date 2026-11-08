@@ -3,6 +3,13 @@
 Jedes Arbeitspaket (AP) = **ein Pull Request**, ca. 1–3 Stunden Arbeit für Claude Code.
 Ein AP ist fertig, wenn alle Abnahmekriterien erfüllt sind und CI grün ist (siehe [05-arbeitsweise.md](05-arbeitsweise.md)).
 
+## Status (2026-11-08)
+
+- **M0, M1, M2: gebaut** (Testpause für Dom und Sohn).
+- Abweichungen: Menüs mit einfachem HTML statt Preact (ADR 0001). Noch offen aus M1/M2: Staub-Partikel (M1-17),
+  Minikarte (M2-10, Navigation läuft über Knöpfe und Antippen), FPS-Messung im e2e (M2-4).
+  Tablet-e2e prüft nur den Start (Software-Grafik in CI ist langsam).
+
 M0–M3 sind genau geplant. M4–M7 sind grob und werden vor Start neu geplant (mit dem, was wir bis dahin lernen).
 
 Am Ende jedes Meilensteins: **Testspiel von Dom und Sohn** auf PC und Tablet → Feedback → Anpassungen.
