@@ -1,4 +1,4 @@
-import type { Difficulty } from '../src/content/ai';
+import { DIFFICULTY_NAMES, type Difficulty } from '../src/content/ai';
 import type { Faction } from '../src/content/factions';
 import type { PlayerId } from '../src/sim/entity';
 
@@ -12,14 +12,21 @@ export interface Job {
   seed: number;
   /** People of the side on the home planet ('player'). */
   faction: Faction;
-  player: Difficulty;
+  /** Difficulty of the computer enemy. */
   ai: Difficulty;
+  /** true = the enemy plays at full strength (no level matching). */
+  aiFree: boolean;
+  /** How often the stand-in player thinks (ms). */
+  playerThinkMs: number;
 }
 
 export interface Result extends Job {
   winner?: PlayerId;
   minutes: number;
+  /** Attack waves of the computer enemy. */
   waves: number;
+  /** Game minute of the enemy's first attack. */
+  firstAttack?: number;
   at60: Record<'player' | 'ai', Snapshot>;
   at120: Record<'player' | 'ai', Snapshot>;
 }
@@ -39,60 +46,49 @@ function median(xs: number[]): number {
   return s[Math.floor(s.length / 2)] ?? 0;
 }
 
-const humanSide = (r: Result): 'player' | 'ai' => (r.faction === 'human' ? 'player' : 'ai');
-const alienSide = (r: Result): 'player' | 'ai' => (r.faction === 'human' ? 'ai' : 'player');
-
-function strength(
-  rs: Result[],
-  at: 'at60' | 'at120',
-  side: (r: Result) => 'player' | 'ai',
-): string {
-  const b = avg(rs.map((r) => r[at][side(r)].buildings)).toFixed(1);
-  const a = avg(rs.map((r) => r[at][side(r)].army)).toFixed(1);
-  return `${b} Gebäude, ${a} Kämpfer`;
+function minutes(xs: number[]): string {
+  return xs.length ? `${median(xs).toFixed(0)} min` : '–';
 }
 
-function lengthRows(done: Result[]): string {
-  const lengths = done.map((r) => r.minutes);
-  if (!lengths.length) return '| Spieldauer | – |';
-  return [
-    `| Spieldauer Median | ${median(lengths).toFixed(0)} min |`,
-    `| Spieldauer kürzeste / längste | ${Math.min(...lengths).toFixed(0)} / ${Math.max(...lengths).toFixed(0)} min |`,
-  ].join('\n');
+function levelRow(level: Difficulty, rs: Result[]): string {
+  const player = rs.filter((r) => r.winner === 'player').length;
+  const ai = rs.filter((r) => r.winner === 'ai').length;
+  const attacked = rs.flatMap((r) => (r.firstAttack === undefined ? [] : [r.firstAttack]));
+  return `| ${DIFFICULTY_NAMES[level]} | ${pct(player, rs.length)} | ${pct(ai, rs.length)} | ${pct(rs.length - player - ai, rs.length)} | ${minutes(attacked)} | ${pct(attacked.length, rs.length)} | ${avg(rs.map((r) => r.waves)).toFixed(1)} |`;
 }
 
 function part1(rs: Result[]): string {
+  const levels: Difficulty[] = ['easy', 'normal', 'hard'];
+  return `## Teil 1: Spieler gegen Computer (${rs.length / 3} Partien pro Stufe)
+
+Der „Spieler“ ist ein Computer mit voller Stärke, der aber nur alle 15 s handelt (3× langsamer).
+
+| Stufe | Siege Spieler | Siege Computer | unentschieden | erster Angriff (Median) | Partien mit Angriff | Angriffe pro Partie |
+| --- | --- | --- | --- | --- | --- | --- |
+${levels
+  .map((l) =>
+    levelRow(
+      l,
+      rs.filter((r) => r.ai === l),
+    ),
+  )
+  .join('\n')}
+`;
+}
+
+const humanSide = (r: Result): 'player' | 'ai' => (r.faction === 'human' ? 'player' : 'ai');
+
+function part2(rs: Result[]): string {
   const done = rs.filter((r) => r.winner);
   const humanWins = done.filter((r) => r.winner === humanSide(r)).length;
-  const homeWins = done.filter((r) => r.winner === 'player').length;
-  return `## Teil 1: Normal gegen Normal (${rs.length} Partien)
+  return `## Teil 2: Menschen gegen Aliens (${rs.length} Partien, beide volle Stärke)
 
 | Wert | Zahl |
 | --- | --- |
 | mit Sieger | ${done.length} (${pct(done.length, rs.length)}) |
 | Siege Menschen | ${humanWins} (${pct(humanWins, done.length)}) |
 | Siege Aliens | ${done.length - humanWins} (${pct(done.length - humanWins, done.length)}) |
-| Siege Heimatplanet (mit Spinnen) | ${homeWins} (${pct(homeWins, done.length)}) |
-${lengthRows(done)}
-| Angriffswellen pro Partie (beide Seiten) | ${avg(rs.map((r) => r.waves)).toFixed(1)} |
-
-| Zeit | Menschen | Aliens |
-| --- | --- | --- |
-| 60 min | ${strength(rs, 'at60', humanSide)} | ${strength(rs, 'at60', alienSide)} |
-| 120 min | ${strength(rs, 'at120', humanSide)} | ${strength(rs, 'at120', alienSide)} |
-`;
-}
-
-function part2(rs: Result[]): string {
-  const done = rs.filter((r) => r.winner);
-  const hardWins = done.filter((r) => r.winner === 'player').length;
-  return `## Teil 2: Schwer gegen Leicht (${rs.length} Partien)
-
-| Wert | Zahl |
-| --- | --- |
-| mit Sieger | ${done.length} (${pct(done.length, rs.length)}) |
-| Siege „Schwer“ | ${hardWins} (${pct(hardWins, done.length)}) |
-${lengthRows(done)}
+| Spieldauer Median | ${minutes(done.map((r) => r.minutes))} |
 `;
 }
 
@@ -101,8 +97,7 @@ export function report(all: Result[], info: RunInfo): string {
   return `# Balancing: Computer gegen Computer
 
 Erzeugt mit \`bun tools/balance.ts ${info.games}\` (${Math.round(info.seconds)} s Rechenzeit).
-Beide Seiten spielen mit der Computer-KI. Halbe Partien: Menschen auf dem Heimatplaneten
-(mit Spinnen-Nestern), halbe Partien: Aliens dort.
+Halbe Partien: Menschen auf dem Heimatplaneten (mit Spinnen-Nestern), halbe Partien: Aliens dort.
 Schritt: ${info.stepMs} ms. Höchstens ${info.maxHours} Stunden Spielzeit pro Partie (sonst: unentschieden).
 
 ${part1(all.filter((r) => r.part === 1))}

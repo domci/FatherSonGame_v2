@@ -368,3 +368,10 @@
 .end .p-sub {
   text-align: center;
 }
+.level-row {
+  cursor: default;
+  flex-wrap: wrap;
+}
+.level-row .seg {
+  flex: none;
+}

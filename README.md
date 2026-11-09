@@ -8,7 +8,8 @@ Der komplette Plan steht in [docs/plan/](docs/plan/README.md).
 Meilensteine **M0 bis M3** sind gebaut: Basis auf dem Planeten, Rohstoffe, Spinnenwesen,
 Forschung, Speichern, Sonnensystem mit Zoom und Mining-Schiffen – und jetzt die **Aliens**:
 eine komplette Partie gegen den Computer, mit Truppen, Kampf, Verteidigung, Nebel und Sieg oder Niederlage.
-Man kann als Menschen oder als Aliens spielen.
+Man kann als Menschen oder als Aliens spielen. Nach dem ersten Test: Zoom ohne Schnitte, Glaskuppeln mit Tunneln,
+und ein Computer, der auf eurem Stand bleibt.
 
 ## Lokal starten (einmalig einrichten)
 
@@ -37,26 +38,32 @@ Neue Version holen: `git pull` und dann wieder `bun run dev`.
 ## Kurze Spielanleitung
 
 - **Bauen:** unten ein Gebäude antippen, dann auf den Boden tippen. Grün = passt, rot = passt nicht.
-  Jeder Bau braucht eine freie Bau-Drohne 🛸.
+  Jeder Bau braucht eine freie Bau-Drohne 🛸. Draußen gibt es keine Luft: Jedes Gebäude bekommt einen Tunnel
+  zum nächsten Gebäude, darum höchstens 9 Felder weit weg (Mauern, Kraftfelder und Türme dürfen allein stehen).
 - **Energie ⚡:** Solarfelder bauen. Zu wenig Energie = alles arbeitet langsamer.
 - **Pinke Pumpe** nur auf pinke Quellen, **Diamanten-Bohrer** nur auf Kristalle.
 - **Antippen:** Gebäude oder Einheit antippen zeigt rechts Infos und Knöpfe (Aufleveln, Einheiten bauen, Forschung im Labor).
 - **Jäger** (aus der Jagdstation): antippen, dann Spinne oder Ei antippen = jagen. Gibt Nahrung 🥚.
-- **Zoom:** Mausrad / zwei Finger. Ganz rauszoomen wechselt zu Planet und Sonnensystem. Oder die Knöpfe oben.
+- **Zoom:** Mausrad / zwei Finger, ohne Schnitt vom Boden bis zum ganzen Sonnensystem. Oder die Knöpfe oben.
+  Im Sonnensystem auf einen Planeten zeigen und reinzoomen = zu diesem Planeten fliegen. Die Basis des Feindes
+  seht ihr erst mit der Forschung **Fernradar** (oder wenn eigene Truppen dort sind).
 - **Mining-Schiffe:** Forschung „Raumfahrt“ → Raumhafen bauen → Schiff bauen → in der System-Ansicht ☀️
   einen Planeten oder den Asteroidenring antippen → „Mining-Schiff hierher schicken“.
-- **Volk und Gegner:** Bei „Neues Spiel“ Menschen oder Aliens wählen und wie stark der Computer ist.
+- **Volk und Gegner:** Bei „Neues Spiel“ Menschen oder Aliens wählen und wie stark der Computer ist
+  (Leicht / Mittel / Schwer, auch später im Menü ☰). Der Computer bleibt in der Nähe eures Standes und greift
+  erst an, wenn ihr bereit seid (Leicht: frühestens nach 2 Stunden Spielzeit).
 - **Truppen:** Forschung „Laserwaffen“ → Kaserne (Tab _Militär_) → Raumsoldaten bauen.
   Mit „Panzerung“ und Fahrzeugfabrik gibt es Panzer.
 - **Truppen steuern:** Einheit antippen, dann Boden antippen = hinlaufen (sie kämpfen unterwegs).
-  Feind antippen = angreifen. **Armee** (links) wählt alle Kämpfer. **Rahmen** (links) oder
+  Feind antippen = angreifen. Kommt ein Feind zur Basis, laufen freie Kämpfer von selbst hin.
+  **Armee** (links) wählt alle Kämpfer. **Rahmen** (links) oder
   Shift + Maus ziehen = Rahmen um mehrere Einheiten.
 - **Verteidigung (Tab _Schutz_):** Mauer, Geschützturm, Schildreaktor (Kuppel aus Energie, braucht genug Strom),
   Kraftfeld. Die Kommando-Kuppel hat selbst einen kleinen Laser.
 - **Angriff:** Transportschiff im Raumhafen bauen. Truppen wählen und auf das Schiff tippen = einsteigen.
   Dann „Angriff: zu … fliegen“. **Front** (links) zeigt die Truppen beim Feind, **Basis** bringt euch zurück.
 - **Sieg:** Zerstört die Haupt-Kuppel des Gegners (Brutkern oder Kommando-Kuppel). Verliert ihr eure, ist das Spiel vorbei.
-- **Einstellungen (Menü ☰):** Geräusche, Musik, „Angriffe, auch wenn keiner spielt“ (Standard: aus).
+- **Einstellungen (Menü ☰):** Geräusche, Musik, Stärke des Gegners, „Angriffe, auch wenn keiner spielt“ (Standard: aus).
 - **⏩ x1 / x10 / x100:** Test-Geschwindigkeit, damit man nicht lange warten muss.
 - Das Spiel speichert alle 2 Minuten und läuft weiter, wenn es zu ist.
 

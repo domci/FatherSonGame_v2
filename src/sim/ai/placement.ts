@@ -16,13 +16,14 @@ function hasMargin(blocked: boolean[], size: number, x: number, y: number, s: nu
 /** A free deposit of the right kind (for pumps and drills). */
 function depositSpot(
   state: GameState,
+  owner: PlayerId,
   zone: string,
   type: BuildingId,
 ): { tileX: number; tileY: number } | null {
   const map = state.surfaces[zone];
   for (const d of map?.deposits ?? []) {
     if (d.kind !== BUILDINGS[type].needsDeposit) continue;
-    if (!placementProblem(state, zone, type, d.tileX, d.tileY))
+    if (!placementProblem(state, zone, type, d.tileX, d.tileY, owner))
       return { tileX: d.tileX, tileY: d.tileY };
   }
   return null;
@@ -35,7 +36,7 @@ export function findBuildSpot(
   zone: string,
   type: BuildingId,
 ): { tileX: number; tileY: number } | null {
-  if (BUILDINGS[type].needsDeposit) return depositSpot(state, zone, type);
+  if (BUILDINGS[type].needsDeposit) return depositSpot(state, owner, zone, type);
   const map = state.surfaces[zone];
   const center = coreOf(state, owner)?.position;
   if (!map || !center) return null;
@@ -49,7 +50,7 @@ export function findBuildSpot(
       const tileX = Math.round(center.x + Math.cos(a) * r - size / 2);
       const tileY = Math.round(center.y + Math.sin(a) * r - size / 2);
       if (!hasMargin(blocked, map.size, tileX, tileY, size)) continue;
-      if (!placementProblem(state, zone, type, tileX, tileY)) return { tileX, tileY };
+      if (!placementProblem(state, zone, type, tileX, tileY, owner)) return { tileX, tileY };
     }
   }
   return null;

@@ -36,12 +36,11 @@ async function createViews(
   canvas: HTMLCanvasElement,
   state: GameState,
 ): Promise<ViewManager> {
-  const fade = el('div', { class: 'fade' });
   const loading = loadingScreen();
-  root.replaceChildren(canvas, fade, loading);
+  root.replaceChildren(canvas, loading);
   const [renderer] = await Promise.all([createRenderer(canvas), loadKit()]);
   loading.remove();
-  return new ViewManager(state, renderer, canvas, fade);
+  return new ViewManager(state, renderer, canvas);
 }
 
 /** Connects view changes and planet changes to the session. */
@@ -50,12 +49,11 @@ function linkViews(session: Session, views: ViewManager): void {
     session.ui.view = name;
     session.startPlacing(undefined);
   };
-  session.goZone = (zone) => {
+  views.onZone = (zone) => {
     session.ui.zone = zone;
     session.select([]);
-    views.showZone(session.state, zone, focusPoint(session.state, zone));
-    views.go('surface');
   };
+  session.goZone = (zone) => views.flyTo(zone, focusPoint(session.state, zone));
 }
 
 /** Starts one game: canvas, 3D views, HUD, input, loop and autosave. */

@@ -1,32 +1,24 @@
 # Balancing: Computer gegen Computer
 
-Erzeugt mit `bun tools/balance.ts 100` (362 s Rechenzeit).
-Beide Seiten spielen mit der Computer-KI. Halbe Partien: Menschen auf dem Heimatplaneten
-(mit Spinnen-Nestern), halbe Partien: Aliens dort.
+Erzeugt mit `bun tools/balance.ts 24` (647 s Rechenzeit).
+Halbe Partien: Menschen auf dem Heimatplaneten (mit Spinnen-Nestern), halbe Partien: Aliens dort.
 Schritt: 250 ms. Höchstens 8 Stunden Spielzeit pro Partie (sonst: unentschieden).
 
-## Teil 1: Normal gegen Normal (100 Partien)
+## Teil 1: Spieler gegen Computer (24 Partien pro Stufe)
+
+Der „Spieler“ ist ein Computer mit voller Stärke, der aber nur alle 15 s handelt (3× langsamer).
+
+| Stufe | Siege Spieler | Siege Computer | unentschieden | erster Angriff (Median) | Partien mit Angriff | Angriffe pro Partie |
+| --- | --- | --- | --- | --- | --- | --- |
+| Leicht | 29 % | 0 % | 71 % | 178 min | 75 % | 4.2 |
+| Mittel | 4 % | 8 % | 88 % | 116 min | 100 % | 9.0 |
+| Schwer | 0 % | 92 % | 8 % | 119 min | 100 % | 11.0 |
+
+## Teil 2: Menschen gegen Aliens (24 Partien, beide volle Stärke)
 
 | Wert | Zahl |
 | --- | --- |
-| mit Sieger | 85 (85 %) |
-| Siege Menschen | 44 (52 %) |
-| Siege Aliens | 41 (48 %) |
-| Siege Heimatplanet (mit Spinnen) | 26 (31 %) |
-| Spieldauer Median | 196 min |
-| Spieldauer kürzeste / längste | 147 / 421 min |
-| Angriffswellen pro Partie (beide Seiten) | 11.4 |
-
-| Zeit | Menschen | Aliens |
-| --- | --- | --- |
-| 60 min | 23.0 Gebäude, 10.0 Kämpfer | 22.7 Gebäude, 10.0 Kämpfer |
-| 120 min | 28.1 Gebäude, 7.7 Kämpfer | 28.0 Gebäude, 8.5 Kämpfer |
-
-## Teil 2: Schwer gegen Leicht (20 Partien)
-
-| Wert | Zahl |
-| --- | --- |
-| mit Sieger | 20 (100 %) |
-| Siege „Schwer“ | 18 (90 %) |
-| Spieldauer Median | 215 min |
-| Spieldauer kürzeste / längste | 141 / 278 min |
+| mit Sieger | 6 (25 %) |
+| Siege Menschen | 4 (67 %) |
+| Siege Aliens | 2 (33 %) |
+| Spieldauer Median | 447 min |

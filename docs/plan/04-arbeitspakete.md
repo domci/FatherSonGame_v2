@@ -5,12 +5,14 @@ Ein AP ist fertig, wenn alle Abnahmekriterien erfüllt sind und CI grün ist (si
 
 ## Status (2026-11-09)
 
-- **M0, M1, M2, M3: gebaut** (Testpause für Dom und Sohn).
+- **M0, M1, M2, M3: gebaut.** Erster Test von Dom und Sohn am 2026-11-09, Änderungen danach siehe
+  [ADR 0005](../adr/0005-playtest-m3.md): Zoom ohne Schnitte über alle Planeten, Fernradar für die Feind-Basis,
+  Computer auf eurem Stand (Leicht/Mittel/Schwer), Truppen verteidigen die Basis selbst, Glaskuppeln mit Tunneln.
+  Danach: zweiter Test, dann Planung M4.
 - Abweichungen M3: „Wiederholung“ von Offline-Kämpfen ist ein **Kampf-Bericht** im „Während du weg warst“-Fenster
   (kein Video). Die KI sieht durch den Nebel (sie schummelt, wie in vielen Strategiespielen).
   Spinnen-Nester gibt es nur auf dem Heimatplaneten. Die Kommando-Kuppel hat einen kleinen Laser (gegen frühe Überfälle).
-  Balancing-Bericht: [docs/balance.md](../balance.md): Menschen und Aliens gewinnen gleich oft (52 % / 48 %).
-  Die Seite auf dem Heimatplaneten verliert öfter (Spinnen stören). „Schwer“ schlägt „Leicht“ in 90 %.
+  Balancing-Bericht: [docs/balance.md](../balance.md).
 - Abweichungen: Menüs mit einfachem HTML statt Preact (ADR 0001). Noch offen aus M1/M2: Staub-Partikel (M1-17),
   Minikarte (M2-10, Navigation läuft über Knöpfe und Antippen), FPS-Messung im e2e (M2-4).
   Tablet-e2e prüft nur den Start (Software-Grafik in CI ist langsam).

@@ -1,6 +1,6 @@
 import type { PlayerId } from '../../sim/entity';
 import type { GameState } from '../../sim/state';
-import { visibleTiles } from '../../sim/visibility';
+import { radarSees, visibleTiles } from '../../sim/visibility';
 import { playerStats } from '../../sim/stats';
 import type { Sight } from './surface-entities';
 
@@ -34,7 +34,8 @@ export class SightTracker {
       this.exploredText = text;
       this.explored = decode(text, visible.length);
     }
-    const explored = this.explored.map((v, i) => v | (visible[i] ?? 0));
+    const radar = radarSees(state, 'player', this.zone);
+    const explored = this.explored.map((v, i) => (radar ? 1 : v | (visible[i] ?? 0)));
     this.explored = explored;
     this.sight = { visible, explored, powered: poweredOwners(state) };
     return this.sight;

@@ -11,7 +11,7 @@ import {
   type Material,
   type Object3D,
 } from 'three/webgpu';
-import { glassMaterial, solidMaterial } from '../materials';
+import { domeGlassMaterial, glassMaterial, solidMaterial } from '../materials';
 import { kitModel, remapMaterials, type KitName } from './kit';
 import { alienGlow, bone, chitin, flesh, membrane } from './alien-materials';
 import { tendril } from './shapes';
@@ -20,6 +20,7 @@ export type MaterialName =
   | 'metal'
   | 'dark'
   | 'glass'
+  | 'domeGlass'
   | 'solar'
   | 'glowBlue'
   | 'glowPink'
@@ -89,6 +90,7 @@ const MATERIALS: Record<MaterialName, () => Material> = {
   metal: () => solidMaterial(0xc9ced6, { metal: 0.8, rough: 0.35 }),
   dark: () => solidMaterial(0x3a4048, { metal: 0.7, rough: 0.5 }),
   glass: () => glassMaterial(),
+  domeGlass: () => domeGlassMaterial(),
   solar: () => solidMaterial(0x2a5aa8, { metal: 0.35, rough: 0.3 }),
   glowBlue: () => solidMaterial(0x4fc3ff, { glow: 2.5 }),
   glowPink: () => solidMaterial(0xff5ec4, { glow: 2.5 }),
@@ -147,7 +149,7 @@ function kitMesh(p: KitPart): Object3D {
   return obj;
 }
 
-const SEE_THROUGH: readonly MaterialName[] = ['glass', 'membrane', 'shieldBlue'];
+const SEE_THROUGH: readonly MaterialName[] = ['glass', 'domeGlass', 'membrane', 'shieldBlue'];
 
 function shapeMesh(p: Part): Object3D {
   const mesh = new Mesh(geometry(p), MATERIALS[p.mat]());

@@ -1,14 +1,16 @@
 /**
  * Balancing run: the computer plays against itself (dev tool, not part of the game).
- * Usage: bun tools/balance.ts [games=100] [workers=4]
- * Part 1: `games` games normal vs normal (half humans at home, half aliens).
- * Part 2: games/5 games hard vs easy (does difficulty matter?).
+ * Usage: bun tools/balance.ts [games=30] [workers=4]
+ * Part 1: a stand-in player (computer at full strength, but thinks 3× slower)
+ *         against each difficulty, `games` games each.
+ * Part 2: `games` games full strength against full strength (humans vs aliens).
  * Writes docs/balance.md.
  */
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
-import { AI_TUNING } from '../src/content/ai';
+import { AI_TUNING, type Difficulty } from '../src/content/ai';
 import type { Faction } from '../src/content/factions';
+import { THINK_MS } from '../src/sim/ai/brain';
 import { buildingsOf, isFighter, unitsOf } from '../src/sim/ai/queries';
 import type { PlayerId } from '../src/sim/entity';
 import { createGame } from '../src/sim/game';
@@ -30,27 +32,47 @@ function snapshot(s: GameState): Record<'player' | 'ai', Snapshot> {
 
 function playOne(job: Job): Result {
   const s = createGame({ seed: job.seed, faction: job.faction, time: 0, difficulty: job.ai });
-  const first = AI_TUNING[job.player].firstAttackMs;
-  s.ai.player = { nextThinkAt: 0, nextAttackAt: first, waves: 0, difficulty: job.player };
+  const first = AI_TUNING.normal.firstAttackMs;
+  s.ai.player = { nextThinkAt: 0, nextAttackAt: first, waves: 0, difficulty: 'normal', free: true };
+  s.ai.player.thinkMs = job.playerThinkMs;
+  if (s.ai.ai) s.ai.ai.free = job.aiFree;
   let at60 = snapshot(s);
   let at120 = at60;
+  let firstAttack: number | undefined;
   while (!s.winner && s.time < MAX_HOURS * 60 * MINUTE) {
     economyStep(s, STEP_MS);
     liveStep(s, STEP_MS);
     if (s.time === 60 * MINUTE) at60 = snapshot(s);
     if (s.time === 120 * MINUTE) at120 = snapshot(s);
+    if (firstAttack === undefined && (s.ai.ai?.waves ?? 0) > 0) firstAttack = s.time / MINUTE;
   }
-  const waves = (s.ai.player?.waves ?? 0) + (s.ai.ai?.waves ?? 0);
-  return { ...job, winner: s.winner, minutes: s.time / MINUTE, waves, at60, at120 };
+  const waves = s.ai.ai?.waves ?? 0;
+  return { ...job, winner: s.winner, minutes: s.time / MINUTE, waves, firstAttack, at60, at120 };
 }
 
 function jobs(games: number): Job[] {
   const out: Job[] = [];
   const faction = (i: number): Faction => (i % 2 === 0 ? 'human' : 'alien');
+  const levels: Difficulty[] = ['easy', 'normal', 'hard'];
+  for (const ai of levels)
+    for (let i = 0; i < games; i++)
+      out.push({
+        part: 1,
+        seed: 1000 + i,
+        faction: faction(i),
+        ai,
+        aiFree: false,
+        playerThinkMs: 3 * THINK_MS,
+      });
   for (let i = 0; i < games; i++)
-    out.push({ part: 1, seed: 1000 + i, faction: faction(i), player: 'normal', ai: 'normal' });
-  for (let i = 0; i < Math.max(2, games / 5); i++)
-    out.push({ part: 2, seed: 5000 + i, faction: faction(i), player: 'hard', ai: 'easy' });
+    out.push({
+      part: 2,
+      seed: 5000 + i,
+      faction: faction(i),
+      ai: 'normal',
+      aiFree: true,
+      playerThinkMs: THINK_MS,
+    });
   return out;
 }
 
@@ -87,7 +109,7 @@ async function main(): Promise<void> {
     worker(index ?? 0, count ?? 1, games ?? 1);
     return;
   }
-  const games = Number(process.argv[2] ?? 100);
+  const games = Number(process.argv[2] ?? 30);
   const workers = Number(process.argv[3] ?? 4);
   const started = performance.now();
   const parts = await Promise.all(

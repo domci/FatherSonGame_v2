@@ -61,6 +61,26 @@ test('switch to planet and solar system view', async ({ page }, info) => {
   expect(errors).toEqual([]);
 });
 
+test('zoom out with the wheel from the base to the solar system and back', async ({ page }) => {
+  const errors = await startNewGame(page);
+  const box = await page.locator('canvas').boundingBox();
+  if (!box) throw new Error('no canvas');
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  const on = page.locator('.hud .seg-btn.on');
+  // Few big wheel steps: software rendering makes each frame slow.
+  await page.mouse.wheel(0, 900);
+  await expect(on).toContainText('Planet', { timeout: 30_000 });
+  await page.mouse.wheel(0, 1500);
+  await expect(on).toContainText('System', { timeout: 30_000 });
+  // Back to the planet with the button (wheel-in over the system aims at the planet under the mouse).
+  await page.getByRole('button', { name: /Planet/ }).click();
+  await expect(on).toContainText('Planet', { timeout: 30_000 });
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.wheel(0, -1500);
+  await expect(on).toContainText('Basis', { timeout: 30_000 });
+  expect(errors).toEqual([]);
+});
+
 test('the game saves and can continue', async ({ page }) => {
   await startNewGame(page);
   await page.getByTitle('Menü').click();

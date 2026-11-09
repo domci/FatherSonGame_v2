@@ -20,7 +20,8 @@ export function updateGhost(session: Session, x: number, y: number): void {
   const type = session.ui.placing;
   const tile = tileFor(session, x, y);
   if (!type || !tile) return;
-  const ok = !placementProblem(session.state, session.ui.zone, type, tile.tileX, tile.tileY);
+  const { tileX, tileY } = tile;
+  const ok = !placementProblem(session.state, session.ui.zone, type, tileX, tileY, 'player');
   session.ui.ghost = { type, ...tile, ok };
 }
 

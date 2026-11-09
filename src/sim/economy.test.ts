@@ -64,18 +64,34 @@ describe('building', () => {
   it('needs a free drone for each job', () => {
     const s = newTestGame();
     const zone = homeZone(s);
+    const { tileX, tileY } = s.surfaces[zone]!.landing;
     const place = (x: number) =>
       applyCommand(s, {
         type: 'build',
         player: 'player',
         zone,
         building: 'solarField',
-        tileX: x,
-        tileY: 10,
+        tileX: tileX + x,
+        tileY: tileY + 6,
       });
-    expect(place(10).ok).toBe(true);
-    expect(place(13).ok).toBe(true);
-    expect(place(16)).toEqual({ ok: false, reason: 'Keine freie Bau-Drohne.' });
+    expect(place(-3).ok).toBe(true);
+    expect(place(0).ok).toBe(true);
+    expect(place(3)).toEqual({ ok: false, reason: 'Keine freie Bau-Drohne.' });
+  });
+
+  it('new buildings must be close enough for a tunnel; walls may stand alone', () => {
+    const s = newTestGame();
+    const zone = homeZone(s);
+    const { tileX, tileY } = s.surfaces[zone]!.landing;
+    const far = { type: 'build', player: 'player', zone, tileX: tileX + 16, tileY } as const;
+    expect(applyCommand(s, { ...far, building: 'solarField' }).ok).toBe(false);
+    expect(applyCommand(s, { ...far, building: 'solarField' })).toEqual({
+      ok: false,
+      reason: expect.stringContaining('Tunnel') as string,
+    });
+    expect(applyCommand(s, { ...far, building: 'wall' }).ok).toBe(true);
+    const near = { ...far, tileX: tileX + 10, building: 'solarField' } as const;
+    expect(applyCommand(s, near).ok).toBe(true);
   });
 
   it('rejects blocked places and missing deposits', () => {

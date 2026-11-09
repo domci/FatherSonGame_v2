@@ -4,7 +4,15 @@ import {
   MeshStandardNodeMaterial,
   Color,
 } from 'three/webgpu';
-import { mx_noise_float, positionWorld, vec3, vertexColor } from 'three/tsl';
+import {
+  float,
+  mx_noise_float,
+  normalView,
+  positionWorld,
+  pow,
+  vec3,
+  vertexColor,
+} from 'three/tsl';
 
 /** Dusty regolith ground: vertex colors (craters, patches) plus fine grain noise. */
 export function groundMaterial(): MeshStandardNodeMaterial {
@@ -13,6 +21,24 @@ export function groundMaterial(): MeshStandardNodeMaterial {
   const grain = mx_noise_float(vec3(p.mul(6), 1)).mul(0.08);
   const pebbles = mx_noise_float(vec3(p.mul(1.6), 2)).mul(0.1);
   m.colorNode = vertexColor().mul(grain.add(pebbles).add(0.95));
+  return m;
+}
+
+/**
+ * Light glass for domes and tunnels: almost clear in the middle, shiny at the edges
+ * (cheaper than real transmission, so a whole base of domes stays fast).
+ */
+export function domeGlassMaterial(tint = 0xd6efff): MeshStandardNodeMaterial {
+  const m = new MeshStandardNodeMaterial({
+    color: tint,
+    metalness: 0.2,
+    roughness: 0.04,
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+  });
+  const rim = pow(float(1).sub(normalView.z.abs()), 2.5);
+  m.opacityNode = rim.mul(0.55).add(0.1);
   return m;
 }
 

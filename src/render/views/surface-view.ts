@@ -8,6 +8,7 @@ import {
   Plane,
   Raycaster,
   Scene,
+  Spherical,
   Vector3,
   type Vector2,
 } from 'three/webgpu';
@@ -21,10 +22,13 @@ import { Ghost } from './ghost';
 import { SurfaceEffects } from './surface-effects';
 import { FogOverlay } from './fog-overlay';
 import { SightTracker } from './sight';
+import { TunnelNet } from './tunnel-net';
+import { TunnelPreview } from './tunnel-preview';
 import type { Pick, View, ViewUi } from './view';
+import { surfaceDistance, surfaceTopDown } from '../zoom';
 
-const MIN_DIST = 6;
-const MAX_DIST = 42;
+/** Looking almost straight down (just before the picture fades into space). */
+const TOP_DOWN_PHI = 0.1;
 const SUN_DIR = new Vector3(38, 24, 26).normalize();
 
 /** Low sun = long, dramatic shadows. Blue fill light from the sky. */
@@ -58,6 +62,12 @@ export class SurfaceView implements View {
   private effects: SurfaceEffects;
   private fog: FogOverlay;
   private sight: SightTracker;
+  private tunnels: TunnelNet;
+  private preview: TunnelPreview;
+  private z = 0.45;
+  /** The tilt the player chose (kept while zooming out makes the camera look down). */
+  private userPhi = 0.85;
+  private spherical = new Spherical();
 
   constructor(
     private map: SurfaceMap,
@@ -71,26 +81,38 @@ export class SurfaceView implements View {
     this.effects = new SurfaceEffects(map);
     this.fog = new FogOverlay(map);
     this.sight = new SightTracker(map.bodyId);
+    this.tunnels = new TunnelNet(map);
     this.scene.add(this.entities.group, this.ghost.group, this.effects.group, this.fog.mesh);
+    this.preview = new TunnelPreview(map);
+    this.scene.add(this.tunnels.group, this.preview.mesh);
     this.camera.position.set(4, 15, 17);
     this.controls = new MapControls(this.camera, dom);
     Object.assign(this.controls, {
       enableDamping: true,
-      minDistance: MIN_DIST,
-      maxDistance: MAX_DIST,
+      enableZoom: false,
+      minDistance: 0.1,
+      maxDistance: 10_000,
       maxPolarAngle: 1.3,
       screenSpacePanning: false,
     });
+  }
+
+  /** Zoom value (see zoom.ts): sets the camera distance and, far out, the tilt. */
+  setZoom(z: number): void {
+    this.z = z;
   }
 
   update(state: GameState, ui: ViewUi, dtMs: number): void {
     const sight = this.sight.update(state, dtMs);
     this.fog.update(sight.visible, sight.explored);
     this.entities.update(state, ui.selectedIds, dtMs, sight);
+    this.tunnels.update(state, sight, dtMs);
     this.effects.update(state, sight, dtMs);
     this.ghost.faction = ui.faction;
     this.ghost.update(this.map, ui.ghost);
+    this.preview.update(state, ui.ghost);
     this.controls.update(dtMs / 1000);
+    this.applyZoom();
     const t = this.controls.target;
     const half = this.map.size / 2;
     t.x = Math.max(-half, Math.min(half, t.x));
@@ -130,14 +152,14 @@ export class SurfaceView implements View {
     this.camera.updateProjectionMatrix();
   }
 
-  zoomLevel(): number {
-    const d = this.camera.position.distanceTo(this.controls.target);
-    return (d - MIN_DIST) / (MAX_DIST - MIN_DIST);
-  }
-
-  resetZoom(at: 0 | 1): void {
-    const dir = this.camera.position.clone().sub(this.controls.target).normalize();
-    const dist = at === 1 ? MAX_DIST * 0.95 : 22;
-    this.camera.position.copy(this.controls.target).addScaledVector(dir, dist);
+  private applyZoom(): void {
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    const sp = this.spherical.setFromVector3(offset);
+    const down = surfaceTopDown(this.z);
+    if (down === 0) this.userPhi = sp.phi;
+    else sp.phi = this.userPhi + (TOP_DOWN_PHI - this.userPhi) * down;
+    sp.radius = surfaceDistance(this.z);
+    this.camera.position.copy(this.controls.target).add(offset.setFromSpherical(sp));
+    this.camera.lookAt(this.controls.target);
   }
 }

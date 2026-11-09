@@ -1,126 +1,194 @@
+import { Vector2 } from 'three/webgpu';
 import type { GameState } from '../sim/state';
+import { canViewSurface } from '../sim/visibility';
 import type { GameRenderer } from './renderer';
-import { PlanetView } from './views/planet-view';
+import { SpaceView } from './views/space-view';
 import { SurfaceView } from './views/surface-view';
-import { SystemView } from './views/system-view';
 import type { View, ViewName, ViewUi } from './views/view';
+import { levelOf, spaceShare, Z_MAX, Z_NO_SURFACE, Z_REST } from './zoom';
 
-const ORDER: ViewName[] = ['surface', 'planet', 'system'];
-const LIMIT_HITS = 3;
+/** Zoom per wheel pixel and per pinch pixel. */
+const WHEEL = 0.0014;
+const PINCH = 0.006;
+/** How fast the zoom follows the wheel (per second). */
+const FOLLOW = 7;
+/** A flight to another planet first goes this far out. */
+const FLY_OUT = 2.3;
 
-/** Holds the three zoom levels and switches between them with a short fade. */
+interface Flight {
+  zone: string;
+  focus?: { x: number; y: number };
+}
+
+/**
+ * One continuous zoom from the ground to the whole solar system (see zoom.ts).
+ * Surface and space are two scenes; around the planet level both are drawn and mixed.
+ */
 export class ViewManager {
-  private views: Record<ViewName, View>;
+  readonly space: SpaceView;
   private surfaces = new Map<string, SurfaceView>();
+  private current: SurfaceView;
+  private z = Z_REST.surface;
+  private goal = Z_REST.surface;
+  private focusId: string;
+  private flight?: Flight;
   private activeName: ViewName = 'surface';
-  private limitHits = 0;
   private lastPinch = 0;
+  private state: GameState;
   onChange?: (name: ViewName) => void;
+  /** The planet whose surface is shown below the camera changed. */
+  onZone?: (zone: string) => void;
 
   constructor(
     state: GameState,
     private gr: GameRenderer,
     private canvas: HTMLCanvasElement,
-    private fade: HTMLElement,
   ) {
-    const surface = this.surfaceFor(state, state.system.homeBodyId);
+    this.state = state;
+    this.focusId = state.system.homeBodyId;
+    const surface = this.surfaceFor(this.focusId);
     if (!surface) throw new Error('home surface missing');
-    this.views = {
-      surface,
-      planet: new PlanetView(state.system, canvas),
-      system: new SystemView(state.system, canvas),
-    };
+    this.current = surface;
+    const faction = state.players.player?.faction ?? 'human';
+    this.space = new SpaceView(state.system, faction, canvas);
     this.setActive('surface');
-    canvas.addEventListener('wheel', (e) => this.onWheel(e.deltaY), { passive: true });
+    canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: true });
     canvas.addEventListener('touchmove', (e) => this.onTouch(e), { passive: true });
+    canvas.addEventListener('touchend', () => (this.lastPinch = 0), { passive: true });
   }
 
+  /** The view that taps go to. */
   get active(): View {
-    return this.views[this.activeName];
+    return this.z < 1 ? this.current : this.space;
   }
 
-  go(name: ViewName): void {
-    if (name === this.activeName) return;
-    const outward = ORDER.indexOf(name) > ORDER.indexOf(this.activeName);
-    this.fade.classList.add('on');
-    window.setTimeout(() => {
-      this.setActive(name);
-      this.views[name].resetZoom(outward ? 0 : 1);
-      this.fade.classList.remove('on');
-    }, 180);
-  }
-
-  /** The surface view that shows the planet the player looks at now. */
+  /** The surface view that shows the planet below the camera. */
   get surface(): SurfaceView {
-    return this.views.surface as SurfaceView;
+    return this.current;
+  }
+
+  /** Zooms smoothly to a level (buttons in the HUD). */
+  go(name: ViewName): void {
+    if (name === 'surface' && !this.canLand(this.focusId)) {
+      this.flyTo(this.state.system.homeBodyId);
+      return;
+    }
+    this.goal = Z_REST[name];
+  }
+
+  /** Flies to a planet's surface: out, over to the planet, and down. */
+  flyTo(zone: string, focus?: { x: number; y: number }): void {
+    if (zone === this.focusId || this.z >= FLY_OUT) {
+      this.setFocus(zone, focus);
+      this.goal = this.canLand(zone) ? Z_REST.surface : Z_REST.planet;
+      return;
+    }
+    this.flight = { zone, focus };
+    this.goal = Math.max(this.goal, FLY_OUT + 0.05);
   }
 
   frame(state: GameState, ui: ViewUi, dtMs: number): void {
-    if (ui.zone !== this.surface.zone) this.showZone(state, ui.zone);
-    this.active.update(state, ui, dtMs);
-    this.gr.render(this.active.scene, this.active.camera);
+    this.state = state;
+    this.goal = Math.min(Z_MAX, Math.max(this.minZoom(), this.goal));
+    this.z += (this.goal - this.z) * (1 - Math.exp((-dtMs / 1000) * FOLLOW));
+    if (Math.abs(this.goal - this.z) < 0.001) this.z = this.goal;
+    if (this.flight && this.z >= FLY_OUT) this.land(this.flight);
+    const level = levelOf(this.z);
+    if (level !== this.activeName) this.setActive(level);
+    const share = spaceShare(this.z);
+    if (share < 1) {
+      this.current.setZoom(this.z);
+      this.current.update(state, ui, dtMs);
+    }
+    if (share > 0) {
+      this.space.setZoom(this.z, this.focusId);
+      this.space.update(state, ui, dtMs);
+    }
+    const [a, b] = [this.current, this.space];
+    if (share <= 0) this.gr.render(a.scene, a.camera);
+    else if (share >= 1) this.gr.render(b.scene, b.camera);
+    else this.gr.renderMix(a, b, share);
   }
 
   resize(width: number, height: number): void {
     this.gr.resize(width, height);
     const aspect = width / Math.max(1, height);
-    for (const v of [...Object.values(this.views), ...this.surfaces.values()]) v.resize(aspect);
+    for (const v of [this.space, ...this.surfaces.values()]) v.resize(aspect);
+  }
+
+  private canLand(zone: string): boolean {
+    return canViewSurface(this.state, 'player', zone);
+  }
+
+  private minZoom(): number {
+    return this.canLand(this.focusId) ? 0 : Z_NO_SURFACE;
+  }
+
+  private land(flight: Flight): void {
+    this.flight = undefined;
+    this.setFocus(flight.zone, flight.focus);
+    this.goal = this.canLand(flight.zone) ? Z_REST.surface : Z_REST.planet;
+  }
+
+  /** The planet the camera flies to. Its surface (if any) is the one below the camera. */
+  private setFocus(zone: string, focus?: { x: number; y: number }): void {
+    this.focusId = zone;
+    const next = this.surfaceFor(zone);
+    if (!next) return;
+    if (focus) next.focus(focus.x, focus.y);
+    if (next === this.current) return;
+    this.current.setEnabled(false);
+    this.current = next;
+    next.setEnabled(this.activeName === 'surface');
+    this.onZone?.(zone);
   }
 
   /** One surface view per planet, made when it is first needed. */
-  private surfaceFor(state: GameState, zone: string): SurfaceView | undefined {
+  private surfaceFor(zone: string): SurfaceView | undefined {
     const old = this.surfaces.get(zone);
     if (old) return old;
-    const map = state.surfaces[zone];
+    const map = this.state.surfaces[zone];
     if (!map) return undefined;
     const view = new SurfaceView(map, this.canvas);
+    const { width, height } = this.canvas.getBoundingClientRect();
+    view.resize(width / Math.max(1, height));
     view.setEnabled(false);
     this.surfaces.set(zone, view);
     return view;
   }
 
-  /** Shows another planet's surface; optionally looks at a point there. */
-  showZone(state: GameState, zone: string, focus?: { x: number; y: number }): void {
-    const next = this.surfaceFor(state, zone);
-    if (!next) return;
-    if (next === this.surface) {
-      if (focus) next.focus(focus.x, focus.y);
-      return;
-    }
-    const { width, height } = this.canvas.getBoundingClientRect();
-    next.resize(width / Math.max(1, height));
-    this.surface.setEnabled(false);
-    this.views.surface = next;
-    next.setEnabled(this.activeName === 'surface');
-    if (focus) next.focus(focus.x, focus.y);
-  }
-
   private setActive(name: ViewName): void {
-    for (const [n, v] of Object.entries(this.views)) v.setEnabled(n === name);
     this.activeName = name;
-    this.limitHits = 0;
+    this.current.setEnabled(name === 'surface');
+    this.space.setEnabled(name !== 'surface');
     this.onChange?.(name);
   }
 
-  private step(dir: 1 | -1): void {
-    const level = this.active.zoomLevel();
-    const atLimit = dir > 0 ? level >= 0.97 : level <= 0.03;
-    this.limitHits = atLimit ? this.limitHits + 1 : 0;
-    if (this.limitHits < LIMIT_HITS) return;
-    const next = ORDER[ORDER.indexOf(this.activeName) + dir];
-    if (next) this.go(next);
+  /** Zooming in over the solar system flies to the planet under the mouse. */
+  private onWheel(e: WheelEvent): void {
+    const delta = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+    if (delta === 0) return;
+    if (delta < 0 && this.z >= 2) this.aimAt(e.clientX, e.clientY);
+    this.goal += delta * WHEEL;
   }
 
-  private onWheel(deltaY: number): void {
-    if (deltaY !== 0) this.step(deltaY > 0 ? 1 : -1);
+  private aimAt(x: number, y: number): void {
+    const r = this.canvas.getBoundingClientRect();
+    const ndc = new Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+    const pick = this.space.pick(this.state, ndc);
+    const body = pick?.kind === 'body' && this.state.system.bodies.find((b) => b.id === pick.id);
+    if (body && body.id !== this.focusId) this.setFocus(body.id);
   }
 
   private onTouch(e: TouchEvent): void {
     const [a, b] = [e.touches[0], e.touches[1]];
     if (!a || !b) return;
     const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-    if (this.lastPinch && Math.abs(dist - this.lastPinch) > 4)
-      this.step(dist < this.lastPinch ? 1 : -1);
+    if (this.lastPinch) {
+      if (dist > this.lastPinch && this.z >= 2)
+        this.aimAt((a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+      this.goal += (this.lastPinch - dist) * PINCH;
+    }
     this.lastPinch = dist;
   }
 }

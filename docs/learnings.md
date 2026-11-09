@@ -15,6 +15,17 @@ Short notes when something went wrong or was surprising. Newest on top.
   without `positionNode` for animated units.
 - 2026-11-09: One transport (10 places) capped every AI attack; mirrored AIs never won. The AI now fills all docked
   transports.
+- 2026-11-09 (playtest): An AI that follows its plan at full speed beats a child every time. Level matching works
+  better than fixed timers: the computer may only grow to `lead × player progress + bonus`, and its army and attack
+  waves are a share of the player's strength. A balancing run against a "slow" stand-in player (thinks every 15 s)
+  shows the effect per difficulty.
+- 2026-11-09: Two vitest problems on a busy machine: timing tests and long AI tests hit the 5 s default timeout.
+  `testTimeout: 30_000` in vitest.config.ts; timing limits stay generous.
+- 2026-11-09: Seamless zoom = one zoom value for all levels. Surface and space are two scenes; around the handoff
+  both are rendered and mixed in one `RenderPipeline` (two `pass()` nodes + `mix`). Matching colors (regolith on the
+  planet sphere), a light landing disc and top-down camera make the mix look like one picture.
+- 2026-11-09: A camera 0.05 planet radii above the ground needs a tiny near plane; set `camera.near` from the height.
+- 2026-11-09: Planets turn with their orbit (tidally locked), so the base always has morning light like the surface.
 
 - 2026-11-08: A* bug: diagonal neighbours wrapped around the map edge (x = -1 became the previous row). Always check x and y bounds separately, never only the flat index.
 - 2026-11-08: typescript-eslint 8.72 supports TypeScript only up to 6.0. TypeScript 7 is not used yet.
@@ -33,3 +44,5 @@ Short notes when something went wrong or was surprising. Newest on top.
 - Kenney-Modelle sind "unlit" und liegen nicht im Ursprung. Beim Laden zentrieren und Materialien ersetzen.
 - Sterne, Planeten und Sonne im Himmel brauchen `material.fog = false`, sonst färbt der Nebel sie schwarz.
 - Vite lädt bei neuen Abhängigkeiten die Seite neu: in Playwright erst `networkidle` abwarten, dann auswerten.
+- Playwright `mouse.wheel` wartet auf ein Bild. Mit Software-Rendering wenige große Schritte nutzen, nicht viele
+  kleine. Nach einem Klick auf einen Knopf die Maus wieder über die Zeichenfläche bewegen, sonst geht das Rad an den Knopf.

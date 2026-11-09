@@ -34,8 +34,4 @@ export interface View {
   pick(state: GameState, ndc: Vector2): Pick | null;
   setEnabled(enabled: boolean): void;
   resize(aspect: number): void;
-  /** Camera distance as 0 (closest) .. 1 (farthest). Used to switch views. */
-  zoomLevel(): number;
-  /** Puts the camera at the near (0) or far (1) end of its zoom range. */
-  resetZoom(at: 0 | 1): void;
 }

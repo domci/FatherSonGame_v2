@@ -1,5 +1,7 @@
 import { BUILDINGS, type BuildingId } from '../content/buildings';
+import type { PlayerId } from './entity';
 import type { GameState } from './state';
+import { tunnelReaches } from './tunnels';
 import type { SurfaceMap } from './generation/surface';
 
 /** Grid of blocked tiles (rocks + buildings) for one surface. Index: y * size + x. */
@@ -18,7 +20,7 @@ export function blockedTiles(state: GameState, zone: string): boolean[] {
   return blocked;
 }
 
-export type PlacementProblem = 'outside' | 'blocked' | 'needsDeposit' | null;
+export type PlacementProblem = 'outside' | 'blocked' | 'needsDeposit' | 'tooFar' | null;
 
 function insideMap(map: SurfaceMap, x: number, y: number, size: number): boolean {
   return x >= 0 && y >= 0 && x + size <= map.size && y + size <= map.size;
@@ -47,13 +49,14 @@ function touchesAnyDeposit(map: SurfaceMap, x: number, y: number, size: number):
   );
 }
 
-/** Checks if a building can stand here. null = ok. */
+/** Checks if a building can stand here. null = ok. With `owner`: also the tunnel rule. */
 export function placementProblem(
   state: GameState,
   zone: string,
   type: BuildingId,
   tileX: number,
   tileY: number,
+  owner?: PlayerId,
 ): PlacementProblem {
   const map = state.surfaces[zone];
   const def = BUILDINGS[type];
@@ -63,7 +66,8 @@ export function placementProblem(
     for (let x = tileX; x < tileX + def.size; x++) if (blocked[y * map.size + x]) return 'blocked';
   }
   if (def.needsDeposit) {
-    return coversDeposit(map, def.needsDeposit, tileX, tileY, def.size) ? null : 'needsDeposit';
-  }
-  return touchesAnyDeposit(map, tileX, tileY, def.size) ? 'blocked' : null;
+    if (!coversDeposit(map, def.needsDeposit, tileX, tileY, def.size)) return 'needsDeposit';
+  } else if (touchesAnyDeposit(map, tileX, tileY, def.size)) return 'blocked';
+  if (owner && !tunnelReaches(state, owner, zone, type, tileX, tileY)) return 'tooFar';
+  return null;
 }

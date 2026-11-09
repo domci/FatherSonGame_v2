@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { spawnUnit } from './spawn';
-import { homeZone, newTestGame } from './test-helpers';
-import { canSee, explore, visibleTiles } from './visibility';
+import { homeZone, newBattleGame, newTestGame } from './test-helpers';
+import { canSee, canViewSurface, explore, radarSees, visibleTiles } from './visibility';
 import { tick } from './update';
 
 describe('fog of war', () => {
@@ -35,5 +35,22 @@ describe('fog of war', () => {
     const s = newTestGame();
     for (let i = 0; i < 6; i++) tick(s);
     expect(s.players.player!.explored![homeZone(s)]).toContain('1');
+  });
+
+  it('the enemy planet can be viewed only with own units there or with the radar', () => {
+    const s = newBattleGame();
+    const enemy = s.system.alienBodyId;
+    const other = s.system.bodies.find((b) => b.id !== enemy && b.id !== homeZone(s))!.id;
+    expect(canViewSurface(s, 'player', homeZone(s))).toBe(true);
+    expect(canViewSurface(s, 'player', enemy)).toBe(false);
+    expect(canViewSurface(s, 'player', other)).toBe(false);
+    const scout = spawnUnit(s, 'player', enemy, 'infantry', { x: 3, y: 3 });
+    expect(canViewSurface(s, 'player', enemy)).toBe(true);
+    s.world.remove(scout);
+    expect(radarSees(s, 'player', enemy)).toBe(false);
+    s.players.player!.research.done.push('radar');
+    expect(radarSees(s, 'player', enemy)).toBe(true);
+    expect(canViewSurface(s, 'player', enemy)).toBe(true);
+    expect(radarSees(s, 'player', homeZone(s))).toBe(false);
   });
 });

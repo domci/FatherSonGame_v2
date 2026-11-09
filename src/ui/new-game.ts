@@ -1,9 +1,9 @@
-import { DIFFICULTY_NAMES, type Difficulty } from '../content/ai';
+import type { Difficulty } from '../content/ai';
 import { FACTIONS, type Faction } from '../content/factions';
 import { thumb } from './build-menu';
 import { el } from './dom';
 import { icon } from './icons';
-import { toggleRow } from './menu-kit';
+import { levelPicker, toggleRow } from './menu-kit';
 
 export interface NewGameChoice {
   faction: Faction;
@@ -34,30 +34,12 @@ function factionPicker(choice: NewGameChoice): HTMLElement {
   return el('div', { class: 'faction-row' }, ...cards);
 }
 
-function levelPicker(choice: NewGameChoice): HTMLElement {
-  const levels = (Object.keys(DIFFICULTY_NAMES) as Difficulty[]).map((d) =>
-    el(
-      'button',
-      {
-        class: d === choice.difficulty ? 'seg-btn on' : 'seg-btn',
-        'data-level': d,
-        onclick: () => {
-          choice.difficulty = d;
-          levels.forEach((b) => b.classList.toggle('on', b.dataset.level === d));
-        },
-      },
-      DIFFICULTY_NAMES[d],
-    ),
-  );
-  return el('div', { class: 'panel seg' }, ...levels);
-}
-
 /** Choose people, difficulty and offline attacks before a new game starts. */
 export function newGameDialog(
   onStart: (c: NewGameChoice) => void,
   onBack: () => void,
 ): HTMLElement {
-  const choice: NewGameChoice = { faction: 'human', difficulty: 'normal', offlineAttacks: false };
+  const choice: NewGameChoice = { faction: 'human', difficulty: 'easy', offlineAttacks: false };
   const offline = toggleRow(
     'Angriffe, auch wenn keiner spielt',
     'Aus: Der Feind greift nur an, wenn ihr spielt.',
@@ -85,7 +67,7 @@ export function newGameDialog(
       el('h2', {}, 'Wählt euer Volk'),
       factionPicker(choice),
       el('h4', { class: 'dlg-h' }, 'Gegner'),
-      levelPicker(choice),
+      levelPicker(choice.difficulty, (d) => (choice.difficulty = d)),
       offline,
       buttons,
     ),

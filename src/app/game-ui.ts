@@ -7,7 +7,7 @@ import { Toasts } from '../ui/toasts';
 import { pauseMenu } from '../ui/main-menu';
 import { Bars } from '../ui/bars';
 import { ArmyBar } from '../ui/army-bar';
-import { toggleRow } from '../ui/menu-kit';
+import { levelPicker, toggleRow } from '../ui/menu-kit';
 import { endScreen } from '../ui/end-screen';
 import { otherFaction } from '../content/factions';
 import type { Sound } from '../audio/sound';
@@ -19,6 +19,9 @@ function settingRows(session: Session, sound: Sound): HTMLElement[] {
   return [
     toggleRow('Geräusche', 'Laser, Explosionen, Klicks', sound.sfxOn, () => sound.toggleSfx()),
     toggleRow('Musik', 'Ruhige Klänge, Kampfmusik', sound.musicOn, () => sound.toggleMusic()),
+    levelPicker(session.state.settings.difficulty, (difficulty) =>
+      session.command({ type: 'settings', player: 'player', difficulty }),
+    ),
     toggleRow(
       'Angriffe, auch wenn keiner spielt',
       'Aus: Der Feind greift nur an, wenn ihr spielt.',

@@ -115,18 +115,6 @@ h4 {
   height: 100%;
   display: block;
 }
-.fade {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.18s;
-}
-.fade.on {
-  opacity: 1;
-}
-
 .icon-btn {
   display: inline-grid;
   place-items: center;

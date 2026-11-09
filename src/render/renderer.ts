@@ -6,7 +6,7 @@ import {
   type Camera,
   type Scene,
 } from 'three/webgpu';
-import { pass } from 'three/tsl';
+import { mix, pass, uniform } from 'three/tsl';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 
 export interface GameRenderer {
@@ -14,7 +14,21 @@ export interface GameRenderer {
   /** true = real WebGPU, false = WebGL 2 fallback. */
   webgpu: boolean;
   render(scene: Scene, camera: Camera): void;
+  /** Draws two scenes and mixes them: share 0 = only `a`, 1 = only `b`. */
+  renderMix(a: Shot, b: Shot, share: number): void;
   resize(width: number, height: number): void;
+}
+
+export interface Shot {
+  scene: Scene;
+  camera: Camera;
+}
+
+interface MixEntry {
+  a: Shot;
+  b: Shot;
+  pipeline: RenderPipeline;
+  share: { value: number };
 }
 
 interface PipelineEntry {
@@ -30,6 +44,16 @@ function makePipeline(renderer: WebGPURenderer, scene: Scene, camera: Camera): R
   const pipeline = new RenderPipeline(renderer);
   pipeline.outputNode = color.add(glow);
   return pipeline;
+}
+
+function makeMixPipeline(renderer: WebGPURenderer, a: Shot, b: Shot): MixEntry {
+  const share = uniform(0);
+  const colorA = pass(a.scene, a.camera).getTextureNode('output');
+  const colorB = pass(b.scene, b.camera).getTextureNode('output');
+  const color = mix(colorA, colorB, share);
+  const pipeline = new RenderPipeline(renderer);
+  pipeline.outputNode = color.add(bloom(color, 0.9, 0.4, 0.82));
+  return { a, b, pipeline, share };
 }
 
 /** Creates the WebGPU renderer (falls back to WebGL 2 by itself) with bloom glow. */
@@ -51,10 +75,18 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<GameRen
     }
     return entry.pipeline;
   };
+  const mixes: MixEntry[] = [];
+  const renderMix = (a: Shot, b: Shot, share: number): void => {
+    let entry = mixes.find((m) => m.a.scene === a.scene && m.b.scene === b.scene);
+    if (!entry) mixes.push((entry = makeMixPipeline(renderer, a, b)));
+    entry.share.value = share;
+    entry.pipeline.render();
+  };
   return {
     renderer,
     webgpu: backend.isWebGPUBackend === true,
     render: (scene, camera) => pipelineFor(scene, camera).render(),
+    renderMix,
     resize: (w, h) => renderer.setSize(w, h, false),
   };
 }

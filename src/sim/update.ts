@@ -2,6 +2,7 @@ import { aiSystem } from './ai/brain';
 import { constructionSystem, trainingSystem } from './systems/construction';
 import { combatSystem } from './systems/combat';
 import { defenseSystem } from './systems/defense';
+import { guardSystem } from './systems/guard';
 import { miningSystem } from './systems/mining';
 import { movementSystem } from './systems/movement';
 import { productionSystem } from './systems/production';
@@ -39,6 +40,7 @@ export function economyStep(state: GameState, dtMs: number, opts: StepOptions = 
 export function liveStep(state: GameState, dtMs: number): void {
   movementSystem(state, dtMs);
   spiderSystem(state);
+  guardSystem(state, dtMs);
   combatSystem(state);
   visibilitySystem(state);
 }

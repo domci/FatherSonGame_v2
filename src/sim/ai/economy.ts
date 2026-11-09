@@ -119,12 +119,21 @@ function urgentStep(state: GameState, owner: PlayerId): AiStep | null {
   return null;
 }
 
-/** Works through the build plan. Stops when it has to save up for something. */
-export function runEconomy(state: GameState, owner: PlayerId, maxActions = 2): void {
+/**
+ * Works through the build plan. Stops when it has to save up for something.
+ * `holdBack` = the computer is ahead of its enemy: only urgent needs, no new plan steps.
+ */
+export function runEconomy(
+  state: GameState,
+  owner: PlayerId,
+  maxActions = 2,
+  holdBack = false,
+): void {
   const player = state.players[owner];
   if (!player) return;
   const urgent = urgentStep(state, owner);
-  const steps = urgent ? [urgent, ...AI_PLAN] : AI_PLAN;
+  const plan = holdBack ? [] : AI_PLAN;
+  const steps = urgent ? [urgent, ...plan] : plan;
   let actions = 0;
   for (const step of steps) {
     const outcome = doStep(state, player, step);

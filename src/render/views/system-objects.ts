@@ -1,4 +1,3 @@
-import { textLabel } from './labels';
 import {
   BufferGeometry,
   DodecahedronGeometry,
@@ -12,8 +11,8 @@ import {
   SphereGeometry,
   TorusGeometry,
 } from 'three/webgpu';
-import { BELT_ID, type Body, type SolarSystem } from '../../sim/generation/solar-system';
-import { atmosphereMaterial, planetMaterial, sunMaterial } from '../space-materials';
+import { BELT_ID, type SolarSystem } from '../../sim/generation/solar-system';
+import { atmosphereMaterial, sunMaterial } from '../space-materials';
 import { solidMaterial } from '../materials';
 
 export function orbitLine(radius: number): Line {
@@ -34,37 +33,6 @@ export function sunObject(radius: number): Group {
   const g = new Group();
   g.add(new Mesh(new SphereGeometry(radius, 48, 32), sunMaterial()));
   g.add(new Mesh(new SphereGeometry(radius * 1.35, 48, 32), atmosphereMaterial(0xffa040, 1.4)));
-  return g;
-}
-
-export function planetObject(body: Body, isHome: boolean): Group {
-  const g = new Group();
-  const planet = new Mesh(
-    new SphereGeometry(body.radius, 48, 32),
-    planetMaterial(body, body.radius),
-  );
-  planet.userData.bodyId = body.id;
-  g.add(planet);
-  g.add(
-    new Mesh(
-      new SphereGeometry(body.radius * 1.12, 32, 24),
-      atmosphereMaterial(body.kind === 'gas' ? body.color : 0x88b8ff, 0.8),
-    ),
-  );
-  const label = textLabel(
-    isHome ? `${body.name} (Heimat)` : body.name,
-    isHome ? '#a6ff7a' : '#e8eef8',
-  );
-  label.position.y = body.radius * 1.25;
-  g.add(label);
-  if (isHome) {
-    const ring = new Mesh(
-      new TorusGeometry(body.radius * 1.6, 0.06, 8, 64),
-      solidMaterial(0x7cff6b, { glow: 2 }),
-    );
-    ring.rotation.x = Math.PI / 2;
-    g.add(ring);
-  }
   return g;
 }
 

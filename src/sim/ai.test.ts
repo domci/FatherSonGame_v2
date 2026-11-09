@@ -7,12 +7,20 @@ import { createGame } from './game';
 import { catchUp } from './catch-up';
 import { economyStep, liveStep } from './update';
 import type { GameState } from './state';
+import { progressOf } from './ai/strength';
+import { AI_TUNING } from '../content/ai';
 
 function play(s: GameState, ms: number, step = 5000): void {
   for (let t = 0; t < ms; t += step) {
     economyStep(s, step);
     liveStep(s, step);
   }
+}
+
+/** A computer plays the player side too (a busy human), but never attacks. */
+function playerBot(s: GameState): GameState {
+  s.ai.player = { nextThinkAt: 0, nextAttackAt: Infinity, waves: 0, free: true };
+  return s;
 }
 
 describe('computer enemy', () => {
@@ -28,6 +36,7 @@ describe('computer enemy', () => {
   it('builds up its base only with commands (economy grows)', () => {
     const s = newBattleGame(3);
     s.ai.ai!.nextAttackAt = Infinity;
+    s.ai.ai!.free = true;
     play(s, 90 * MINUTE);
     const types = new Set(buildingsOf(s, 'ai').map((b) => b.building!.type));
     for (const t of ['solarField', 'regolithExcavator', 'lab', 'barracks', 'turret'] as const)
@@ -45,8 +54,19 @@ describe('computer enemy', () => {
     expect(findBuildSpot(s, 'ai', zone, 'pinkPump')).not.toBeNull();
   });
 
-  it('attacks the player with a transport ship after a while', () => {
+  it('stays near the level of a slow player and does not attack a weak one', () => {
     const s = newBattleGame(3);
+    play(s, 4 * HOUR);
+    const t = AI_TUNING.normal;
+    const limit = t.lead * progressOf(s, 'player') + t.leadBonus;
+    // Plus a few urgent things (energy, housing, storage), but far below a free computer.
+    expect(progressOf(s, 'ai')).toBeLessThan(limit + 8);
+    expect(s.ai.ai!.waves).toBe(0);
+    expect(s.winner).toBeUndefined();
+  });
+
+  it('attacks a player at a similar level with a transport ship', () => {
+    const s = playerBot(newBattleGame(3));
     play(s, 3 * HOUR);
     expect(s.ai.ai!.waves).toBeGreaterThanOrEqual(1);
     expect(s.events.some((e) => e.text.includes('feindliches Schiff'))).toBe(true);
@@ -54,7 +74,7 @@ describe('computer enemy', () => {
   });
 
   it('also grows while the game is closed, but does not attack then', () => {
-    const s = newBattleGame(3);
+    const s = playerBot(newBattleGame(3));
     catchUp(s, 4 * HOUR);
     expect(buildingsOf(s, 'ai').length).toBeGreaterThan(15);
     expect(s.ai.ai!.waves).toBe(0);
@@ -62,7 +82,7 @@ describe('computer enemy', () => {
   });
 
   it('with offline attacks on, the fight is calculated while the game is closed', () => {
-    const s = newBattleGame(3);
+    const s = playerBot(newBattleGame(3));
     s.settings.offlineAttacks = true;
     const report = catchUp(s, 4 * HOUR);
     expect(s.ai.ai!.waves).toBeGreaterThanOrEqual(1);

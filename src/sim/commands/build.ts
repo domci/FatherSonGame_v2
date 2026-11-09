@@ -33,6 +33,7 @@ const PLACE_TEXT = {
   outside: 'Das passt nicht auf die Karte.',
   blocked: 'Der Platz ist belegt.',
   needsDeposit: 'Muss genau auf einem passenden Vorkommen stehen.',
+  tooFar: 'Zu weit weg: Ein Tunnel zum nächsten Gebäude ist höchstens 9 Felder lang.',
 } as const;
 
 function freeDrone(state: GameState, owner: PlayerId, zone: string): Entity | undefined {
@@ -81,7 +82,8 @@ export function build(state: GameState, cmd: BuildCommand): CommandResult {
   if (def.unique) return fail('Dieses Gebäude kann man nicht bauen.');
   if (def.requires && !hasResearch(state, cmd.player, def.requires))
     return fail('Erst erforschen.');
-  const problem = placementProblem(state, cmd.zone, cmd.building, cmd.tileX, cmd.tileY);
+  const { zone, building, tileX, tileY } = cmd;
+  const problem = placementProblem(state, zone, building, tileX, tileY, cmd.player);
   if (problem) return fail(PLACE_TEXT[problem]);
   const drone = freeDrone(state, cmd.player, cmd.zone);
   if (!drone) return fail('Keine freie Bau-Drohne.');

@@ -31,6 +31,10 @@ export interface AiState {
   waves: number;
   /** Own difficulty (balancing runs); default: the game setting. */
   difficulty?: Difficulty;
+  /** Balancing runs only: plays at full strength, without the level matching. */
+  free?: boolean;
+  /** Balancing runs only: time between two thoughts (a slower player). */
+  thinkMs?: number;
 }
 
 export interface GameSettings {

@@ -3,6 +3,7 @@ import { UNITS } from '../content/units';
 import type { Session } from '../app/session';
 import type { Entity } from '../sim/entity';
 import { BELT_ID, findBody } from '../sim/generation/solar-system';
+import { canViewSurface } from '../sim/visibility';
 import { el } from './dom';
 import { resourceIcon } from './icons';
 import { action, header, progress, section, stat, text } from './panel-kit';
@@ -106,14 +107,16 @@ export function bodyPanel(session: Session, bodyId: string): HTMLElement[] {
   return [...out, ...shipButtons(session, bodyId)];
 }
 
-/** "Look at the surface": home, or a planet where the player has troops. */
+/** "Look at the surface": home, a planet with own troops, or the enemy home with the radar. */
 function lookButton(session: Session, bodyId: string): HTMLElement[] {
   const s = session.state;
-  const ours = s.world
-    .with('position')
-    .entities.some((e) => e.owner === 'player' && e.zone === bodyId);
-  if (!s.surfaces[bodyId] || (!ours && bodyId !== s.system.homeBodyId)) return [];
-  return [action('eye', 'Oberfläche ansehen', { onclick: () => session.goZone(bodyId) })];
+  if (canViewSurface(s, 'player', bodyId))
+    return [action('eye', 'Oberfläche ansehen', { onclick: () => session.goZone(bodyId) })];
+  if (bodyId === s.players.ai?.homeBodyId)
+    return [
+      text('Die feindliche Basis seht ihr erst mit dem Fernradar (Forschung).', 'p-text muted'),
+    ];
+  return [];
 }
 
 function transportButtons(session: Session, bodyId: string): HTMLElement[] {

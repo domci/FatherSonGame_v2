@@ -37,7 +37,7 @@ export function wireInput(
     const pick = views.active.pick(session.state, ndc);
     if (session.ui.view === 'surface') handleSurfacePick(session, pick, e.shiftKey || e.ctrlKey);
     else if (session.ui.view === 'system') onSystemPick(session, pick);
-    else if (pick) views.go('surface');
+    else if (pick?.kind === 'body') views.flyTo(pick.id);
   };
   listenBox(canvas, document.body, {
     wants: (e) =>

@@ -1,5 +1,7 @@
 import { BUILDINGS } from '../content/buildings';
 import type { Entity, PlayerId } from './entity';
+import { enemyOf } from './names';
+import { hasResearch } from './research-helpers';
 import type { GameState } from './state';
 
 /** How far things see (tiles). */
@@ -75,4 +77,22 @@ export function visibilitySystem(state: GameState): void {
   for (const e of state.world.with('position'))
     if (e.owner === 'player' && e.zone && state.surfaces[e.zone]) zones.add(e.zone);
   for (const zone of zones) explore(state, 'player', zone, visibleTiles(state, 'player', zone));
+}
+
+/** The long-range radar shows the enemy home planet (its buildings) from far away. */
+export function radarSees(state: GameState, owner: PlayerId, zone: string): boolean {
+  const enemyHome = state.players[enemyOf(owner)]?.homeBodyId;
+  return zone === enemyHome && hasResearch(state, owner, 'radar');
+}
+
+/**
+ * May the player zoom down to this surface? Their own home always. Another planet only
+ * with own units there (they see around them), or the enemy home with the radar.
+ */
+export function canViewSurface(state: GameState, owner: PlayerId, zone: string): boolean {
+  if (!state.surfaces[zone]) return false;
+  if (state.players[owner]?.homeBodyId === zone || radarSees(state, owner, zone)) return true;
+  return state.world
+    .with('position')
+    .entities.some((e) => e.owner === owner && e.zone === zone && !e.aboard);
 }
