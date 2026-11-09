@@ -6,19 +6,22 @@ export interface PointerHandlers {
   onHover(ndc: Vector2): void;
 }
 
+/** Screen pixel -> normalized device coordinates (-1..1) of the canvas. */
+export function toNdc(canvas: HTMLCanvasElement, e: PointerEvent): Vector2 {
+  const r = canvas.getBoundingClientRect();
+  return new Vector2(
+    ((e.clientX - r.left) / r.width) * 2 - 1,
+    -((e.clientY - r.top) / r.height) * 2 + 1,
+  );
+}
+
 const MAX_MOVE = 8;
 const MAX_TIME = 450;
 
 /** Turns pointer events into taps (for selecting) without breaking camera drags. */
 export function listenPointer(canvas: HTMLCanvasElement, handlers: PointerHandlers): void {
   let down: { x: number; y: number; t: number; id: number } | null = null;
-  const ndc = (e: PointerEvent): Vector2 => {
-    const r = canvas.getBoundingClientRect();
-    return new Vector2(
-      ((e.clientX - r.left) / r.width) * 2 - 1,
-      -((e.clientY - r.top) / r.height) * 2 + 1,
-    );
-  };
+  const ndc = (e: PointerEvent): Vector2 => toNdc(canvas, e);
   canvas.addEventListener('pointerdown', (e) => {
     down = e.isPrimary
       ? { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId }

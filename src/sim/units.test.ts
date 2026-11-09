@@ -117,6 +117,7 @@ describe('spiders and hunting', () => {
       target: { x: map.size / 2 + 6, y: map.size / 2 + 5 },
     });
     runTicks(s, 100);
-    expect(h.position!.x).toBeCloseTo(map.size / 2 + 5.2, 0);
+    expect(h.position!.x).toBeCloseTo(map.size / 2 + 6, 0);
+    expect(h.position!.y).toBeCloseTo(map.size / 2 + 5, 0);
   });
 });

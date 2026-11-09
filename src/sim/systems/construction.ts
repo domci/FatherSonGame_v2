@@ -1,7 +1,8 @@
 import { BUILDINGS, buildingLevel } from '../../content/buildings';
 import { UNITS } from '../../content/units';
 import { addEvent, nextRandom } from '../game';
-import { findEntity, spawnUnit } from '../spawn';
+import { nameOfBuilding, nameOfUnit } from '../names';
+import { equipBuilding, findEntity, spawnUnit } from '../spawn';
 import type { Entity } from '../entity';
 import type { GameState } from '../state';
 
@@ -12,11 +13,16 @@ function finishConstruction(state: GameState, site: Entity): void {
   site.building.level = level;
   const max = buildingLevel(def, level).hp;
   site.health = { hp: max, max };
+  equipBuilding(state, site);
   const drone = findEntity(state, site.construction.droneId);
   if (drone?.busyWith) state.world.removeComponent(drone, 'busyWith');
   state.world.removeComponent(site, 'construction');
   if (site.owner === 'player') {
-    addEvent(state, `${def.name} fertig${level > 1 ? ` (Stufe ${level})` : ''}.`, 'good');
+    addEvent(
+      state,
+      `${nameOfBuilding(state, site.owner, def.id)} fertig${level > 1 ? ` (Stufe ${level})` : ''}.`,
+      'good',
+    );
   }
 }
 
@@ -35,18 +41,20 @@ function spawnTrained(state: GameState, b: Entity, unit: Entity['unit'] & object
     y: b.position.y + size / 2 + 0.8,
   };
   const e = spawnUnit(state, b.owner, b.zone, unit.type, at);
-  if (unit.type === 'miningShip') {
+  if (unit.type === 'miningShip' || unit.type === 'transport') {
     state.world.addComponent(e, 'ship', {
       phase: 'docked',
       phaseStartAt: state.time,
       phaseEndsAt: state.time,
       cargo: 0,
-      capacity: 100,
+      capacity: unit.type === 'miningShip' ? 100 : 0,
       repeat: false,
+      fromBodyId: b.zone,
     });
     e.position = { ...b.position };
   }
-  if (b.owner === 'player') addEvent(state, `${UNITS[unit.type].name} bereit.`, 'good');
+  if (b.owner === 'player')
+    addEvent(state, `${nameOfUnit(state, b.owner, unit.type)} bereit.`, 'good');
 }
 
 /** Finishes units in training queues. Works for long offline times too. */

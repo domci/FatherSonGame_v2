@@ -15,6 +15,7 @@ import type { GameState } from './sim/state';
 import { loadSave, importSaveFile } from './platform/storage';
 import { startGame } from './app/game-app';
 import { mainMenu } from './ui/main-menu';
+import { newGameDialog, type NewGameChoice } from './ui/new-game';
 import { awayReport } from './ui/away-report';
 import { el } from './ui/dom';
 
@@ -44,12 +45,19 @@ function showError(e: unknown): void {
   root().append(el('div', { class: 'toasts' }, el('div', { class: 'toast bad' }, text)));
 }
 
+function startNew(c: NewGameChoice): void {
+  const state = createGame({ seed: randomSeed(), time: 0, ...c });
+  void play(state).catch(showError);
+}
+
 async function showMenu(): Promise<void> {
   const saved = await loadSave();
   root().replaceChildren(
     mainMenu({
-      newGame: () =>
-        void play(createGame({ seed: randomSeed(), faction: 'human', time: 0 })).catch(showError),
+      newGame: () => {
+        const dialog = newGameDialog(startNew, () => dialog.remove());
+        root().append(dialog);
+      },
       continueGame: saved ? () => void resume(saved).catch(showError) : undefined,
       importGame: () => void importSaveFile().then(resume).catch(showError),
     }),

@@ -1,10 +1,11 @@
 import { World } from 'miniplex';
-import { START_RESOURCES } from '../content/resources';
+import type { Difficulty } from '../content/ai';
+import { FACTIONS } from '../content/factions';
 import type { Entity, PlayerId } from './entity';
 import { generateSolarSystem } from './generation/solar-system';
-import { generateSurface, type SurfaceMap } from './generation/surface';
+import { generateSurface } from './generation/surface';
 import { createRng } from './rng';
-import { spawn, spawnBuilding, spawnUnit } from './spawn';
+import { ensureOpponent, makePlayer, setupBase, setupNests } from './setup';
 import {
   SAVE_VERSION,
   type Faction,
@@ -12,40 +13,19 @@ import {
   type GameState,
   type PlayerState,
 } from './state';
-import { MINUTE } from './clock';
 
 export interface NewGameOptions {
   seed: number;
   faction: Faction;
   /** Game start time in ms. */
   time: number;
+  difficulty?: Difficulty;
+  offlineAttacks?: boolean;
+  /** false = no computer enemy (for economy tests). */
+  opponent?: boolean;
 }
 
-function makePlayer(id: PlayerId, faction: Faction, homeBodyId: string): PlayerState {
-  return { id, faction, resources: { ...START_RESOURCES }, research: { done: [] }, homeBodyId };
-}
-
-function setupLanding(state: GameState, map: SurfaceMap): void {
-  const { tileX, tileY } = map.landing;
-  spawnBuilding(state, 'player', map.bodyId, { type: 'commandDome', tileX, tileY, level: 1 });
-  for (let i = 0; i < 2; i++) {
-    spawnUnit(state, 'player', map.bodyId, 'drone', { x: tileX + 1 + i * 2, y: tileY + 5 });
-  }
-}
-
-function setupNests(state: GameState, map: SurfaceMap): void {
-  for (const n of map.nests) {
-    spawn(state, {
-      owner: 'wild',
-      zone: map.bodyId,
-      position: { ...n },
-      nest: { nextSpawnAt: state.time, nextEggAt: state.time + 3 * MINUTE, maxSpiders: 3 },
-      health: { hp: 600, max: 600 },
-    });
-  }
-}
-
-/** Creates the start of a new game: crash site, two drones, spider nests. */
+/** Creates the start of a new game: crash site, two drones, spider nests and the enemy. */
 export function createGame(options: NewGameOptions): GameState {
   const system = generateSolarSystem(options.seed);
   const home = system.homeBodyId;
@@ -61,10 +41,18 @@ export function createGame(options: NewGameOptions): GameState {
     system,
     surfaces: { [home]: map },
     events: [],
+    settings: {
+      difficulty: options.difficulty ?? 'normal',
+      offlineAttacks: options.offlineAttacks ?? false,
+      opponent: options.opponent !== false,
+    },
+    ai: {},
+    marks: [],
   };
-  setupLanding(state, map);
+  setupBase(state, 'player', map);
   setupNests(state, map);
-  addEvent(state, 'Bruchlandung! Baut eure Basis auf.', 'info');
+  if (state.settings.opponent) ensureOpponent(state);
+  addEvent(state, FACTIONS[options.faction].intro, 'info');
   return state;
 }
 

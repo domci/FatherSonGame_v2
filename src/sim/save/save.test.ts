@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyCommand } from '../commands';
-import { freeSpot, homeZone, newTestGame } from '../test-helpers';
+import { freeSpot, homeZone, newBattleGame, newTestGame } from '../test-helpers';
 import { tick } from '../update';
 import { fromSaveData, toSaveData } from './save';
 
@@ -34,6 +34,28 @@ describe('save and load', () => {
       tick(copy);
     }
     expect(JSON.stringify(copy.world.entities)).toBe(JSON.stringify(s.world.entities));
+  });
+
+  it('loads an old save (version 1) and adds the computer enemy', () => {
+    const s = newTestGame(13);
+    const old = { ...toSaveData(s, 0), version: 1 } as Record<string, unknown>;
+    delete old.settings;
+    delete old.ai;
+    const loaded = fromSaveData(JSON.parse(JSON.stringify(old)));
+    expect(loaded.settings.offlineAttacks).toBe(false);
+    expect(loaded.players.ai?.faction).toBe('alien');
+    expect(loaded.world.with('building').entities.some((b) => b.owner === 'ai')).toBe(true);
+  });
+
+  it('keeps settings, the enemy memory and the winner', () => {
+    const s = newBattleGame(14);
+    s.settings.offlineAttacks = true;
+    s.winner = 'player';
+    const loaded = fromSaveData(JSON.parse(JSON.stringify(toSaveData(s, 0))));
+    expect(loaded.settings.offlineAttacks).toBe(true);
+    expect(loaded.ai).toEqual(s.ai);
+    expect(loaded.winner).toBe('player');
+    expect(loaded.marks).toEqual([]);
   });
 
   it('rejects broken or too new data', () => {

@@ -13,16 +13,29 @@ const PATTERN: Record<Pose, RegExp> = {
   attack: /\|(Shoot|Attack)$/,
 };
 
+/** Exact clip names (after the "|") when the default names do not fit. */
+export type ClipNames = Partial<Record<Pose, string>>;
+
+function findClip(
+  clips: AnimationClip[],
+  pose: Pose,
+  names?: ClipNames,
+): AnimationClip | undefined {
+  const wanted = names?.[pose];
+  if (wanted) return clips.find((c) => c.name.endsWith(`|${wanted}`));
+  return clips.find((c) => PATTERN[pose].test(c.name));
+}
+
 /** Plays the right animation clip (idle, move, attack) with a short cross-fade. */
 export class Animator {
   private mixer: AnimationMixer;
   private actions = new Map<Pose, AnimationAction>();
   private pose?: Pose;
 
-  constructor(root: Object3D, clips: AnimationClip[]) {
+  constructor(root: Object3D, clips: AnimationClip[], names?: ClipNames) {
     this.mixer = new AnimationMixer(root);
     for (const pose of Object.keys(PATTERN) as Pose[]) {
-      const clip = clips.find((c) => PATTERN[pose].test(c.name));
+      const clip = findClip(clips, pose, names);
       if (clip) this.actions.set(pose, this.mixer.clipAction(clip));
     }
     this.mixer.timeScale = 1 + Math.random() * 0.1;

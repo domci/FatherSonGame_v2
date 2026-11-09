@@ -5,7 +5,14 @@ import type { SaveData } from './save';
  * One function per old version: turns version N into N+1.
  * Add a new entry whenever SaveData changes, and a test for it.
  */
-const MIGRATIONS: Record<number, (old: Record<string, unknown>) => Record<string, unknown>> = {};
+const MIGRATIONS: Record<number, (old: Record<string, unknown>) => Record<string, unknown>> = {
+  // M3: settings and the computer enemy. The enemy base is added after loading (ensureOpponent).
+  1: (old) => ({
+    ...old,
+    settings: { difficulty: 'normal', offlineAttacks: false, opponent: true },
+    ai: {},
+  }),
+};
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;

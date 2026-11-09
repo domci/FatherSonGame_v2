@@ -22,6 +22,7 @@ export interface RecallShipCommand {
 export function sendShip(state: GameState, cmd: SendShipCommand): CommandResult {
   const ship = findEntity(state, cmd.shipId);
   if (!ship?.ship || ship.owner !== cmd.player) return fail('Schiff nicht gefunden.');
+  if (ship.unit?.type === 'transport') return fail('Das ist kein Mining-Schiff.');
   if (ship.ship.phase !== 'docked') return fail('Das Schiff ist unterwegs.');
   const home = state.players[cmd.player]?.homeBodyId;
   if (cmd.targetId === home) return fail('Das ist euer Heimatplanet.');

@@ -4,15 +4,16 @@ import { addEvent, nextRandom } from '../game';
 import type { Entity } from '../entity';
 import { findEntity, spawn, spawnUnit } from '../spawn';
 import type { GameState } from '../state';
-import { distanceTo } from './combat';
+import { distanceTo } from './targeting';
 
 const TERRITORY = 9;
 const MAX_EGGS = 4;
 
+/** Things of players (not animals) on this surface. */
 function playerThings(state: GameState, zone: string): Entity[] {
   return state.world
     .with('health', 'position')
-    .entities.filter((e) => e.owner === 'player' && e.zone === zone);
+    .entities.filter((e) => e.owner !== 'wild' && e.zone === zone && !e.aboard);
 }
 
 function nearest(

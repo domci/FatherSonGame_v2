@@ -6,12 +6,15 @@ import { BELT_ID, findBody } from '../sim/generation/solar-system';
 import { el } from './dom';
 import { resourceIcon } from './icons';
 import { action, header, progress, section, stat, text } from './panel-kit';
+import { nameOfUnit } from '../sim/names';
+import { transportRows } from './panel-transport';
 
 const PHASE_TEXT = {
   docked: 'Im Hafen',
   outbound: 'Fliegt hin',
   mining: 'Baut ab',
   returning: 'Fliegt zurück',
+  landed: 'Gelandet',
 } as const;
 
 function targetName(session: Session, id: string | undefined): string {
@@ -22,6 +25,7 @@ function targetName(session: Session, id: string | undefined): string {
 function shipRows(session: Session, e: Entity): HTMLElement[] {
   const ship = e.ship;
   if (!ship) return [];
+  if (e.unit?.type === 'transport') return transportRows(session, e);
   const label = `${PHASE_TEXT[ship.phase]} ${targetName(session, ship.targetBodyId)}`;
   if (ship.phase === 'docked')
     return [text(label), text('Öffnet die System-Ansicht und wählt ein Ziel.', 'p-text muted')];
@@ -35,22 +39,29 @@ function shipRows(session: Session, e: Entity): HTMLElement[] {
   return rows;
 }
 
+const HINTS: Partial<Record<keyof typeof UNITS, string>> = {
+  hunter: 'Tippt auf den Boden zum Laufen, auf eine Spinne oder ein Ei zum Jagen.',
+  infantry:
+    'Tippt auf den Boden: Die Truppe läuft hin und kämpft unterwegs. Tippt auf einen Feind: Angriff!',
+  tank: 'Stark gegen Gebäude. Tippt auf einen Feind: Angriff!',
+};
+
+function ownerLabel(e: Entity): string {
+  if (e.owner === 'wild') return 'Wildes Tier';
+  return e.owner === 'player' ? 'Einheit' : 'Feind';
+}
+
 export function unitPanel(session: Session, e: Entity): HTMLElement[] {
   if (!e.unit) return [];
   const def = UNITS[e.unit.type];
-  const wild = e.owner === 'wild';
-  const out = [header(def.name, wild ? 'Wildes Tier' : 'Einheit')];
+  const out = [header(nameOfUnit(session.state, e.owner, def.id), ownerLabel(e))];
   if (e.health)
     out.push(stat('heart', 'Leben', `${Math.ceil(e.health.hp)} / ${e.health.max}`, '#ff6b81'));
   if (e.attacker) out.push(stat('crosshair', 'Schaden', String(e.attacker.damage), '#ffb35a'));
+  if (def.armor) out.push(stat('shield', 'Panzerung', String(def.armor), '#9fb4cc'));
   if (e.busyWith) out.push(stat('hammer', 'Status', 'Baut gerade', '#ffd25a'));
-  if (e.unit.type === 'hunter' && !wild)
-    out.push(
-      text(
-        'Tippt auf den Boden zum Laufen, auf eine Spinne oder ein Ei zum Jagen.',
-        'p-text muted',
-      ),
-    );
+  const hint = HINTS[def.id];
+  if (hint && e.owner === 'player') out.push(text(hint, 'p-text muted'));
   return [...out, ...shipRows(session, e)];
 }
 
@@ -88,14 +99,43 @@ export function bodyPanel(session: Session, bodyId: string): HTMLElement[] {
   ];
   if (body)
     out.push(stat('sun', 'Sonnenlicht', `${Math.round(body.solarFactor * 100)} %`, '#ffd25a'));
+  out.push(...lookButton(session, bodyId));
   if (bodyId === s.system.homeBodyId) return [...out, text('Euer Heimatplanet', 'p-text good')];
+  if (bodyId === s.players.ai?.homeBodyId)
+    out.push(text('Hier lebt der Feind!', 'p-text bad'), ...transportButtons(session, bodyId));
   return [...out, ...shipButtons(session, bodyId)];
+}
+
+/** "Look at the surface": home, or a planet where the player has troops. */
+function lookButton(session: Session, bodyId: string): HTMLElement[] {
+  const s = session.state;
+  const ours = s.world
+    .with('position')
+    .entities.some((e) => e.owner === 'player' && e.zone === bodyId);
+  if (!s.surfaces[bodyId] || (!ours && bodyId !== s.system.homeBodyId)) return [];
+  return [action('eye', 'Oberfläche ansehen', { onclick: () => session.goZone(bodyId) })];
+}
+
+function transportButtons(session: Session, bodyId: string): HTMLElement[] {
+  const ready = session.state.world
+    .with('ship', 'unit')
+    .entities.filter(
+      (e) => e.owner === 'player' && e.unit.type === 'transport' && e.ship.phase === 'docked',
+    );
+  return ready.map((ship) =>
+    action('plane-takeoff', `Transportschiff #${ship.id} hinschicken`, {
+      onclick: () =>
+        session.command({ type: 'fly', player: 'player', shipId: ship.id, targetId: bodyId }),
+    }),
+  );
 }
 
 function shipButtons(session: Session, bodyId: string): HTMLElement[] {
   const docked = session.state.world
-    .with('ship')
-    .entities.filter((e) => e.owner === 'player' && e.ship.phase === 'docked');
+    .with('ship', 'unit')
+    .entities.filter(
+      (e) => e.owner === 'player' && e.unit.type === 'miningShip' && e.ship.phase === 'docked',
+    );
   if (docked.length === 0)
     return [text('Kein freies Mining-Schiff. Baut eins im Raumhafen.', 'p-text muted')];
   return docked.map((ship) =>

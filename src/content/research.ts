@@ -6,7 +6,11 @@ export type ResearchId =
   | 'diamondDrilling'
   | 'spaceflight'
   | 'efficientMining'
-  | 'cargoBays';
+  | 'cargoBays'
+  | 'lasers'
+  | 'armor'
+  | 'shields'
+  | 'strongLasers';
 
 export interface ResearchDef {
   id: ResearchId;
@@ -70,6 +74,41 @@ export const RESEARCH_LIST: readonly ResearchDef[] = [
     stage: 4,
     labLevel: 2,
     requires: 'spaceflight',
+  },
+  {
+    id: 'lasers',
+    name: 'Lasertechnik',
+    description: 'Schaltet Geschütztürme und die Fahrzeugfabrik frei.',
+    cost: { regolith: 250, diamonds: 5 },
+    stage: 2,
+    labLevel: 1,
+  },
+  {
+    id: 'armor',
+    name: 'Panzerung',
+    description: 'Alle eure Einheiten bekommen +2 Rüstung.',
+    cost: { regolith: 500, diamonds: 20 },
+    stage: 3,
+    labLevel: 2,
+    requires: 'lasers',
+  },
+  {
+    id: 'shields',
+    name: 'Schildtechnik',
+    description: 'Schaltet Schildreaktor und Kraftfeld-Wand frei.',
+    cost: { regolith: 700, diamonds: 35, water: 60 },
+    stage: 3,
+    labLevel: 2,
+    requires: 'lasers',
+  },
+  {
+    id: 'strongLasers',
+    name: 'Starke Laser',
+    description: '+25 % Schaden für Einheiten und Türme.',
+    cost: { regolith: 1200, diamonds: 60, metal: 60 },
+    stage: 4,
+    labLevel: 3,
+    requires: 'lasers',
   },
 ];
 

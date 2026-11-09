@@ -1,6 +1,10 @@
-import { BUILDINGS, buildingLevel, type BuildingId } from '../../content/buildings';
+import {
+  BUILDINGS,
+  buildTimeSeconds,
+  buildingLevel,
+  type BuildingId,
+} from '../../content/buildings';
 import { RESOURCE_INFO } from '../../content/resources';
-import { stageSeconds } from '../../content/time-curve';
 import type { Entity, PlayerId } from '../entity';
 import { getPlayer } from '../game';
 import { placementProblem } from '../occupancy';
@@ -57,7 +61,7 @@ function startConstruction(
 ): void {
   if (!site.building || !site.position) return;
   const def = BUILDINGS[site.building.type];
-  const seconds = stageSeconds(def.tier + targetLevel - 1);
+  const seconds = buildTimeSeconds(def, targetLevel);
   state.world.addComponent(site, 'construction', {
     targetLevel,
     startedAt: state.time,

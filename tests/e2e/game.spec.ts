@@ -1,6 +1,20 @@
 import { expect, test, type Page } from '@playwright/test';
 
-async function startNewGame(page: Page): Promise<string[]> {
+interface Debug {
+  gameDebug: {
+    session: { state: { system: { homeBodyId: string } } };
+    spawnUnit: (
+      s: unknown,
+      owner: string,
+      zone: string,
+      type: string,
+      at: object,
+    ) => { id: number };
+    screenOfEntity: (id: number) => { x: number; y: number } | null;
+  };
+}
+
+async function startNewGame(page: Page, faction: 'human' | 'alien' = 'human'): Promise<string[]> {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
@@ -8,6 +22,8 @@ async function startNewGame(page: Page): Promise<string[]> {
   });
   await page.goto('/');
   await page.getByRole('button', { name: /Neues Spiel/ }).click();
+  await page.locator(`[data-faction=${faction}]`).click();
+  await page.getByRole('button', { name: /Los geht/ }).click();
   // The HUD appears after the loading screen (renderer + 3D models).
   await expect(page.locator('.hud')).toBeVisible({ timeout: 60_000 });
   await page.waitForTimeout(2500);
@@ -53,4 +69,38 @@ test('the game saves and can continue', async ({ page }) => {
   await page.getByRole('button', { name: /Weiterspielen/ }).click();
   // The HUD appears after the loading screen (renderer + 3D models).
   await expect(page.locator('.hud')).toBeVisible({ timeout: 60_000 });
+});
+
+test('play as aliens: alien names in the build bar', async ({ page }) => {
+  const errors = await startNewGame(page, 'alien');
+  await expect(page.locator('.build-bar')).toContainText('Lichtsammler');
+  await page.getByRole('button', { name: /Militär/ }).click();
+  await expect(page.locator('.build-bar')).toContainText('Kriegerbrut');
+  expect(errors).toEqual([]);
+});
+
+test('select troops with a box (Shift + drag)', async ({ page }) => {
+  await startNewGame(page);
+  const points = await page.evaluate(() => {
+    const d = (window as unknown as Debug).gameDebug;
+    const s = d.session.state as unknown as {
+      system: { homeBodyId: string };
+      surfaces: Record<string, { size: number }>;
+    };
+    const zone = s.system.homeBodyId;
+    const c = (s.surfaces[zone]?.size ?? 64) / 2;
+    const ids = [0, 1, 2].map(
+      (i) => d.spawnUnit(s, 'player', zone, 'infantry', { x: c + 9 + i, y: c + 2 }).id,
+    );
+    return ids.map((id) => d.screenOfEntity(id));
+  });
+  const xs = points.map((p) => p?.x ?? 0);
+  const ys = points.map((p) => p?.y ?? 0);
+  await page.keyboard.down('Shift');
+  await page.mouse.move(Math.min(...xs) - 40, Math.min(...ys) - 40);
+  await page.mouse.down();
+  await page.mouse.move(Math.max(...xs) + 40, Math.max(...ys) + 40, { steps: 6 });
+  await page.mouse.up();
+  await page.keyboard.up('Shift');
+  await expect(page.locator('.info-panel')).toContainText('3 Einheiten');
 });

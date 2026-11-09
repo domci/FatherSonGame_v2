@@ -20,13 +20,7 @@ export function updateGhost(session: Session, x: number, y: number): void {
   const type = session.ui.placing;
   const tile = tileFor(session, x, y);
   if (!type || !tile) return;
-  const ok = !placementProblem(
-    session.state,
-    session.state.system.homeBodyId,
-    type,
-    tile.tileX,
-    tile.tileY,
-  );
+  const ok = !placementProblem(session.state, session.ui.zone, type, tile.tileX, tile.tileY);
   session.ui.ghost = { type, ...tile, ok };
 }
 
@@ -34,7 +28,7 @@ function place(session: Session, x: number, y: number): void {
   const type = session.ui.placing;
   const tile = tileFor(session, x, y);
   if (!type || !tile) return;
-  const zone = session.state.system.homeBodyId;
+  const zone = session.ui.zone;
   if (session.command({ type: 'build', player: 'player', zone, building: type, ...tile }))
     session.startPlacing(undefined);
 }
@@ -46,9 +40,14 @@ function selectedUnits(session: Session): number[] {
 function onEntity(session: Session, id: number, additive: boolean): void {
   const target = findEntity(session.state, id);
   if (!target) return;
-  const units = selectedUnits(session);
+  const units = selectedUnits(session).filter((u) => u !== id);
   if (target.owner !== 'player' && units.length > 0) {
     session.command({ type: 'attack', player: 'player', unitIds: units, targetId: id });
+    return;
+  }
+  if (target.unit?.type === 'transport' && target.owner === 'player' && units.length > 0) {
+    if (session.command({ type: 'board', player: 'player', shipId: id, unitIds: units }))
+      session.select([id]);
     return;
   }
   if (additive && target.unit && target.owner === 'player') session.select([...units, id]);

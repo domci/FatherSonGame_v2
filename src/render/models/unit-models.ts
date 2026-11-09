@@ -1,29 +1,46 @@
-import { Group, type Object3D } from 'three/webgpu';
+import { Group, type Material, type Object3D } from 'three/webgpu';
+import type { Faction } from '../../content/factions';
 import type { UnitId } from '../../content/units';
-import { kitModel, kitModelWithHeight, type KitName } from './kit';
-import { buildModel } from './parts';
+import { ALIEN_KIT } from './alien-materials';
+import { kitModelWithHeight, remapMaterials } from './kit';
+import { buildModel, partMaterial } from './parts';
 import { spiderModel } from './spider-model';
+import { UNIT_LOOKS, type UnitLook } from './unit-looks';
+import { horns, pod, ribs } from './alien-helpers';
 
-/** Which kit model (with animations) each unit uses. */
-export const UNIT_KIT: Partial<Record<UnitId, KitName>> = {
-  drone: 'robot_flyer',
-  hunter: 'robot_gunner',
-};
+export function lookOf(type: UnitId, faction: Faction): UnitLook | undefined {
+  return UNIT_LOOKS[faction][type];
+}
 
-const HEIGHT: Partial<Record<UnitId, number>> = { drone: 0.55, hunter: 0.75 };
+/** The living ship of the aliens (no kit model fits). */
+function sporeShip(): Group {
+  const g = buildModel([
+    pod(0, 0, 0.32, 0.5, 'chitin'),
+    ...ribs(0, 0, 0.33, [0.15, 0.3]),
+    { shape: 'sphere', size: [0.12], pos: [0, 0.32, 0.22], mat: 'glowGreen' },
+    ...horns(4, 0.22, 0.35, 'chitinLight', 0.2),
+    { shape: 'sphere', size: [0.2], scale: [1, 0.4, 1], pos: [0, 0.02, 0], mat: 'glowGreen' },
+  ]);
+  g.scale.setScalar(1.3);
+  return g;
+}
 
-export function unitModel(type: UnitId): Object3D {
+function paint(obj: Object3D, look: UnitLook): void {
+  const map: Partial<Record<string, () => Material>> = look.alienPaint ? { ...ALIEN_KIT } : {};
+  for (const [from, to] of Object.entries(look.mats ?? {}))
+    if (to) map[from] = () => partMaterial(to);
+  remapMaterials(obj, map);
+}
+
+export function unitModel(type: UnitId, faction: Faction = 'human'): Object3D {
   if (type === 'spider') return spiderModel();
-  if (type === 'miningShip') {
-    const g = new Group();
-    const ship = kitModel('craft_miner');
-    ship.scale.setScalar(0.42);
-    g.add(ship);
-    return g;
-  }
-  const kit = UNIT_KIT[type];
+  if (type === 'transport' && faction === 'alien') return sporeShip();
+  const look = lookOf(type, faction);
   const g = new Group();
-  if (kit) g.add(kitModelWithHeight(kit, HEIGHT[type] ?? 0.6));
+  if (!look) return g;
+  const model = kitModelWithHeight(look.kit, look.height);
+  paint(model, look);
+  g.add(model);
   return g;
 }
 

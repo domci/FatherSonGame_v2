@@ -18,6 +18,9 @@ import { createDust, createSky } from './surface-sky';
 import { createTerrain } from './surface-terrain';
 import { SurfaceEntities } from './surface-entities';
 import { Ghost } from './ghost';
+import { SurfaceEffects } from './surface-effects';
+import { FogOverlay } from './fog-overlay';
+import { SightTracker } from './sight';
 import type { Pick, View, ViewUi } from './view';
 
 const MIN_DIST = 6;
@@ -52,6 +55,9 @@ export class SurfaceView implements View {
   private ray = new Raycaster();
   private groundPlane = new Plane(new Vector3(0, 1, 0), 0);
   private sun: DirectionalLight;
+  private effects: SurfaceEffects;
+  private fog: FogOverlay;
+  private sight: SightTracker;
 
   constructor(
     private map: SurfaceMap,
@@ -62,7 +68,10 @@ export class SurfaceView implements View {
     this.scene.add(createSky(), createTerrain(map), createDust(map.size + 30));
     this.sun = createSun(this.scene);
     this.entities = new SurfaceEntities(map);
-    this.scene.add(this.entities.group, this.ghost.group);
+    this.effects = new SurfaceEffects(map);
+    this.fog = new FogOverlay(map);
+    this.sight = new SightTracker(map.bodyId);
+    this.scene.add(this.entities.group, this.ghost.group, this.effects.group, this.fog.mesh);
     this.camera.position.set(4, 15, 17);
     this.controls = new MapControls(this.camera, dom);
     Object.assign(this.controls, {
@@ -75,7 +84,11 @@ export class SurfaceView implements View {
   }
 
   update(state: GameState, ui: ViewUi, dtMs: number): void {
-    this.entities.update(state, ui.selectedIds, state.time, dtMs);
+    const sight = this.sight.update(state, dtMs);
+    this.fog.update(sight.visible, sight.explored);
+    this.entities.update(state, ui.selectedIds, dtMs, sight);
+    this.effects.update(state, sight, dtMs);
+    this.ghost.faction = ui.faction;
     this.ghost.update(this.map, ui.ghost);
     this.controls.update(dtMs / 1000);
     const t = this.controls.target;
@@ -94,6 +107,18 @@ export class SurfaceView implements View {
     const p = this.ray.ray.intersectPlane(this.groundPlane, new Vector3());
     if (!p) return null;
     return { kind: 'ground', x: p.x + this.map.size / 2, y: p.z + this.map.size / 2 };
+  }
+
+  /** Moves the camera to look at a surface point (tile coordinates). */
+  focus(x: number, y: number): void {
+    const half = this.map.size / 2;
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    this.controls.target.set(x - half, 0, y - half);
+    this.camera.position.copy(this.controls.target).add(offset);
+  }
+
+  get zone(): string {
+    return this.map.bodyId;
   }
 
   setEnabled(enabled: boolean): void {

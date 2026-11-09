@@ -5,6 +5,29 @@ import { icon } from './icons';
 import { header, tickTimers } from './panel-kit';
 import { buildingKey, buildingPanel } from './panel-building';
 import { bodyPanel, unitPanel, wildPanel } from './panel-other';
+import { boardButtons } from './panel-transport';
+import { text } from './panel-kit';
+import { nameOfUnit } from '../sim/names';
+import type { UnitId } from '../content/units';
+
+/** Several selected units: how many of each kind, and what they can do together. */
+function multiPanel(session: Session, ids: number[]): HTMLElement[] {
+  const counts = new Map<UnitId, number>();
+  for (const id of ids) {
+    const type = findEntity(session.state, id)?.unit?.type;
+    if (type) counts.set(type, (counts.get(type) ?? 0) + 1);
+  }
+  const list = [...counts].map(([t, n]) => `${n}× ${nameOfUnit(session.state, 'player', t)}`);
+  return [
+    header(`${ids.length} Einheiten`, 'Auswahl'),
+    text(list.join(', ')),
+    text(
+      'Tippt auf den Boden zum Laufen (sie kämpfen unterwegs) oder auf einen Feind.',
+      'p-text muted',
+    ),
+    ...boardButtons(session, ids),
+  ];
+}
 
 /** Right side panel: details and actions for what is selected. */
 export class InfoPanel {
@@ -48,10 +71,7 @@ export class InfoPanel {
     const first = ids[0] === undefined ? undefined : findEntity(s.state, ids[0]);
     if (!first) return { key: 'none', build: () => [] };
     if (ids.length > 1)
-      return {
-        key: `multi:${ids.join()}`,
-        build: () => [header(`${ids.length} Einheiten`, 'Auswahl')],
-      };
+      return { key: `multi:${ids.join()}:${ships}`, build: () => multiPanel(s, ids) };
     if (first.building)
       return {
         key: `b:${first.id}:${buildingKey(s, first)}`,

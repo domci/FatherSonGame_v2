@@ -6,7 +6,13 @@ import { BUILDINGS } from '../content/buildings';
 import { placementProblem } from './occupancy';
 
 /** Helpers for tests only. */
+/** A game without the computer enemy (economy tests). */
 export function newTestGame(seed = 1): GameState {
+  return createGame({ seed, faction: 'human', time: 0, opponent: false });
+}
+
+/** A full game with the computer enemy. */
+export function newBattleGame(seed = 1): GameState {
   return createGame({ seed, faction: 'human', time: 0 });
 }
 

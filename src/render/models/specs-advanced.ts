@@ -1,10 +1,11 @@
 import type { BuildingId } from '../../content/buildings';
 import type { ModelPart } from './parts';
 import { cornerLights, pad, ringOfLights, row } from './specs-helpers';
+import type { MilitaryId } from './specs-military';
 
 type Advanced = Exclude<
   BuildingId,
-  'commandDome' | 'solarField' | 'regolithExcavator' | 'habitatDome' | 'storage'
+  'commandDome' | 'solarField' | 'regolithExcavator' | 'habitatDome' | 'storage' | MilitaryId
 >;
 
 const Y = 0.1;

@@ -1,0 +1,102 @@
+/**
+ * Balancing run: the computer plays against itself (dev tool, not part of the game).
+ * Usage: bun tools/balance.ts [games=100] [workers=4]
+ * Part 1: `games` games normal vs normal (half humans at home, half aliens).
+ * Part 2: games/5 games hard vs easy (does difficulty matter?).
+ * Writes docs/balance.md.
+ */
+import { spawn } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+import { AI_TUNING } from '../src/content/ai';
+import type { Faction } from '../src/content/factions';
+import { buildingsOf, isFighter, unitsOf } from '../src/sim/ai/queries';
+import type { PlayerId } from '../src/sim/entity';
+import { createGame } from '../src/sim/game';
+import type { GameState } from '../src/sim/state';
+import { economyStep, liveStep } from '../src/sim/update';
+import { report, type Job, type Result, type Snapshot } from './balance-report';
+
+const STEP_MS = 250;
+const MAX_HOURS = 8;
+const MINUTE = 60_000;
+
+function snapshot(s: GameState): Record<'player' | 'ai', Snapshot> {
+  const of = (id: PlayerId): Snapshot => ({
+    buildings: buildingsOf(s, id).length,
+    army: unitsOf(s, id).filter(isFighter).length,
+  });
+  return { player: of('player'), ai: of('ai') };
+}
+
+function playOne(job: Job): Result {
+  const s = createGame({ seed: job.seed, faction: job.faction, time: 0, difficulty: job.ai });
+  const first = AI_TUNING[job.player].firstAttackMs;
+  s.ai.player = { nextThinkAt: 0, nextAttackAt: first, waves: 0, difficulty: job.player };
+  let at60 = snapshot(s);
+  let at120 = at60;
+  while (!s.winner && s.time < MAX_HOURS * 60 * MINUTE) {
+    economyStep(s, STEP_MS);
+    liveStep(s, STEP_MS);
+    if (s.time === 60 * MINUTE) at60 = snapshot(s);
+    if (s.time === 120 * MINUTE) at120 = snapshot(s);
+  }
+  const waves = (s.ai.player?.waves ?? 0) + (s.ai.ai?.waves ?? 0);
+  return { ...job, winner: s.winner, minutes: s.time / MINUTE, waves, at60, at120 };
+}
+
+function jobs(games: number): Job[] {
+  const out: Job[] = [];
+  const faction = (i: number): Faction => (i % 2 === 0 ? 'human' : 'alien');
+  for (let i = 0; i < games; i++)
+    out.push({ part: 1, seed: 1000 + i, faction: faction(i), player: 'normal', ai: 'normal' });
+  for (let i = 0; i < Math.max(2, games / 5); i++)
+    out.push({ part: 2, seed: 5000 + i, faction: faction(i), player: 'hard', ai: 'easy' });
+  return out;
+}
+
+/** Worker: plays every n-th job and prints one JSON line per game. */
+function worker(index: number, count: number, games: number): void {
+  jobs(games).forEach((job, i) => {
+    if (i % count === index) console.info(JSON.stringify(playOne(job)));
+  });
+}
+
+function runWorker(index: number, count: number, games: number): Promise<Result[]> {
+  return new Promise((resolve) => {
+    const args = [process.argv[1] ?? '', '--worker', String(index), String(count), String(games)];
+    const child = spawn(process.execPath, args, { stdio: ['ignore', 'pipe', 'inherit'] });
+    let text = '';
+    child.stdout.on('data', (d: Buffer) => {
+      text += d.toString();
+      process.stdout.write('.');
+    });
+    child.on('close', () =>
+      resolve(
+        text
+          .split('\n')
+          .filter((l) => l.startsWith('{'))
+          .map((l) => JSON.parse(l) as Result),
+      ),
+    );
+  });
+}
+
+async function main(): Promise<void> {
+  if (process.argv[2] === '--worker') {
+    const [index, count, games] = process.argv.slice(3).map(Number);
+    worker(index ?? 0, count ?? 1, games ?? 1);
+    return;
+  }
+  const games = Number(process.argv[2] ?? 100);
+  const workers = Number(process.argv[3] ?? 4);
+  const started = performance.now();
+  const parts = await Promise.all(
+    Array.from({ length: workers }, (_, i) => runWorker(i, workers, games)),
+  );
+  const seconds = (performance.now() - started) / 1000;
+  const md = report(parts.flat(), { games, stepMs: STEP_MS, maxHours: MAX_HOURS, seconds });
+  writeFileSync('docs/balance.md', md);
+  console.info(`\n${md}`);
+}
+
+void main();

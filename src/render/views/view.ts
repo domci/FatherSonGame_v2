@@ -1,6 +1,7 @@
 import type { PerspectiveCamera, Scene, Vector2 } from 'three/webgpu';
 import type { GameState } from '../../sim/state';
 import type { BuildingId } from '../../content/buildings';
+import type { Faction } from '../../content/factions';
 
 export type ViewName = 'surface' | 'planet' | 'system';
 
@@ -12,6 +13,10 @@ export type Pick =
 /** What the render layer needs to know from the UI (selection, placement preview). */
 export interface ViewUi {
   selectedIds: ReadonlySet<number>;
+  /** People of the player (for ghost models). */
+  faction: Faction;
+  /** Which surface the surface view shows. */
+  zone: string;
   selectedBodyId?: string;
   ghost?: {
     type: BuildingId;

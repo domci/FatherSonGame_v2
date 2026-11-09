@@ -1,11 +1,13 @@
 import type { World } from 'miniplex';
+import type { Difficulty } from '../content/ai';
+import type { Faction } from '../content/factions';
 import type { ResearchId } from '../content/research';
 import type { ResourceAmounts } from '../content/resources';
 import type { Entity, PlayerId } from './entity';
 import type { SolarSystem } from './generation/solar-system';
 import type { SurfaceMap } from './generation/surface';
 
-export type Faction = 'human' | 'alien';
+export type { Faction };
 
 export interface ResearchState {
   done: ResearchId[];
@@ -18,6 +20,35 @@ export interface PlayerState {
   resources: ResourceAmounts;
   research: ResearchState;
   homeBodyId: string;
+  /** Fog of war: explored tiles per surface, one char per tile ('1' = seen). */
+  explored?: Record<string, string>;
+}
+
+/** Memory of the computer player. */
+export interface AiState {
+  nextThinkAt: number;
+  nextAttackAt: number;
+  waves: number;
+  /** Own difficulty (balancing runs); default: the game setting. */
+  difficulty?: Difficulty;
+}
+
+export interface GameSettings {
+  difficulty: Difficulty;
+  /** false = nobody attacks you while the game is closed. */
+  offlineAttacks: boolean;
+  /** Is there a computer enemy? (false only in tests) */
+  opponent: boolean;
+}
+
+/** Short-lived marks for effects (explosions). Not saved. */
+export interface Mark {
+  time: number;
+  zone: string;
+  x: number;
+  y: number;
+  kind: 'unit' | 'building' | 'spider' | 'egg';
+  owner?: PlayerId;
 }
 
 export interface GameEvent {
@@ -39,6 +70,11 @@ export interface GameState {
   system: SolarSystem;
   surfaces: Record<string, SurfaceMap>;
   events: GameEvent[];
+  settings: GameSettings;
+  ai: Partial<Record<PlayerId, AiState>>;
+  /** Set when the game is over. */
+  winner?: PlayerId;
+  marks: Mark[];
 }
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;

@@ -1,5 +1,6 @@
 import {
   BoxGeometry,
+  CapsuleGeometry,
   ConeGeometry,
   CylinderGeometry,
   Group,
@@ -12,6 +13,8 @@ import {
 } from 'three/webgpu';
 import { glassMaterial, solidMaterial } from '../materials';
 import { kitModel, remapMaterials, type KitName } from './kit';
+import { alienGlow, bone, chitin, flesh, membrane } from './alien-materials';
+import { tendril } from './shapes';
 
 export type MaterialName =
   | 'metal'
@@ -27,16 +30,45 @@ export type MaterialName =
   | 'window'
   | 'plant'
   | 'red'
-  | 'steel';
+  | 'steel'
+  | 'chitin'
+  | 'chitinLight'
+  | 'flesh'
+  | 'fleshDark'
+  | 'skinChitin'
+  | 'skinFlesh'
+  | 'glowGreen'
+  | 'glowCyan'
+  | 'glowViolet'
+  | 'membrane'
+  | 'bone'
+  | 'shieldBlue';
 
 /** One simple shape of a model. Sizes in tiles. */
 export interface Part {
-  shape: 'box' | 'cyl' | 'dome' | 'sphere' | 'cone' | 'torus' | 'halfcyl';
-  /** box: [w, h, d]; cyl/cone: [radius, height]; dome/sphere: [radius]; torus: [radius, tube]. */
+  shape:
+    | 'box'
+    | 'cyl'
+    | 'dome'
+    | 'sphere'
+    | 'cone'
+    | 'torus'
+    | 'halfcyl'
+    | 'capsule'
+    | 'tendril'
+    | 'arc';
+  /**
+   * box: [w, h, d]; cyl/cone: [radius, height]; dome/sphere: [radius]; torus: [radius, tube];
+   * capsule: [radius, length]; tendril: [thickness, height, bend]; arc: [radius, tube, angle].
+   */
   size: number[];
   pos?: [number, number, number];
   rot?: [number, number, number];
+  /** Stretch the shape (blobs, eggs). */
+  scale?: [number, number, number];
   mat: MaterialName;
+  /** Name for animation (e.g. 'head' turns to the target). */
+  name?: string;
 }
 
 /** A ready-made model from the kit (see kit.ts). Sizes in tiles. */
@@ -48,6 +80,7 @@ export interface KitPart {
   scale?: number | [number, number, number];
   /** Replace kit materials, e.g. { dark: 'glass' }. */
   mats?: Partial<Record<string, MaterialName>>;
+  name?: string;
 }
 
 export type ModelPart = Part | KitPart;
@@ -67,26 +100,38 @@ const MATERIALS: Record<MaterialName, () => Material> = {
   plant: () => solidMaterial(0x58d66a, { glow: 0.35, metal: 0, rough: 0.8 }),
   red: () => solidMaterial(0xd8402f, { metal: 0.4, rough: 0.5 }),
   steel: () => solidMaterial(0x7d8794, { metal: 0.9, rough: 0.25 }),
+  chitin: () => chitin(),
+  chitinLight: () => chitin(0x52356e),
+  flesh: () => flesh(),
+  fleshDark: () => flesh(0x3a1c33),
+  skinChitin: () => chitin(0x52356e, false),
+  skinFlesh: () => flesh(0x3a1c33, false),
+  glowGreen: () => alienGlow(0x5dff9e),
+  glowCyan: () => alienGlow(0x47e8ff),
+  glowViolet: () => alienGlow(0xc06bff),
+  membrane: () => membrane(),
+  bone: () => bone(),
+  shieldBlue: () => glassMaterial(0x7fd8ff),
+};
+
+type Maker = (a: number, b: number, c: number) => BufferGeometry;
+
+const SHAPES: Record<Part['shape'], Maker> = {
+  box: (a, b, c) => new BoxGeometry(a, b, c),
+  cyl: (a, b) => new CylinderGeometry(a, a, b, 24),
+  cone: (a, b) => new ConeGeometry(a, b, 24),
+  dome: (a) => new SphereGeometry(a, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+  sphere: (a) => new SphereGeometry(a, 24, 16),
+  torus: (a, b) => new TorusGeometry(a, b, 12, 32),
+  halfcyl: (a, b) => new CylinderGeometry(a, a, b, 24, 1, true, 0, Math.PI),
+  capsule: (a, b) => new CapsuleGeometry(a, b, 6, 16),
+  tendril: (a, b, c) => tendril(a, b, c),
+  arc: (a, b, c) => new TorusGeometry(a, b, 10, 24, c),
 };
 
 function geometry(p: Part): BufferGeometry {
   const [a = 1, b = 1, c = 1] = p.size;
-  switch (p.shape) {
-    case 'box':
-      return new BoxGeometry(a, b, c);
-    case 'cyl':
-      return new CylinderGeometry(a, a, b, 24);
-    case 'cone':
-      return new ConeGeometry(a, b, 24);
-    case 'dome':
-      return new SphereGeometry(a, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
-    case 'sphere':
-      return new SphereGeometry(a, 24, 16);
-    case 'torus':
-      return new TorusGeometry(a, b, 12, 32);
-    case 'halfcyl':
-      return new CylinderGeometry(a, a, b, 24, 1, true, 0, Math.PI);
-  }
+  return SHAPES[p.shape](a, b, c);
 }
 
 function kitMesh(p: KitPart): Object3D {
@@ -98,14 +143,23 @@ function kitMesh(p: KitPart): Object3D {
   }
   if (typeof p.scale === 'number') obj.scale.setScalar(p.scale);
   else if (p.scale) obj.scale.set(...p.scale);
+  if (p.name) obj.name = p.name;
   return obj;
 }
 
+const SEE_THROUGH: readonly MaterialName[] = ['glass', 'membrane', 'shieldBlue'];
+
 function shapeMesh(p: Part): Object3D {
   const mesh = new Mesh(geometry(p), MATERIALS[p.mat]());
-  mesh.castShadow = p.mat !== 'glass';
+  mesh.castShadow = !SEE_THROUGH.includes(p.mat);
   mesh.receiveShadow = true;
+  if (p.scale) mesh.scale.set(...p.scale);
+  if (p.name) mesh.name = p.name;
   return mesh;
+}
+
+export function partMaterial(name: MaterialName): Material {
+  return MATERIALS[name]();
 }
 
 export function buildModel(parts: readonly ModelPart[]): Group {

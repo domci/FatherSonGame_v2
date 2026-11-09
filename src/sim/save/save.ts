@@ -2,7 +2,15 @@ import { World } from 'miniplex';
 import type { Entity, PlayerId } from '../entity';
 import { generateSolarSystem } from '../generation/solar-system';
 import { generateSurface } from '../generation/surface';
-import { SAVE_VERSION, type GameEvent, type GameState, type PlayerState } from '../state';
+import { ensureOpponent } from '../setup';
+import {
+  SAVE_VERSION,
+  type AiState,
+  type GameEvent,
+  type GameSettings,
+  type GameState,
+  type PlayerState,
+} from '../state';
 import { migrate } from './migrations';
 
 /** Deep copy of plain data. */
@@ -23,6 +31,9 @@ export interface SaveData {
   players: Partial<Record<PlayerId, PlayerState>>;
   entities: Entity[];
   events: GameEvent[];
+  settings: GameSettings;
+  ai: Partial<Record<PlayerId, AiState>>;
+  winner?: PlayerId;
 }
 
 export function toSaveData(state: GameState, savedAt: number): SaveData {
@@ -37,13 +48,16 @@ export function toSaveData(state: GameState, savedAt: number): SaveData {
     players: state.players,
     entities: [...state.world.entities],
     events: state.events,
+    settings: state.settings,
+    ai: state.ai,
+    winner: state.winner,
   });
 }
 
 export function fromSaveData(raw: unknown): GameState {
   const data = migrate(raw);
   const surfaces = Object.fromEntries(data.zones.map((z) => [z, generateSurface(data.seed, z)]));
-  return {
+  const state: GameState = {
     version: SAVE_VERSION,
     seed: data.seed,
     rngState: data.rngState,
@@ -54,5 +68,11 @@ export function fromSaveData(raw: unknown): GameState {
     system: generateSolarSystem(data.seed),
     surfaces,
     events: clone(data.events),
+    settings: clone(data.settings),
+    ai: clone(data.ai),
+    winner: data.winner,
+    marks: [],
   };
+  if (state.settings.opponent) ensureOpponent(state);
+  return state;
 }

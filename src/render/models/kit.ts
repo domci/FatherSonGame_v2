@@ -48,10 +48,22 @@ export const KENNEY = [
   'supports_low',
   'corridor_window',
   'rover',
+  'cargo_ship',
+  'speeder_c',
+  'turret_double',
 ] as const;
 
 /** Animated robots by Quaternius (CC0). */
-export const QUATERNIUS = ['robot_flyer', 'robot_gunner'] as const;
+export const QUATERNIUS = [
+  'robot_flyer',
+  'robot_gunner',
+  'astronaut',
+  'tank',
+  'alien_big',
+  'crab',
+  'jelly_flyer',
+  'armored_bee',
+] as const;
 
 export type KitName = (typeof KENNEY)[number] | (typeof QUATERNIUS)[number];
 

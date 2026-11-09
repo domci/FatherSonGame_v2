@@ -21,6 +21,21 @@ function gainRows(report: CatchUpReport): HTMLElement[] {
   });
 }
 
+/** What the offline fight cost (only when offline attacks are on). */
+function battleRows(report: CatchUpReport): HTMLElement | null {
+  const b = report.battle;
+  if (!b) return null;
+  const line = (text: string, cls = 'p-text'): HTMLElement => el('p', { class: cls }, text);
+  return el(
+    'div',
+    { class: 'p-sec' },
+    el('h4', {}, 'Angriff!'),
+    line(`Besiegte Feinde: ${b.defeated}`, 'p-text good'),
+    line(`Verlorene Gebäude: ${b.lostBuildings}`, b.lostBuildings ? 'p-text bad' : 'p-text'),
+    line(`Verlorene Einheiten: ${b.lostUnits}`, b.lostUnits ? 'p-text bad' : 'p-text'),
+  );
+}
+
 /** "While you were away …" window after loading. */
 export function awayReport(
   report: CatchUpReport,
@@ -43,6 +58,7 @@ export function awayReport(
       gains.length
         ? el('div', { class: 'p-sec' }, ...gains)
         : el('p', { class: 'p-text' }, 'Keine neuen Rohstoffe.'),
+      battleRows(report),
       happened.length ? el('ul', { class: 'log' }, ...happened) : null,
       el(
         'button',

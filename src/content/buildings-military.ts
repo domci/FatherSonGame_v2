@@ -1,0 +1,128 @@
+import type { BuildingDef } from './buildings';
+
+/** Army and defense buildings (M3). */
+export const MILITARY_BUILDINGS: readonly BuildingDef[] = [
+  {
+    id: 'barracks',
+    name: 'Kaserne',
+    category: 'military',
+    size: 3,
+    tier: 2,
+    description: 'Bildet Raumsoldaten mit Laser-Gewehren aus.',
+    trains: ['infantry'],
+    levels: [
+      { cost: { regolith: 250, food: 40 }, hp: 700, energy: -4, armor: 2 },
+      { cost: { regolith: 600, food: 80 }, hp: 900, energy: -5, armor: 3 },
+      { cost: { regolith: 1400, diamonds: 30 }, hp: 1100, energy: -6, armor: 4 },
+    ],
+  },
+  {
+    id: 'vehicleFactory',
+    name: 'Fahrzeugfabrik',
+    category: 'military',
+    size: 4,
+    tier: 3,
+    requires: 'lasers',
+    description: 'Baut schwere Laser-Panzer. Panzer brauchen Metall.',
+    trains: ['tank'],
+    levels: [
+      { cost: { regolith: 700, diamonds: 25 }, hp: 1200, energy: -8, armor: 3 },
+      { cost: { regolith: 1600, diamonds: 60, metal: 100 }, hp: 1500, energy: -10, armor: 4 },
+      { cost: { regolith: 3500, diamonds: 150, metal: 300 }, hp: 1800, energy: -12, armor: 5 },
+    ],
+  },
+  {
+    id: 'wall',
+    name: 'Mauer',
+    category: 'defense',
+    size: 1,
+    tier: 1,
+    buildSeconds: 6,
+    description: 'Hält Bodentruppen auf. Billig und stabil.',
+    levels: [
+      { cost: { regolith: 25 }, hp: 500, energy: 0, armor: 6 },
+      { cost: { regolith: 60 }, hp: 800, energy: 0, armor: 8 },
+      { cost: { regolith: 140, diamonds: 2 }, hp: 1200, energy: 0, armor: 10 },
+    ],
+  },
+  {
+    id: 'turret',
+    name: 'Geschützturm',
+    category: 'defense',
+    size: 2,
+    tier: 2,
+    requires: 'lasers',
+    description: 'Schießt automatisch mit Lasern auf Feinde in der Nähe.',
+    levels: [
+      {
+        cost: { regolith: 220, diamonds: 8 },
+        hp: 800,
+        energy: -4,
+        armor: 4,
+        weapon: { damage: 16, range: 7, cooldownMs: 1100 },
+      },
+      {
+        cost: { regolith: 500, diamonds: 20 },
+        hp: 1100,
+        energy: -5,
+        armor: 5,
+        weapon: { damage: 24, range: 7.5, cooldownMs: 1000 },
+      },
+      {
+        cost: { regolith: 1100, diamonds: 50, metal: 60 },
+        hp: 1500,
+        energy: -6,
+        armor: 6,
+        weapon: { damage: 34, range: 8, cooldownMs: 900 },
+      },
+    ],
+  },
+  {
+    id: 'shieldReactor',
+    name: 'Schildreaktor',
+    category: 'defense',
+    size: 2,
+    tier: 3,
+    requires: 'shields',
+    description:
+      'Macht eine Kraftfeld-Kuppel. Sie fängt Schaden ab und lädt sich wieder auf. Braucht viel Energie.',
+    levels: [
+      {
+        cost: { regolith: 600, diamonds: 30 },
+        hp: 700,
+        energy: -18,
+        armor: 3,
+        shield: { capacity: 1200, radius: 7, recharge: 30 },
+      },
+      {
+        cost: { regolith: 1400, diamonds: 70 },
+        hp: 900,
+        energy: -24,
+        armor: 4,
+        shield: { capacity: 2200, radius: 8, recharge: 45 },
+      },
+      {
+        cost: { regolith: 3000, diamonds: 150, metal: 150 },
+        hp: 1100,
+        energy: -30,
+        armor: 5,
+        shield: { capacity: 3500, radius: 9, recharge: 65 },
+      },
+    ],
+  },
+  {
+    id: 'forceField',
+    name: 'Kraftfeld-Wand',
+    category: 'defense',
+    size: 1,
+    tier: 2,
+    buildSeconds: 10,
+    requires: 'shields',
+    description: 'Eine Wand aus Energie. Repariert sich selbst, solange genug Energie da ist.',
+    levels: [
+      { cost: { regolith: 40, diamonds: 2 }, hp: 450, energy: -1, armor: 4, regen: 20 },
+      { cost: { regolith: 90, diamonds: 4 }, hp: 700, energy: -1, armor: 5, regen: 30 },
+      { cost: { regolith: 200, diamonds: 8 }, hp: 1000, energy: -2, armor: 6, regen: 45 },
+    ],
+  },
+];

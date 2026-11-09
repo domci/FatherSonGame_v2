@@ -1,9 +1,10 @@
 import { Group, Mesh, BoxGeometry, MeshBasicNodeMaterial } from 'three/webgpu';
 import { BUILDINGS, type BuildingId } from '../../content/buildings';
+import type { Faction } from '../../content/factions';
 import type { SurfaceMap } from '../../sim/generation/surface';
 import { visualHeight } from '../terrain-shape';
 import { buildModel } from '../models/parts';
-import { HUMAN_BUILDINGS } from '../models/building-specs';
+import { buildingParts } from '../models/building-models';
 import type { ViewUi } from './view';
 
 /** See-through preview of a building before it is placed. Green = ok, red = not ok. */
@@ -19,6 +20,8 @@ export class Ghost {
     this.group.add(this.box);
     this.group.visible = false;
   }
+
+  faction: Faction = 'human';
 
   update(map: SurfaceMap, ghost: ViewUi['ghost']): void {
     this.group.visible = !!ghost;
@@ -36,7 +39,7 @@ export class Ghost {
   private rebuild(type: BuildingId): void {
     this.type = type;
     for (const child of [...this.group.children]) if (child !== this.box) this.group.remove(child);
-    const model = buildModel(HUMAN_BUILDINGS[type]);
+    const model = buildModel(buildingParts(type, this.faction));
     model.traverse((o) => {
       if (o instanceof Mesh) {
         o.material = new MeshBasicNodeMaterial({

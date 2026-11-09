@@ -49,3 +49,24 @@ describe('pathfinding', () => {
     expect(path[path.length - 1]).toEqual({ x: 3.5, y: 1.5 });
   });
 });
+
+describe('pathfinding when the goal cannot be reached', () => {
+  it('goes as close as possible with partial = true', () => {
+    const path = findPath(
+      grid(['....', '####', '....', '....']),
+      { x: 0.5, y: 0.5 },
+      { x: 1.5, y: 3.5 },
+      true,
+    );
+    expect(path[path.length - 1]).toEqual({ x: 1.5, y: 0.5 });
+  });
+
+  it('is fast on a big open map', () => {
+    const size = 48;
+    const g = { size, blocked: new Array<boolean>(size * size).fill(false) };
+    for (let y = 0; y < size - 2; y++) g.blocked[y * size + 24] = true;
+    const t = performance.now();
+    for (let i = 0; i < 50; i++) findPath(g, { x: 1, y: 1 }, { x: 46, y: 1 });
+    expect(performance.now() - t).toBeLessThan(500);
+  });
+});

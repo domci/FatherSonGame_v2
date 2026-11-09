@@ -1,11 +1,18 @@
-import { BUILDINGS, buildingLevel, type BuildingCategory } from '../content/buildings';
+import {
+  BUILDINGS,
+  buildTimeSeconds,
+  buildingLevel,
+  type BuildingCategory,
+} from '../content/buildings';
+import { buildingDescription } from '../content/factions';
 import { RESEARCH_LIST } from '../content/research';
 import { stageSeconds } from '../content/time-curve';
 import { UNITS } from '../content/units';
 import type { Session } from '../app/session';
 import type { Entity } from '../sim/entity';
+import { factionOf, nameOfBuilding, nameOfUnit } from '../sim/names';
 import { thumb } from './build-menu';
-import { action, header, levelPips, progress, section, text } from './panel-kit';
+import { action, header, levelPips, progress, section, stat, text } from './panel-kit';
 
 export { timer } from './panel-kit';
 
@@ -19,6 +26,7 @@ const CATEGORY: Record<BuildingCategory, string> = {
   military: 'Militär',
   research: 'Forschung',
   space: 'Raumfahrt',
+  defense: 'Verteidigung',
 };
 
 function upgradeRow(session: Session, e: Entity): HTMLElement | null {
@@ -29,7 +37,7 @@ function upgradeRow(session: Session, e: Entity): HTMLElement | null {
   return action('arrow-up', `Ausbauen auf Stufe ${next}`, {
     cost: buildingLevel(def, next).cost,
     have: session.state.players.player?.resources,
-    timeMs: stageSeconds(def.tier + next - 1) * 1000,
+    timeMs: buildTimeSeconds(def, next) * 1000,
     onclick: () => session.command({ type: 'upgrade', player: 'player', entityId: e.id }),
   });
 }
@@ -38,15 +46,16 @@ function trainRows(session: Session, e: Entity): HTMLElement | null {
   const trains = e.building ? (BUILDINGS[e.building.type].trains ?? []) : [];
   if (!e.building || e.building.level < 1 || !trains.length) return null;
   const rows: HTMLElement[] = [];
+  const name = (id: keyof typeof UNITS): string => nameOfUnit(session.state, 'player', id);
   if (e.training) {
     const u = UNITS[e.training.unit];
     const q = e.training.queue.length;
-    const label = `${u.name}${q ? ` (+${q} in Warteschlange)` : ''}`;
+    const label = `${name(u.id)}${q ? ` (+${q} in Warteschlange)` : ''}`;
     rows.push(progress(label, e.training.finishAt - u.trainSeconds * 1000, e.training.finishAt));
   }
   for (const unit of trains)
     rows.push(
-      action('plus', UNITS[unit].name, {
+      action('plus', name(unit), {
         cost: UNITS[unit].cost,
         have: session.state.players.player?.resources,
         timeMs: UNITS[unit].trainSeconds * 1000,
@@ -84,13 +93,53 @@ function researchRows(session: Session, e: Entity): HTMLElement | null {
   return section('Forschung', ...rows);
 }
 
-export function buildingPanel(session: Session, e: Entity): HTMLElement[] {
+/** Life, armor, weapon and shield of a building. */
+function fightStats(e: Entity): HTMLElement[] {
+  const out: HTMLElement[] = [];
+  if (!e.building || e.building.level < 1) return out;
+  const lvl = buildingLevel(BUILDINGS[e.building.type], e.building.level);
+  if (e.health && e.health.hp < e.health.max)
+    out.push(stat('heart', 'Leben', `${Math.ceil(e.health.hp)} / ${e.health.max}`, '#ff6b81'));
+  if (lvl.armor) out.push(stat('shield', 'Panzerung', String(lvl.armor), '#9fb4cc'));
+  if (lvl.weapon) out.push(stat('crosshair', 'Schaden', String(lvl.weapon.damage), '#ffb35a'));
+  if (e.shield)
+    out.push(
+      stat('shield-check', 'Schild', `${Math.ceil(e.shield.hp)} / ${e.shield.max}`, '#5ab8ff'),
+    );
+  return out;
+}
+
+/** Panel for a building of the other side: look, but no buttons. */
+function enemyPanel(session: Session, e: Entity): HTMLElement[] {
   if (!e.building) return [];
   const def = BUILDINGS[e.building.type];
-  const out: (HTMLElement | null)[] = [
-    header(def.name, CATEGORY[def.category], thumb(def.id, 'p-thumb')),
+  const faction = factionOf(session.state, e.owner);
+  return [
+    header(
+      nameOfBuilding(session.state, e.owner, def.id),
+      'Feind',
+      thumb(def.id, 'p-thumb', faction),
+    ),
     levelPips(e.building.level, def.levels.length),
-    text(def.description, 'p-text muted'),
+    ...fightStats(e),
+    text('Wählt Einheiten und tippt hierher, um anzugreifen.', 'p-text muted'),
+  ];
+}
+
+export function buildingPanel(session: Session, e: Entity): HTMLElement[] {
+  if (!e.building) return [];
+  if (e.owner !== 'player') return enemyPanel(session, e);
+  const def = BUILDINGS[e.building.type];
+  const faction = session.ui.faction;
+  const out: (HTMLElement | null)[] = [
+    header(
+      nameOfBuilding(session.state, 'player', def.id),
+      CATEGORY[def.category],
+      thumb(def.id, 'p-thumb', faction),
+    ),
+    levelPips(e.building.level, def.levels.length),
+    text(buildingDescription(def.id, faction), 'p-text muted'),
+    ...fightStats(e),
   ];
   const c = e.construction;
   if (c)
@@ -110,5 +159,7 @@ export function buildingKey(session: Session, e: Entity): string {
     e.training?.unit,
     e.training?.queue.length,
     p?.research,
+    Math.ceil((e.health?.hp ?? 0) / 10),
+    Math.ceil((e.shield?.hp ?? 0) / 50),
   ]);
 }

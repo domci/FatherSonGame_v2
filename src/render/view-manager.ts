@@ -11,6 +11,7 @@ const LIMIT_HITS = 3;
 /** Holds the three zoom levels and switches between them with a short fade. */
 export class ViewManager {
   private views: Record<ViewName, View>;
+  private surfaces = new Map<string, SurfaceView>();
   private activeName: ViewName = 'surface';
   private limitHits = 0;
   private lastPinch = 0;
@@ -22,10 +23,10 @@ export class ViewManager {
     private canvas: HTMLCanvasElement,
     private fade: HTMLElement,
   ) {
-    const map = state.surfaces[state.system.homeBodyId];
-    if (!map) throw new Error('home surface missing');
+    const surface = this.surfaceFor(state, state.system.homeBodyId);
+    if (!surface) throw new Error('home surface missing');
     this.views = {
-      surface: new SurfaceView(map, canvas),
+      surface,
       planet: new PlanetView(state.system, canvas),
       system: new SystemView(state.system, canvas),
     };
@@ -49,14 +50,49 @@ export class ViewManager {
     }, 180);
   }
 
+  /** The surface view that shows the planet the player looks at now. */
+  get surface(): SurfaceView {
+    return this.views.surface as SurfaceView;
+  }
+
   frame(state: GameState, ui: ViewUi, dtMs: number): void {
+    if (ui.zone !== this.surface.zone) this.showZone(state, ui.zone);
     this.active.update(state, ui, dtMs);
     this.gr.render(this.active.scene, this.active.camera);
   }
 
   resize(width: number, height: number): void {
     this.gr.resize(width, height);
-    for (const v of Object.values(this.views)) v.resize(width / Math.max(1, height));
+    const aspect = width / Math.max(1, height);
+    for (const v of [...Object.values(this.views), ...this.surfaces.values()]) v.resize(aspect);
+  }
+
+  /** One surface view per planet, made when it is first needed. */
+  private surfaceFor(state: GameState, zone: string): SurfaceView | undefined {
+    const old = this.surfaces.get(zone);
+    if (old) return old;
+    const map = state.surfaces[zone];
+    if (!map) return undefined;
+    const view = new SurfaceView(map, this.canvas);
+    view.setEnabled(false);
+    this.surfaces.set(zone, view);
+    return view;
+  }
+
+  /** Shows another planet's surface; optionally looks at a point there. */
+  showZone(state: GameState, zone: string, focus?: { x: number; y: number }): void {
+    const next = this.surfaceFor(state, zone);
+    if (!next) return;
+    if (next === this.surface) {
+      if (focus) next.focus(focus.x, focus.y);
+      return;
+    }
+    const { width, height } = this.canvas.getBoundingClientRect();
+    next.resize(width / Math.max(1, height));
+    this.surface.setEnabled(false);
+    this.views.surface = next;
+    next.setEnabled(this.activeName === 'surface');
+    if (focus) next.focus(focus.x, focus.y);
   }
 
   private setActive(name: ViewName): void {

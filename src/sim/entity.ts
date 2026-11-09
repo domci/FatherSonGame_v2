@@ -34,6 +34,8 @@ export interface MoverData {
   path: Vec2[];
   speed: number;
   flying: boolean;
+  /** Stop and fight enemies on the way. */
+  attackMove?: boolean;
 }
 
 export interface AttackerData {
@@ -42,6 +44,19 @@ export interface AttackerData {
   cooldownMs: number;
   readyAt: number;
   targetId?: number;
+  /** Last shot (for laser effects and sounds). */
+  shot?: { at: number; x: number; y: number };
+  /** Idle: next time to look around for enemies (saves work). */
+  scanAt?: number;
+}
+
+/** Shield bubble of a shield reactor. */
+export interface ShieldData {
+  hp: number;
+  max: number;
+  radius: number;
+  /** Last time the shield took a hit (for effects). */
+  hitAt: number;
 }
 
 export interface SpiderData {
@@ -56,7 +71,7 @@ export interface NestData {
   maxSpiders: number;
 }
 
-export type ShipPhase = 'docked' | 'outbound' | 'mining' | 'returning';
+export type ShipPhase = 'docked' | 'outbound' | 'mining' | 'returning' | 'landed';
 
 export interface ShipData {
   phase: ShipPhase;
@@ -67,6 +82,8 @@ export interface ShipData {
   capacity: number;
   /** Keep flying to the same target until stopped. */
   repeat: boolean;
+  /** Transport ships: where the ship flies from (planet id). */
+  fromBodyId?: string;
 }
 
 /**
@@ -92,4 +109,7 @@ export interface Entity {
   nest?: NestData;
   egg?: { laidAt: number };
   ship?: ShipData;
+  shield?: ShieldData;
+  /** Unit sits inside a transport ship. */
+  aboard?: { shipId: number };
 }

@@ -1,0 +1,34 @@
+import { SECOND } from '../clock';
+import { applyCommand } from '../commands';
+import type { PlayerId } from '../entity';
+import { BELT_ID } from '../generation/solar-system';
+import type { GameState } from '../state';
+import { runEconomy } from './economy';
+import { runMilitary, type AiOptions } from './military';
+import { unitsOf } from './queries';
+
+/** Docked mining ships go to the asteroid belt (metal). */
+function sendMiners(state: GameState, owner: PlayerId): void {
+  for (const ship of unitsOf(state, owner, 'miningShip')) {
+    if (ship.ship?.phase === 'docked')
+      applyCommand(state, { type: 'sendShip', player: owner, shipId: ship.id, targetId: BELT_ID });
+  }
+}
+
+export const THINK_MS = 5 * SECOND;
+
+/** The computer players think every few seconds. Uses only commands, like a human. */
+export function aiSystem(state: GameState, opts: AiOptions): void {
+  if (state.winner) return;
+  for (const [id, ai] of Object.entries(state.ai) as [
+    PlayerId,
+    NonNullable<GameState['ai'][PlayerId]>,
+  ][]) {
+    const player = state.players[id];
+    if (!player || ai.nextThinkAt > state.time) continue;
+    ai.nextThinkAt = state.time + THINK_MS;
+    runMilitary(state, player, ai, opts);
+    runEconomy(state, id);
+    sendMiners(state, id);
+  }
+}

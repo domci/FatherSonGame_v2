@@ -87,6 +87,7 @@ function nextPhase(state: GameState, ship: Entity, data: ShipData): void {
 /** Ships fly, mine and bring cargo home. Uses timestamps, so it also works offline. */
 export function miningSystem(state: GameState): void {
   for (const ship of state.world.with('ship')) {
+    if (ship.unit?.type === 'transport') continue;
     for (let guard = 0; guard < 1000; guard++) {
       const data = ship.ship;
       if (data.phase === 'docked' || data.phaseEndsAt > state.time) break;

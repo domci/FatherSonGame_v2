@@ -3,6 +3,15 @@ import { build, upgrade, type BuildCommand, type UpgradeCommand } from './build'
 import { research, type ResearchCommand } from './research';
 import { fail, type CommandResult } from './result';
 import { recallShip, sendShip, type RecallShipCommand, type SendShipCommand } from './ships';
+import { changeSettings, type SettingsCommand } from './settings';
+import {
+  board,
+  fly,
+  unload,
+  type BoardCommand,
+  type FlyCommand,
+  type UnloadCommand,
+} from './transport';
 import {
   attack,
   move,
@@ -21,28 +30,36 @@ export type Command =
   | TrainCommand
   | ResearchCommand
   | SendShipCommand
-  | RecallShipCommand;
+  | RecallShipCommand
+  | BoardCommand
+  | UnloadCommand
+  | FlyCommand
+  | SettingsCommand;
 
 export type { CommandResult };
 
+type Handlers = {
+  [K in Command['type']]: (state: GameState, cmd: Extract<Command, { type: K }>) => CommandResult;
+};
+
+const HANDLERS: Handlers = {
+  build,
+  upgrade,
+  move,
+  attack,
+  train,
+  research,
+  sendShip,
+  recallShip,
+  board,
+  unload,
+  fly,
+  settings: changeSettings,
+};
+
 export function applyCommand(state: GameState, cmd: Command): CommandResult {
   if (!state.players[cmd.player]) return fail('Unbekannter Spieler.');
-  switch (cmd.type) {
-    case 'build':
-      return build(state, cmd);
-    case 'upgrade':
-      return upgrade(state, cmd);
-    case 'move':
-      return move(state, cmd);
-    case 'attack':
-      return attack(state, cmd);
-    case 'train':
-      return train(state, cmd);
-    case 'research':
-      return research(state, cmd);
-    case 'sendShip':
-      return sendShip(state, cmd);
-    case 'recallShip':
-      return recallShip(state, cmd);
-  }
+  if (state.winner) return fail('Das Spiel ist vorbei.');
+  const handler = HANDLERS[cmd.type] as (s: GameState, c: Command) => CommandResult;
+  return handler(state, cmd);
 }

@@ -15,6 +15,8 @@ export interface MoveCommand {
   player: PlayerId;
   unitIds: number[];
   target: Vec2;
+  /** Fight enemies on the way. */
+  attackMove?: boolean;
 }
 
 export interface AttackCommand {
@@ -36,11 +38,13 @@ const MAX_QUEUE = 5;
 function ownUnits(state: GameState, player: PlayerId, ids: number[]): Entity[] {
   return ids
     .map((id) => findEntity(state, id))
-    .filter((e): e is Entity => !!e?.unit && e.owner === player && !e.ship && !e.busyWith);
+    .filter(
+      (e): e is Entity => !!e?.unit && e.owner === player && !e.ship && !e.busyWith && !e.aboard,
+    );
 }
 
-/** Plans a path for one unit. Flying units go straight. */
-export function sendTo(state: GameState, unit: Entity, target: Vec2): boolean {
+/** Plans a path for one unit. Flying units go straight. `partial`: get as close as possible. */
+export function sendTo(state: GameState, unit: Entity, target: Vec2, partial = true): boolean {
   if (!unit.unit || !unit.position || !unit.zone) return false;
   const def = UNITS[unit.unit.type];
   let path: Vec2[] = [{ ...target }];
@@ -51,28 +55,48 @@ export function sendTo(state: GameState, unit: Entity, target: Vec2): boolean {
       { size: map.size, blocked: blockedTiles(state, unit.zone) },
       unit.position,
       target,
+      partial,
     );
     if (path.length === 0) return false;
-    path[path.length - 1] = { ...target };
+    const last = path[path.length - 1];
+    const reached = last && Math.hypot(last.x - target.x, last.y - target.y) < 1;
+    if (reached) path[path.length - 1] = { ...target };
+    path.shift();
+    if (path.length === 0) return false;
   }
-  state.world.addComponent(unit, 'mover', { path, speed: def.speed, flying: def.flying });
+  const mover = { path, speed: def.speed, flying: def.flying };
+  // addComponent does nothing if the unit already moves, so replace the old path.
+  if (unit.mover) Object.assign(unit.mover, mover, { attackMove: false });
+  else state.world.addComponent(unit, 'mover', mover);
   return true;
+}
+
+/** Spots in a square block around the target, so a group does not stand on one point. */
+export function formation(target: Vec2, count: number, gap = 0.9): Vec2[] {
+  const cols = Math.ceil(Math.sqrt(count));
+  const rows = Math.ceil(count / cols);
+  return Array.from({ length: count }, (_, i) => ({
+    x: target.x + ((i % cols) - (cols - 1) / 2) * gap,
+    y: target.y + (Math.floor(i / cols) - (rows - 1) / 2) * gap,
+  }));
 }
 
 export function move(state: GameState, cmd: MoveCommand): CommandResult {
   const units = ownUnits(state, cmd.player, cmd.unitIds);
   if (units.length === 0) return fail('Keine Einheit ausgewählt.');
+  const spots = formation(cmd.target, units.length);
   units.forEach((u, i) => {
     if (u.attacker) delete u.attacker.targetId;
-    const offset = { x: (i % 3) * 0.8 - 0.8, y: Math.floor(i / 3) * 0.8 };
-    sendTo(state, u, { x: cmd.target.x + offset.x, y: cmd.target.y + offset.y });
+    if (sendTo(state, u, spots[i] ?? cmd.target) && u.mover && cmd.attackMove)
+      u.mover.attackMove = true;
   });
   return OK;
 }
 
 export function attack(state: GameState, cmd: AttackCommand): CommandResult {
   const target = findEntity(state, cmd.targetId);
-  if (!target?.health || target.owner === cmd.player) return fail('Kein gültiges Ziel.');
+  if (!target?.health || target.owner === cmd.player || target.aboard)
+    return fail('Kein gültiges Ziel.');
   const units = ownUnits(state, cmd.player, cmd.unitIds).filter((u) => u.attacker);
   if (units.length === 0) return fail('Diese Einheiten können nicht kämpfen.');
   for (const u of units) if (u.attacker) u.attacker.targetId = target.id;

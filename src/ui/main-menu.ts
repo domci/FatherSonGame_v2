@@ -40,7 +40,11 @@ export function mainMenu(actions: MenuActions): HTMLElement {
         'Euer Schiff ist abgestürzt. Baut eine Kuppel-Basis, holt Rohstoffe aus dem All und behauptet euch gegen Spinnenwesen und Aliens.',
       ),
       el('nav', { class: 'm-list' }, ...items),
-      el('div', { class: 'start-foot' }, 'Volk: Menschen  ·  Aliens folgen in Meilenstein 3'),
+      el(
+        'div',
+        { class: 'start-foot' },
+        'Spielt als Menschen oder als Aliens  ·  Für Kinder ab 10',
+      ),
     ),
   );
 }
@@ -50,6 +54,8 @@ export interface PauseActions {
   save(): void;
   exportFile(): void;
   quit(): void;
+  /** Switches (sound, music, offline attacks). */
+  settings: HTMLElement[];
 }
 
 export function pauseMenu(actions: PauseActions): HTMLElement {
@@ -69,6 +75,8 @@ export function pauseMenu(actions: PauseActions): HTMLElement {
         menuItem('download', 'Spielstand als Datei', actions.exportFile),
         menuItem('log-out', 'Zum Hauptmenü', actions.quit),
       ),
+      el('h4', { class: 'dlg-h' }, 'Einstellungen'),
+      ...actions.settings,
       el('p', { class: 'p-text muted' }, 'Das Spiel speichert alle 2 Minuten von selbst.'),
     ),
   );

@@ -1,4 +1,4 @@
-import { findEntity } from '../sim/spawn';
+import { findEntity, spawnBuilding, spawnUnit } from '../sim/spawn';
 import type { Session } from './session';
 import type { Projector } from './screen-pos';
 import type { ViewManager } from '../render/view-manager';
@@ -11,6 +11,9 @@ export function exposeDebug(session: Session, project: Projector, views: ViewMan
   const api = {
     session,
     views,
+    /** For test scenes (battles): put units and buildings on the map directly. */
+    spawnUnit: (...a: Parameters<typeof spawnUnit>) => spawnUnit(...a),
+    spawnBuilding: (...a: Parameters<typeof spawnBuilding>) => spawnBuilding(...a),
     screenOf: (x: number, y: number) => project(x, y),
     screenOfEntity: (id: number) => {
       const p = findEntity(session.state, id)?.position;
