@@ -60,11 +60,19 @@ const KIND_MINEABLE: Record<BodyKind, ResourceId[]> = {
   ice: ['water'],
 };
 
-function makeBody(rng: Rng, index: number, orbitRadius: number, kind: BodyKind): Body {
+/** A name no other planet in this system has. */
+function uniqueName(rng: Rng, used: Set<string>): string {
+  let name = planetName(rng.pick);
+  while (used.has(name)) name = planetName(rng.pick);
+  used.add(name);
+  return name;
+}
+
+function makeBody(rng: Rng, index: number, orbitRadius: number, kind: BodyKind, used: Set<string>): Body {
   const size = kind === 'gas' ? rng.range(2.2, 3.4) : rng.range(0.8, 1.4);
   return {
     id: `p${index}`,
-    name: planetName(rng.pick),
+    name: uniqueName(rng, used),
     kind,
     orbitRadius,
     orbitPeriod: Math.round(orbitRadius * rng.range(2.5, 3.5) * MINUTE),
@@ -87,6 +95,7 @@ export function generateSolarSystem(seed: number): SolarSystem {
   const count = rng.int(5, 8);
   const beltIndex = rng.int(2, 3);
   const bodies: Body[] = [];
+  const names = new Set<string>();
   let radius = rng.range(9, 12);
   let belt: AsteroidBelt = { inner: 0, outer: 0, mineable: ['metal', 'regolith'] };
   for (let i = 0; i < count; i++) {
@@ -95,7 +104,7 @@ export function generateSolarSystem(seed: number): SolarSystem {
       radius += 7;
     }
     const outer = belt.outer || Infinity;
-    bodies.push(makeBody(rng, i, Math.round(radius * 10) / 10, kindFor(rng, radius, outer)));
+    bodies.push(makeBody(rng, i, Math.round(radius * 10) / 10, kindFor(rng, radius, outer), names));
     radius += rng.range(5, 8) + (i > beltIndex ? 3 : 0);
   }
   const rocky = bodies.filter((b) => b.kind === 'rocky');

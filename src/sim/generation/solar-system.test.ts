@@ -22,6 +22,13 @@ describe('solar system generator', () => {
     }
   });
 
+  it('gives every planet its own name', () => {
+    for (let seed = 0; seed < 200; seed++) {
+      const names = generateSolarSystem(seed).bodies.map((b) => b.name);
+      expect(new Set(names).size).toBe(names.length);
+    }
+  });
+
   it('has at least one gas planet in most systems', () => {
     let withGas = 0;
     for (let seed = 0; seed < 50; seed++) {
