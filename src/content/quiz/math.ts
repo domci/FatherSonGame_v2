@@ -77,7 +77,7 @@ export const MATH: readonly QuizQuestion[] = [
   q(
     'math',
     'decimal',
-    'Welche Zahl ist größer?',
+    'Welche Zahl ist größer: 0,5 oder 0,45?',
     ['0,5', '0,45', 'Beide sind gleich groß', 'Das kann man nicht sagen'],
     '0,5 ist dasselbe wie 0,50. Und 50 Hundertstel sind mehr als 45 Hundertstel.',
     12,
