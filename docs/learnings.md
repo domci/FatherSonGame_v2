@@ -2,6 +2,12 @@
 
 Short notes when something went wrong or was surprising. Newest on top.
 
+- 2026-11-11: A test helper made the AI player with `{ ...player }`. The shallow copy shared the `colony` object,
+  so both sides ate from the same colony. Build test players with `makePlayer`, never by spreading another player.
+- 2026-11-11: Population needs a brake for the computer. "Build room when full" alone grew its colony to 160+ people
+  until water ran out. Now it builds room only when it is short of workers.
+- 2026-11-11: Every new HUD item can wrap the top bar to two lines on 1280 px, and then it covers the panels below.
+  Check a screenshot after adding items; people and mood share one item (face icon = mood).
 - 2026-11-11: Flat Kenney craft scaled by height were 3–4 tiles long, bigger than buildings. Flat models are now
   fitted by their longest side on the ground (`UnitLook.length`).
 - 2026-11-11: War ships that each flew at their own speed arrived one by one, and the fast ones died alone. Ships

@@ -5,12 +5,13 @@ Der komplette Plan steht in [docs/plan/](docs/plan/README.md).
 
 ## Stand
 
-Meilensteine **M0 bis M4** sind gebaut: Basis auf dem Planeten, Rohstoffe, Spinnenwesen,
+Meilensteine **M0 bis M5** sind gebaut: Basis auf dem Planeten, Rohstoffe, Spinnenwesen,
 Forschung, Speichern, Sonnensystem mit Zoom und Mining-Schiffen – und jetzt die **Aliens**:
 eine komplette Partie gegen den Computer, mit Truppen, Kampf, Verteidigung, Nebel und Sieg oder Niederlage.
 Man kann als Menschen oder als Aliens spielen. Nach dem ersten Test: Zoom ohne Schnitte, Glaskuppeln mit Tunneln,
 und ein Computer, der auf eurem Stand bleibt. **M4 (Luft und All):** Flugzeuge, Flugabwehr, Kampfschiffe,
-Blockaden und Angriffe aus dem Orbit.
+Blockaden und Angriffe aus dem Orbit. **M5 (Leben in der Kuppel):** Bewohner mit Bedürfnissen und Laune,
+Wissens-Quiz, Story und erste Mission.
 
 ## Lokal starten (einmalig einrichten)
 
@@ -38,6 +39,8 @@ Neue Version holen: `git pull` und dann wieder `bun run dev`.
 
 ## Kurze Spielanleitung
 
+- **Mission:** Oben links steht die nächste Aufgabe. Jede geschaffte Aufgabe gibt eine Belohnung.
+  Mit ✕ ausblenden.
 - **Bauen:** unten ein Gebäude antippen, dann auf den Boden tippen. Grün = passt, rot = passt nicht.
   Jeder Bau braucht eine freie Bau-Drohne 🛸. Draußen gibt es keine Luft: Jedes Gebäude bekommt einen Tunnel
   zum nächsten Gebäude, darum höchstens 9 Felder weit weg (Mauern, Kraftfelder und Türme dürfen allein stehen).
@@ -50,6 +53,15 @@ Neue Version holen: `git pull` und dann wieder `bun run dev`.
   seht ihr erst mit der Forschung **Fernradar** (oder wenn eigene Truppen dort sind).
 - **Mining-Schiffe:** Forschung „Raumfahrt“ → Raumhafen bauen → Schiff bauen → in der System-Ansicht ☀️
   einen Planeten oder den Asteroidenring antippen → „Mining-Schiff hierher schicken“.
+- **Bewohner 🙂:** Oben in der Leiste, rechts neben den Rohstoffen: Bewohner / Wohnplätze, das Gesicht zeigt die Laune. Antippen öffnet
+  das Kolonie-Fenster mit den Gründen für die Laune. Jeder Bewohner braucht **Sauerstoff, Wasser und Nahrung**.
+  Fehlt etwas, werden sie krank und unglücklich. Gebäude, die etwas herstellen, brauchen je 2 gesunde Arbeiter,
+  sonst arbeiten sie langsamer. Gute Laune + freie Wohnplätze = neue Bewohner. **Krankenstation** heilt,
+  **Park-Kuppel** macht froh, **Wohn-Kuppel** gibt Platz.
+- **Wissens-Quiz 🧠:** Knopf oben rechts. Richtige Antwort = 1 **Wissenskristall** ✨. Höchstens 6 Fragen pro Stunde,
+  nach einer falschen Antwort 1 Minute Pause. Mit Kristallen kann man Bauen, Ausbauen, Forschung und Training
+  **sofort fertig machen** (Knopf im Gebäude-Fenster). Eigene Fragen: `src/content/quiz/` (die erste Antwort ist
+  immer die richtige, das Spiel mischt sie).
 - **Volk und Gegner:** Bei „Neues Spiel“ Menschen oder Aliens wählen und wie stark der Computer ist
   (Leicht / Mittel / Schwer, auch später im Menü ☰). Der Computer bleibt in der Nähe eures Standes und greift
   erst an, wenn ihr bereit seid (Leicht: frühestens nach 2 Stunden Spielzeit).

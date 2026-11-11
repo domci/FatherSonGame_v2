@@ -2,9 +2,9 @@
 
 ## Ablauf pro Arbeitspaket
 
-**Bis das Spiel stabil ist (Ende M3):** keine Pull Requests. Claude committet direkt auf `main`,
+**Bis das Spiel stabil ist (Doms Regel, gilt auch nach M3):** keine Pull Requests. Claude committet direkt auf `main`,
 aber nur, wenn alle lokalen Checks grün sind. CI läuft trotzdem bei jedem Push; ist sie rot, wird das zuerst repariert.
-**Ab M4:** Ablauf mit Branch und Pull Request wie unten.
+**Später (wenn Dom es sagt):** Ablauf mit Branch und Pull Request wie unten.
 
 1. Claude nimmt das nächste AP aus [04-arbeitspakete.md](04-arbeitspakete.md) (Reihenfolge von oben nach unten).
 2. Neuer Branch (ab M4), kleine Commits.

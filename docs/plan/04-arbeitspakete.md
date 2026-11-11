@@ -9,7 +9,9 @@ Ein AP ist fertig, wenn alle Abnahmekriterien erfüllt sind und CI grün ist (si
   [ADR 0005](../adr/0005-playtest-m3.md): Zoom ohne Schnitte über alle Planeten, Fernradar für die Feind-Basis,
   Computer auf eurem Stand (Leicht/Mittel/Schwer), Truppen verteidigen die Basis selbst, Glaskuppeln mit Tunneln.
 - **M4 (Luft und All): gebaut** am 2026-11-11, alle Pakete M4-1 bis M4-14. Entscheidungen:
-  [ADR 0006](../adr/0006-m4-luft-und-all.md). Nächster Schritt: Testspiel von Dom und Sohn, dann Planung M5.
+  [ADR 0006](../adr/0006-m4-luft-und-all.md).
+- **M5 (Leben in der Kuppel): gebaut** am 2026-11-11, alle Pakete M5-1 bis M5-13. Entscheidungen:
+  [ADR 0007](../adr/0007-m5-leben-in-der-kuppel.md). Nächster Schritt: Testspiel von Dom und Sohn, dann Planung M6.
 - Abweichungen M3: „Wiederholung“ von Offline-Kämpfen ist ein **Kampf-Bericht** im „Während du weg warst“-Fenster
   (kein Video). Die KI sieht durch den Nebel (sie schummelt, wie in vielen Strategiespielen).
   Spinnen-Nester gibt es nur auf dem Heimatplaneten. Die Kommando-Kuppel hat einen kleinen Laser (gegen frühe Überfälle).

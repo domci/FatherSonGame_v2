@@ -32,5 +32,5 @@ The full plan is in `docs/plan/`. Read `docs/plan/05-arbeitsweise.md` and `docs/
 - No `any`, no lint-disable comments, no `--no-verify`.
 - File ≤ 200 lines, function ≤ 40 lines, complexity ≤ 12.
 - Every rule in `src/sim/` gets a test. Coverage ≥ 80 %.
-- Until end of M3: commit directly to `main`, only with `bun run check` green. From M4: PRs, merge when CI is green.
+- Until the game is stable (Dom's rule): commit directly to `main`, only with `bun run check` green. No PRs.
 - Write surprising lessons to `docs/learnings.md`. Write bigger decisions to `docs/adr/`.
