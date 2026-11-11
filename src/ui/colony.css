@@ -84,14 +84,16 @@
 .quiz-result.bad {
   color: var(--bad);
 }
+/* A static glow: an endless animation would repaint the blurred HUD every frame (slow on tablets). */
 .seg-btn.quiz-ready {
   color: #c9a2ff;
-  animation: quiz-glow 1.6s ease-in-out infinite alternate;
+  box-shadow: 0 0 12px rgba(201, 162, 255, 0.45);
 }
-@keyframes quiz-glow {
-  to {
-    box-shadow: 0 0 14px rgba(201, 162, 255, 0.55);
-  }
+/* No blur behind the quiz: blurring the moving 3D picture each frame is expensive. */
+.screen.modal.quiz-screen {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: rgba(3, 5, 10, 0.78);
 }
 
 /* First mission */

@@ -17,6 +17,8 @@ interface Game {
 }
 
 test('colony window, first mission and knowledge quiz', async ({ page }) => {
+  // Many steps with software rendering in CI (two workers share the CPU).
+  test.setTimeout(240_000);
   const errors = await startNewGame(page);
   await expect(page.locator('.mission-card')).toContainText('Solarfeld');
 

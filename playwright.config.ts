@@ -17,6 +17,8 @@ export default defineConfig({
     {
       name: 'tablet',
       grep: /see the base/,
+      // A big retina screen in software rendering: one picture can take a minute in CI.
+      timeout: 240_000,
       use: { ...devices['iPad Pro 11'], browserName: 'chromium' },
     },
   ],
