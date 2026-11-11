@@ -18,6 +18,7 @@ export const RESOURCE_ICON: Record<ResourceId, IconName> = {
   water: 'droplet',
   oxygen: 'wind',
   food: 'wheat',
+  crystals: 'sparkles',
 };
 
 /** An inline SVG icon (Lucide). Color comes from CSS `color` unless given. */

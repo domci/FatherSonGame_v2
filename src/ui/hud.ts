@@ -1,6 +1,7 @@
 import { RESOURCE_IDS, RESOURCE_INFO } from '../content/resources';
 import type { Session, Speed } from '../app/session';
 import { healthy } from '../sim/colony';
+import { quizStatus } from '../sim/quiz';
 import type { ColonyState } from '../sim/state';
 import { playerStats, type PlayerStats } from '../sim/stats';
 import type { ViewName } from '../render/views/view';
@@ -18,6 +19,7 @@ export interface HudActions {
   goView(name: ViewName): void;
   openMenu(): void;
   openColony(): void;
+  openQuiz(): void;
 }
 
 /** Top bar: resources and status on the left, views and menu on the right. */
@@ -28,11 +30,13 @@ export class Hud {
   private speedLabel = el('span', {}, 'x1');
   private moodIcon = icon('smile', '#ffd25a');
   private moodShown = '';
+  private quizButton = el('button', { class: 'seg-btn', title: 'Wissens-Quiz' }, icon('brain'));
 
   constructor(
     private session: Session,
     actions: HudActions,
   ) {
+    this.quizButton.onclick = () => actions.openQuiz();
     this.root.append(
       this.resBar(actions),
       el('div', { class: 'hud-right' }, this.navBar(actions), this.toolBar(actions)),
@@ -77,6 +81,7 @@ export class Hud {
     return el(
       'div',
       { class: 'panel seg' },
+      this.quizButton,
       el(
         'button',
         { class: 'seg-btn', title: 'Spiel-Geschwindigkeit', onclick: () => this.cycleSpeed() },
@@ -110,6 +115,7 @@ export class Hud {
     const full = stats.housingUsed >= stats.housing;
     this.set('housing', `${stats.housingUsed}/${stats.housing}`, full ? 'warn' : '');
     this.colony(player.colony, stats);
+    this.quizButton.classList.toggle('quiz-ready', quizStatus(player.quiz, s.state.time).ready);
     for (const [name, b] of this.viewButtons) b.classList.toggle('on', name === s.ui.view);
     this.speedLabel.textContent = `x${s.speed}`;
   }

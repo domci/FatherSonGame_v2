@@ -1,4 +1,5 @@
 import { newColony } from '../colony';
+import { newQuiz } from '../quiz';
 import { SAVE_VERSION } from '../state';
 import type { SaveData } from './save';
 
@@ -13,15 +14,15 @@ const MIGRATIONS: Record<number, (old: Record<string, unknown>) => Record<string
     settings: { difficulty: 'normal', offlineAttacks: false, opponent: true },
     ai: {},
   }),
-  // M5: people in the domes.
-  2: (old) => ({ ...old, players: withColony(old.players) }),
+  // M5: people in the domes and the knowledge quiz.
+  2: (old) => ({ ...old, players: withM5(old.players) }),
 };
 
-function withColony(players: unknown): Record<string, unknown> {
+function withM5(players: unknown): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   if (!isRecord(players)) return out;
   for (const [id, p] of Object.entries(players))
-    out[id] = isRecord(p) && !p.colony ? { ...p, colony: newColony() } : p;
+    out[id] = isRecord(p) ? { colony: newColony(), quiz: newQuiz(), ...p } : p;
   return out;
 }
 

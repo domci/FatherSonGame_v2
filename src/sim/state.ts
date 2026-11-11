@@ -32,6 +32,20 @@ export interface ColonyState {
   warned: NeedId[];
 }
 
+/** The knowledge quiz of one player (M5). */
+export interface QuizState {
+  /** Questions asked in this round. A new round starts when all were asked. */
+  asked: string[];
+  /** Game times of the answers in the last hour (for the limit). */
+  answers: number[];
+  /** No new question before this time (after a wrong answer). */
+  pauseUntil: number;
+  /** The open question and the order of its answers (index into `answers` of the question). */
+  current?: { id: string; order: number[] };
+  right: number;
+  wrong: number;
+}
+
 export interface PlayerState {
   id: PlayerId;
   faction: Faction;
@@ -39,6 +53,7 @@ export interface PlayerState {
   research: ResearchState;
   homeBodyId: string;
   colony: ColonyState;
+  quiz: QuizState;
   /** Fog of war: explored tiles per surface, one char per tile ('1' = seen). */
   explored?: Record<string, string>;
 }

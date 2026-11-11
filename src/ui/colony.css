@@ -29,3 +29,67 @@
 .mood-row.bad b {
   color: var(--bad);
 }
+
+/* Knowledge quiz */
+.quiz {
+  position: relative;
+  width: min(520px, calc(100% - 32px));
+}
+.quiz .close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.quiz-q {
+  text-transform: none !important;
+  font-size: 24px !important;
+  line-height: 1.2;
+}
+.quiz .m-item.quiz-answer {
+  height: auto;
+  min-height: 48px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.quiz-letter {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--stroke-hi);
+  flex: none;
+}
+.quiz-answer.right {
+  border-color: var(--good);
+  background: rgba(95, 224, 138, 0.18);
+}
+.quiz-answer.wrong {
+  border-color: var(--bad);
+  background: rgba(255, 93, 108, 0.18);
+}
+.quiz-answer:disabled {
+  transform: none;
+  cursor: default;
+}
+.quiz-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+}
+.quiz-result.good {
+  color: var(--good);
+}
+.quiz-result.bad {
+  color: var(--bad);
+}
+.seg-btn.quiz-ready {
+  color: #c9a2ff;
+  animation: quiz-glow 1.6s ease-in-out infinite alternate;
+}
+@keyframes quiz-glow {
+  to {
+    box-shadow: 0 0 14px rgba(201, 162, 255, 0.55);
+  }
+}

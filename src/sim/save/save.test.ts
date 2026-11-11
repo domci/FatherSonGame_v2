@@ -52,9 +52,13 @@ describe('save and load', () => {
     const old = JSON.parse(JSON.stringify({ ...toSaveData(s, 0), version: 2 })) as {
       players: Record<string, Record<string, unknown>>;
     };
-    for (const p of Object.values(old.players)) delete p.colony;
+    for (const p of Object.values(old.players)) {
+      delete p.colony;
+      delete p.quiz;
+    }
     const loaded = fromSaveData(old);
     expect(loaded.players.player?.colony.people).toBe(8);
+    expect(loaded.players.player?.quiz.asked).toEqual([]);
     expect(loaded.players.ai?.colony.mood).toBeGreaterThan(50);
   });
 

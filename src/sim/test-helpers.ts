@@ -1,10 +1,10 @@
 import { createGame } from './game';
-import { newColony } from './colony';
 import type { GameState } from './state';
 import type { Entity } from './entity';
 import type { BuildingId } from '../content/buildings';
 import { BUILDINGS } from '../content/buildings';
 import { placementProblem } from './occupancy';
+import { makePlayer } from './setup';
 
 /** Helpers for tests only. */
 /** A game without the computer enemy (economy tests). */
@@ -56,14 +56,7 @@ export function battleArena(): { s: GameState; zone: string; c: number } {
   const s = newTestGame();
   const player = s.players.player;
   if (!player) throw new Error('no player');
-  s.players.ai = {
-    ...player,
-    id: 'ai',
-    faction: 'alien',
-    research: { done: [] },
-    resources: {},
-    colony: newColony(),
-  };
+  s.players.ai = { ...makePlayer('ai', 'alien', player.homeBodyId), resources: {} };
   for (const nest of s.world.with('nest').entities) s.world.remove(nest);
   const zone = homeZone(s);
   return { s, zone, c: (s.surfaces[zone]?.size ?? 64) / 2 };

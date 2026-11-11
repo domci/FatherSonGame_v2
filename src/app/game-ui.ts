@@ -9,6 +9,7 @@ import { Bars } from '../ui/bars';
 import { ArmyBar } from '../ui/army-bar';
 import { levelPicker, toggleRow } from '../ui/menu-kit';
 import { endScreen } from '../ui/end-screen';
+import { openQuiz } from '../ui/quiz';
 import { otherFaction } from '../content/factions';
 import type { Sound } from '../audio/sound';
 import type { ViewManager } from '../render/view-manager';
@@ -98,6 +99,7 @@ export function buildUi(root: HTMLElement, session: Session, d: UiDeps): GameUi 
     goView: (n) => d.views.go(n),
     openMenu: () => openMenu(root, session, d.sound, d.onQuit),
     openColony: () => session.openPanel('colony'),
+    openQuiz: () => openQuiz(root, session),
   });
   const parts = [
     hud,

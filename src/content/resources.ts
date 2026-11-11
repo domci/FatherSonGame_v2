@@ -1,4 +1,7 @@
-/** All resources that can be stored. Energy is not stored: it is a flow (production vs. use). */
+/**
+ * All resources that can be stored. Energy is not stored: it is a flow (production vs. use).
+ * Knowledge crystals come only from the quiz (M5).
+ */
 export const RESOURCE_IDS = [
   'regolith',
   'metal',
@@ -8,6 +11,7 @@ export const RESOURCE_IDS = [
   'water',
   'oxygen',
   'food',
+  'crystals',
 ] as const;
 
 export type ResourceId = (typeof RESOURCE_IDS)[number];
@@ -27,6 +31,7 @@ export const RESOURCE_INFO: Record<ResourceId, ResourceInfo> = {
   water: { name: 'Wasser', color: '#4aa8ff' },
   oxygen: { name: 'Sauerstoff', color: '#b8f0ff' },
   food: { name: 'Nahrung', color: '#9be36b' },
+  crystals: { name: 'Wissenskristalle', color: '#c9a2ff' },
 };
 
 export const START_RESOURCES: ResourceAmounts = {

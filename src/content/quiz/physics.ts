@@ -1,0 +1,110 @@
+import { q, type QuizQuestion } from './types';
+
+/** Physik. The first answer is always the right one. */
+export const PHYSICS: readonly QuizQuestion[] = [
+  q(
+    'physics',
+    'boil',
+    'Bei wie viel Grad Celsius kocht Wasser (auf Höhe des Meeres)?',
+    ['100 °C', '50 °C', '212 °C', '75 °C'],
+    'Wasser kocht bei 100 °C. In Fahrenheit sind das 212 Grad. Auf hohen Bergen kocht es früher.',
+  ),
+  q(
+    'physics',
+    'freeze',
+    'Bei wie viel Grad Celsius gefriert Wasser?',
+    ['0 °C', '10 °C', '-20 °C', '4 °C'],
+    'Unter 0 °C wird Wasser zu Eis.',
+  ),
+  q(
+    'physics',
+    'thunder',
+    'Warum sieht man den Blitz vor dem Donner?',
+    [
+      'Licht ist viel schneller als Schall',
+      'Der Donner ist leiser',
+      'Die Augen sind schneller als die Ohren',
+      'Der Blitz ist näher',
+    ],
+    'Licht schafft 300 000 km pro Sekunde, Schall nur etwa 340 Meter.',
+  ),
+  q(
+    'physics',
+    'gravity',
+    'Welche Kraft zieht Dinge zum Boden der Erde?',
+    ['Schwerkraft', 'Magnetkraft', 'Windkraft', 'Muskelkraft'],
+    'Die Schwerkraft zieht alles zur Erde. Auch der Mond wird so festgehalten.',
+  ),
+  q(
+    'physics',
+    'space-sound',
+    'Kann man im Weltall Schall hören?',
+    [
+      'Nein, dort gibt es keine Luft',
+      'Ja, sogar lauter als auf der Erde',
+      'Ja, aber nur hohe Töne',
+      'Nur in der Nähe der Sonne',
+    ],
+    'Schall braucht Luft, Wasser oder einen anderen Stoff. Im leeren All ist es still.',
+  ),
+  q(
+    'physics',
+    'prism',
+    'Was passiert, wenn weißes Licht durch ein Glas-Prisma geht?',
+    ['Es teilt sich in bunte Farben', 'Es wird dunkel', 'Es wird heiß', 'Es wird grün'],
+    'Weißes Licht besteht aus allen Farben. So entsteht auch ein Regenbogen.',
+  ),
+  q(
+    'physics',
+    'magnet',
+    'Welches Metall zieht ein Magnet an?',
+    ['Eisen', 'Gold', 'Kupfer', 'Aluminium'],
+    'Eisen, Nickel und Kobalt sind magnetisch. Gold, Kupfer und Aluminium nicht.',
+  ),
+  q(
+    'physics',
+    'fire',
+    'Was braucht ein Feuer zum Brennen?',
+    ['Sauerstoff', 'Stickstoff', 'Kohlendioxid', 'Wasser'],
+    'Ohne Sauerstoff geht ein Feuer aus. Auf eurem Planeten ohne Luft brennt nichts.',
+  ),
+  q(
+    'physics',
+    'ice',
+    'Warum schwimmt Eis auf dem Wasser?',
+    [
+      'Eis ist leichter als gleich viel Wasser',
+      'Im Eis sind Löcher',
+      'Eis ist wärmer als Wasser',
+      'Das Wasser stößt kaltes Eis ab',
+    ],
+    'Wasser dehnt sich beim Gefrieren aus. Darum ist Eis leichter als gleich viel Wasser.',
+    12,
+  ),
+  q(
+    'physics',
+    'volt',
+    'In welcher Einheit misst man elektrische Spannung?',
+    ['Volt', 'Meter', 'Kilogramm', 'Grad'],
+    'Eine Steckdose in Deutschland hat 230 Volt.',
+  ),
+  q(
+    'physics',
+    'solar',
+    'Was macht eine Solarzelle?',
+    ['Sie macht aus Licht Strom', 'Sie macht aus Strom Licht', 'Sie speichert Wasser', 'Sie kühlt'],
+    'Genau wie die Solarfelder in eurer Basis.',
+  ),
+  q(
+    'physics',
+    'moon-jump',
+    'Warum kann man auf dem Mond viel höher springen?',
+    [
+      'Der Mond hat weniger Schwerkraft',
+      'Auf dem Mond gibt es keine Luft',
+      'Der Mond ist näher an der Sonne',
+      'Der Raumanzug hat Federn',
+    ],
+    'Auf dem Mond wiegt man nur etwa ein Sechstel so viel wie auf der Erde.',
+  ),
+];

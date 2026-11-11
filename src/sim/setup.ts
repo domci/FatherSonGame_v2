@@ -3,6 +3,7 @@ import { otherFaction } from '../content/factions';
 import { START_RESOURCES } from '../content/resources';
 import { MINUTE } from './clock';
 import { newColony } from './colony';
+import { newQuiz } from './quiz';
 import type { PlayerId } from './entity';
 import { generateSurface, type SurfaceMap } from './generation/surface';
 import { spawn, spawnBuilding, spawnUnit } from './spawn';
@@ -16,6 +17,7 @@ export function makePlayer(id: PlayerId, faction: Faction, homeBodyId: string): 
     research: { done: [] },
     homeBodyId,
     colony: newColony(),
+    quiz: newQuiz(),
     explored: {},
   };
 }

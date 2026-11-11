@@ -14,6 +14,7 @@ import type { Entity } from '../sim/entity';
 import { factionOf, nameOfBuilding, nameOfUnit } from '../sim/names';
 import { thumb } from './build-menu';
 import { colonyStats } from './panel-colony';
+import { speedEntityButton, speedKey, speedResearchButton } from './panel-speed';
 import { action, header, levelPips, progress, section, stat, text } from './panel-kit';
 
 export { timer } from './panel-kit';
@@ -47,13 +48,14 @@ function upgradeRow(session: Session, e: Entity): HTMLElement | null {
 function trainRows(session: Session, e: Entity): HTMLElement | null {
   const trains = e.building ? (BUILDINGS[e.building.type].trains ?? []) : [];
   if (!e.building || e.building.level < 1 || !trains.length) return null;
-  const rows: HTMLElement[] = [];
+  const rows: (HTMLElement | null)[] = [];
   const name = (id: keyof typeof UNITS): string => nameOfUnit(session.state, 'player', id);
   if (e.training) {
     const u = UNITS[e.training.unit];
     const q = e.training.queue.length;
     const label = `${name(u.id)}${q ? ` (+${q} in Warteschlange)` : ''}`;
     rows.push(progress(label, e.training.finishAt - u.trainSeconds * 1000, e.training.finishAt));
+    if (!e.construction) rows.push(speedEntityButton(session, e));
   }
   for (const unit of trains) rows.push(trainButton(session, e, unit, name(unit)));
   return section('Einheiten', ...rows);
@@ -77,11 +79,12 @@ function researchRows(session: Session, e: Entity): HTMLElement | null {
   const player = session.state.players.player;
   if (e.building?.type !== 'lab' || e.building.level < 1 || !player) return null;
   const current = player.research.current;
-  const rows: HTMLElement[] = [];
+  const rows: (HTMLElement | null)[] = [];
   const cur = current && RESEARCH_LIST.find((r) => r.id === current.id);
   if (current && cur)
     rows.push(
       progress(cur.name, current.finishAt - stageSeconds(cur.stage) * 1000, current.finishAt),
+      speedResearchButton(session),
     );
   for (const r of RESEARCH_LIST.filter(
     (x) => !player.research.done.includes(x.id) && x.id !== current?.id,
@@ -154,6 +157,7 @@ export function buildingPanel(session: Session, e: Entity): HTMLElement[] {
   if (c)
     out.push(
       progress(e.building.level === 0 ? 'Wird gebaut' : 'Wird ausgebaut', c.startedAt, c.finishAt),
+      speedEntityButton(session, e),
     );
   out.push(upgradeRow(session, e), trainRows(session, e), researchRows(session, e));
   return out.filter((x): x is HTMLElement => !!x);
@@ -170,5 +174,6 @@ export function buildingKey(session: Session, e: Entity): string {
     p?.research,
     Math.ceil((e.health?.hp ?? 0) / 10),
     Math.ceil((e.shield?.hp ?? 0) / 50),
+    speedKey(session, e),
   ]);
 }

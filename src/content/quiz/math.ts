@@ -1,0 +1,85 @@
+import { q, type QuizQuestion } from './types';
+
+/** Mathe. The first answer is always the right one. */
+export const MATH: readonly QuizQuestion[] = [
+  q('math', 'seven-eight', 'Was ist 7 × 8?', ['56', '54', '48', '64'], '7 × 8 = 56.'),
+  q(
+    'math',
+    'day-minutes',
+    'Wie viele Minuten hat ein Tag?',
+    ['1440', '1000', '2400', '360'],
+    '24 Stunden × 60 Minuten = 1440 Minuten.',
+  ),
+  q(
+    'math',
+    'cube-corners',
+    'Wie viele Ecken hat ein Würfel?',
+    ['8', '6', '12', '4'],
+    'Ein Würfel hat 8 Ecken, 6 Flächen und 12 Kanten.',
+  ),
+  q(
+    'math',
+    'eighth',
+    'Was ist die Hälfte von einem Viertel?',
+    ['Ein Achtel', 'Ein Halb', 'Ein Sechstel', 'Zwei Viertel'],
+    'Teilt man ein Viertel in zwei Teile, bekommt man zwei Achtel.',
+  ),
+  q(
+    'math',
+    'percent',
+    'Wie viel sind 15 % von 200?',
+    ['30', '15', '20', '35'],
+    '10 % von 200 sind 20, 5 % sind 10. Zusammen 30.',
+    12,
+  ),
+  q(
+    'math',
+    'prime',
+    'Welche Zahl ist eine Primzahl?',
+    ['13', '15', '21', '27'],
+    '13 kann man nur durch 1 und 13 teilen. 15 = 3 × 5, 21 = 3 × 7, 27 = 3 × 9.',
+  ),
+  q(
+    'math',
+    'right-angle',
+    'Wie viel Grad hat ein rechter Winkel?',
+    ['90°', '180°', '45°', '360°'],
+    'Ein rechter Winkel ist ein Viertel von einer ganzen Drehung (360°).',
+  ),
+  q(
+    'math',
+    'hour-seconds',
+    'Wie viele Sekunden hat eine Stunde?',
+    ['3600', '60', '600', '360'],
+    '60 Minuten × 60 Sekunden = 3600 Sekunden.',
+  ),
+  q(
+    'math',
+    'area',
+    'Ein Feld ist 4 m lang und 3 m breit. Wie groß ist seine Fläche?',
+    ['12 m²', '7 m²', '14 m²', '24 m²'],
+    'Fläche = Länge × Breite = 4 × 3 = 12 m². 14 m wäre der Weg einmal außen herum.',
+  ),
+  q(
+    'math',
+    'double',
+    'Welche Zahl kommt als Nächstes: 2, 4, 8, 16, …?',
+    ['32', '18', '24', '20'],
+    'Jede Zahl ist doppelt so groß wie die vorige: 16 × 2 = 32.',
+  ),
+  q(
+    'math',
+    'ship-speed',
+    'Ein Raumschiff fliegt 300 km in einer Stunde. Wie weit kommt es in 4 Stunden?',
+    ['1200 km', '304 km', '900 km', '1500 km'],
+    '300 km × 4 = 1200 km.',
+  ),
+  q(
+    'math',
+    'decimal',
+    'Welche Zahl ist größer?',
+    ['0,5', '0,45', 'Beide sind gleich groß', 'Das kann man nicht sagen'],
+    '0,5 ist dasselbe wie 0,50. Und 50 Hundertstel sind mehr als 45 Hundertstel.',
+    12,
+  ),
+];

@@ -1,0 +1,95 @@
+import { q, type QuizQuestion } from './types';
+
+/** Weltraum. The first answer is always the right one. */
+export const SPACE: readonly QuizQuestion[] = [
+  q(
+    'space',
+    'nearest',
+    'Welcher Planet ist der Sonne am nächsten?',
+    ['Merkur', 'Venus', 'Mars', 'Erde'],
+    'Merkur braucht nur 88 Tage für eine Runde um die Sonne.',
+  ),
+  q(
+    'space',
+    'biggest',
+    'Welcher ist der größte Planet in unserem Sonnensystem?',
+    ['Jupiter', 'Saturn', 'Neptun', 'Erde'],
+    'Jupiter ist so groß, dass mehr als 1000 Erden hineinpassen würden.',
+  ),
+  q(
+    'space',
+    'light',
+    'Wie lange braucht das Licht von der Sonne bis zur Erde?',
+    ['Etwa 8 Minuten', 'Etwa 8 Sekunden', 'Etwa 8 Stunden', 'Etwa 8 Tage'],
+    'Das Licht fliegt fast 150 Millionen Kilometer weit. Das dauert etwa 8 Minuten.',
+  ),
+  q(
+    'space',
+    'galaxy',
+    'Wie heißt unsere Galaxie?',
+    ['Milchstraße', 'Andromeda', 'Sombrero-Galaxie', 'Große Magellansche Wolke'],
+    'Die Milchstraße hat mehr als 100 Milliarden Sterne. Die Sonne ist einer davon.',
+  ),
+  q(
+    'space',
+    'moon-walk',
+    'Wer betrat 1969 als erster Mensch den Mond?',
+    ['Neil Armstrong', 'Buzz Aldrin', 'Juri Gagarin', 'Michael Collins'],
+    'Neil Armstrong flog mit Apollo 11. Buzz Aldrin folgte ihm kurz danach.',
+  ),
+  q(
+    'space',
+    'mars-red',
+    'Warum sieht der Mars rot aus?',
+    ['Sein Staub enthält Rost', 'Er ist sehr heiß', 'Dort wachsen rote Pflanzen', 'Er glüht'],
+    'Im Staub und Gestein ist viel Eisenoxid. Das ist dasselbe wie Rost.',
+  ),
+  q(
+    'space',
+    'rings',
+    'Welcher Planet hat die größten und hellsten Ringe?',
+    ['Saturn', 'Mars', 'Merkur', 'Venus'],
+    'Die Ringe sind aus Eis und Gestein. Jupiter, Uranus und Neptun haben auch Ringe, aber viel dünnere.',
+  ),
+  q(
+    'space',
+    'sun',
+    'Was ist die Sonne?',
+    ['Ein Stern', 'Ein Planet', 'Ein Mond', 'Ein Komet'],
+    'Die Sonne ist ein Stern. Andere Sterne sind nur viel weiter weg.',
+  ),
+  q(
+    'space',
+    'planets',
+    'Wie viele Planeten hat unser Sonnensystem?',
+    ['8', '9', '7', '10'],
+    'Seit 2006 zählt Pluto nicht mehr als Planet, sondern als Zwergplanet.',
+  ),
+  q(
+    'space',
+    'hottest',
+    'Welcher Planet ist am heißesten?',
+    ['Venus', 'Merkur', 'Mars', 'Jupiter'],
+    'Die dicke Lufthülle der Venus hält die Wärme fest. Es ist dort über 460 °C heiß.',
+  ),
+  q(
+    'space',
+    'moon-wind',
+    'Warum gibt es auf dem Mond keinen Wind?',
+    [
+      'Es gibt dort fast keine Luft',
+      'Es ist dort immer Nacht',
+      'Der Mond dreht sich nicht',
+      'Die Erde hält den Wind fest',
+    ],
+    'Wind ist Luft, die sich bewegt. Ohne Luft gibt es keinen Wind.',
+  ),
+  q(
+    'space',
+    'light-year',
+    'Was ist ein Lichtjahr?',
+    ['Eine Strecke', 'Eine Zeit', 'Eine Helligkeit', 'Ein Kalender'],
+    'Ein Lichtjahr ist der Weg, den Licht in einem Jahr fliegt: etwa 9,5 Billionen Kilometer.',
+    12,
+  ),
+];
