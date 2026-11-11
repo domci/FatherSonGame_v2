@@ -1,6 +1,7 @@
 import { newColony } from '../colony';
 import { newQuiz } from '../quiz';
-import { SAVE_VERSION } from '../state';
+import { newMission } from '../systems/mission';
+import { SAVE_VERSION, type MissionState } from '../state';
 import type { SaveData } from './save';
 
 /**
@@ -14,7 +15,7 @@ const MIGRATIONS: Record<number, (old: Record<string, unknown>) => Record<string
     settings: { difficulty: 'normal', offlineAttacks: false, opponent: true },
     ai: {},
   }),
-  // M5: people in the domes and the knowledge quiz.
+  // M5: people in the domes, the knowledge quiz and the first mission.
   2: (old) => ({ ...old, players: withM5(old.players) }),
 };
 
@@ -22,8 +23,15 @@ function withM5(players: unknown): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   if (!isRecord(players)) return out;
   for (const [id, p] of Object.entries(players))
-    out[id] = isRecord(p) ? { colony: newColony(), quiz: newQuiz(), ...p } : p;
+    out[id] = isRecord(p)
+      ? { colony: newColony(), quiz: newQuiz(), mission: oldMission(), ...p }
+      : p;
   return out;
+}
+
+/** Old games are already running: the first mission is for new games only. */
+function oldMission(): MissionState {
+  return { ...newMission(), off: true };
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {

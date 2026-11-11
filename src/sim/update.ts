@@ -1,6 +1,7 @@
 import { aiSystem } from './ai/brain';
 import { constructionSystem, trainingSystem } from './systems/construction';
 import { colonySystem } from './systems/colony';
+import { missionSystem } from './systems/mission';
 import { combatSystem } from './systems/combat';
 import { defenseSystem } from './systems/defense';
 import { guardSystem } from './systems/guard';
@@ -35,6 +36,7 @@ export function economyStep(state: GameState, dtMs: number, opts: StepOptions = 
   researchSystem(state);
   productionSystem(state, dtMs);
   colonySystem(state, dtMs);
+  missionSystem(state);
   fleetSystem(state);
   miningSystem(state, opts);
   transportSystem(state, opts);

@@ -93,3 +93,52 @@
     box-shadow: 0 0 14px rgba(201, 162, 255, 0.55);
   }
 }
+
+/* First mission */
+.mission-card {
+  position: absolute;
+  left: 10px;
+  top: 64px;
+  width: min(270px, calc(100vw - 20px));
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mission-card[hidden] {
+  display: none;
+}
+.mission-card .close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+.mission-goal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 17px;
+  padding-right: 22px;
+}
+.mission-goal .ico {
+  color: var(--accent);
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.mission-reward {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.story-box {
+  width: min(520px, calc(100% - 32px));
+}
+.story-box .p-text {
+  font-size: 15px;
+  line-height: 1.5;
+}

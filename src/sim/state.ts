@@ -46,6 +46,14 @@ export interface QuizState {
   wrong: number;
 }
 
+/** Progress in the first mission (M5). */
+export interface MissionState {
+  /** Number of the step to do now (= steps done). */
+  step: number;
+  /** The player closed the mission. */
+  off: boolean;
+}
+
 export interface PlayerState {
   id: PlayerId;
   faction: Faction;
@@ -54,6 +62,7 @@ export interface PlayerState {
   homeBodyId: string;
   colony: ColonyState;
   quiz: QuizState;
+  mission: MissionState;
   /** Fog of war: explored tiles per surface, one char per tile ('1' = seen). */
   explored?: Record<string, string>;
 }

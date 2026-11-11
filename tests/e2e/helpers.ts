@@ -29,6 +29,7 @@ export async function startNewGame(
   await page.getByRole('button', { name: /Los geht/ }).click();
   // The HUD appears after the loading screen (renderer + 3D models).
   await expect(page.locator('.hud')).toBeVisible({ timeout: 60_000 });
+  await page.getByRole('button', { name: /Zur Basis/ }).click();
   await page.waitForTimeout(2500);
   return errors;
 }

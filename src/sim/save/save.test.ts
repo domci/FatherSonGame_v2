@@ -55,10 +55,12 @@ describe('save and load', () => {
     for (const p of Object.values(old.players)) {
       delete p.colony;
       delete p.quiz;
+      delete p.mission;
     }
     const loaded = fromSaveData(old);
     expect(loaded.players.player?.colony.people).toBe(8);
     expect(loaded.players.player?.quiz.asked).toEqual([]);
+    expect(loaded.players.player?.mission.off).toBe(true);
     expect(loaded.players.ai?.colony.mood).toBeGreaterThan(50);
   });
 

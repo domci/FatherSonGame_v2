@@ -10,6 +10,7 @@ import { ArmyBar } from '../ui/army-bar';
 import { levelPicker, toggleRow } from '../ui/menu-kit';
 import { endScreen } from '../ui/end-screen';
 import { openQuiz } from '../ui/quiz';
+import { MissionCard } from '../ui/mission-card';
 import { otherFaction } from '../content/factions';
 import type { Sound } from '../audio/sound';
 import type { ViewManager } from '../render/view-manager';
@@ -106,6 +107,7 @@ export function buildUi(root: HTMLElement, session: Session, d: UiDeps): GameUi 
     new BuildMenu(session),
     new ArmyBar(session),
     new InfoPanel(session),
+    new MissionCard(session),
     new Toasts(session),
   ];
   const bars = new Bars(d.project);

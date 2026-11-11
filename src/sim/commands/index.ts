@@ -7,6 +7,7 @@ import { recallShip, sendShip, type RecallShipCommand, type SendShipCommand } fr
 import { changeSettings, type SettingsCommand } from './settings';
 import { quizAnswer, quizAsk, type QuizAnswerCommand, type QuizAskCommand } from './quiz';
 import { speedUp, type SpeedUpCommand } from './speed-up';
+import { missionOff, type MissionOffCommand } from './mission';
 import {
   board,
   fly,
@@ -41,7 +42,8 @@ export type Command =
   | SettingsCommand
   | QuizAskCommand
   | QuizAnswerCommand
-  | SpeedUpCommand;
+  | SpeedUpCommand
+  | MissionOffCommand;
 
 export type { CommandResult };
 
@@ -66,6 +68,7 @@ const HANDLERS: Handlers = {
   quizAsk,
   quizAnswer,
   speedUp,
+  missionOff,
 };
 
 export function applyCommand(state: GameState, cmd: Command): CommandResult {

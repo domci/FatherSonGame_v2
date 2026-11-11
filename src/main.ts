@@ -19,6 +19,7 @@ import { mainMenu } from './ui/main-menu';
 import { newGameDialog, type NewGameChoice } from './ui/new-game';
 import { awayReport } from './ui/away-report';
 import { el } from './ui/dom';
+import { storyIntro } from './ui/story';
 
 const MIN_AWAY_MS = 60_000;
 
@@ -48,7 +49,9 @@ function showError(e: unknown): void {
 
 function startNew(c: NewGameChoice): void {
   const state = createGame({ seed: randomSeed(), time: 0, ...c });
-  void play(state).catch(showError);
+  void play(state)
+    .then(() => root().append(storyIntro(c.faction, () => undefined)))
+    .catch(showError);
 }
 
 async function showMenu(): Promise<void> {
