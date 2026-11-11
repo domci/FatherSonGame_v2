@@ -2,6 +2,10 @@ import { BUILDINGS } from '../../content/buildings';
 import { UNITS, type UnitId } from '../../content/units';
 import type { Entity, PlayerId, Vec2 } from '../entity';
 import { getPlayer } from '../game';
+import { canHit } from '../layers';
+import { hasResearch } from '../research-helpers';
+import { hasFuel, needsFuel } from '../systems/fuel';
+import { RESEARCH } from '../../content/research';
 import { blockedTiles } from '../occupancy';
 import { findPath } from '../pathfinding';
 import { findEntity } from '../spawn';
@@ -81,9 +85,14 @@ export function formation(target: Vec2, count: number, gap = 0.9): Vec2[] {
   }));
 }
 
+const NO_GAS = 'Kein Gas: Flugzeuge brauchen Gas als Treibstoff.';
+
 export function move(state: GameState, cmd: MoveCommand): CommandResult {
-  const units = ownUnits(state, cmd.player, cmd.unitIds);
-  if (units.length === 0) return fail('Keine Einheit ausgewählt.');
+  const all = ownUnits(state, cmd.player, cmd.unitIds);
+  if (all.length === 0) return fail('Keine Einheit ausgewählt.');
+  const fuel = hasFuel(state, cmd.player);
+  const units = all.filter((u) => fuel || !needsFuel(u));
+  if (units.length === 0) return fail(NO_GAS);
   const spots = formation(cmd.target, units.length);
   units.forEach((u, i) => {
     if (u.attacker) delete u.attacker.targetId;
@@ -97,8 +106,13 @@ export function attack(state: GameState, cmd: AttackCommand): CommandResult {
   const target = findEntity(state, cmd.targetId);
   if (!target?.health || target.owner === cmd.player || target.aboard)
     return fail('Kein gültiges Ziel.');
-  const units = ownUnits(state, cmd.player, cmd.unitIds).filter((u) => u.attacker);
-  if (units.length === 0) return fail('Diese Einheiten können nicht kämpfen.');
+  const fighters = ownUnits(state, cmd.player, cmd.unitIds).filter((u) => u.attacker);
+  if (fighters.length === 0) return fail('Diese Einheiten können nicht kämpfen.');
+  const able = fighters.filter((u) => canHit(u, target));
+  if (able.length === 0) return fail('Diese Einheiten können das nicht treffen.');
+  const fuel = hasFuel(state, cmd.player);
+  const units = able.filter((u) => fuel || !needsFuel(u));
+  if (units.length === 0) return fail(NO_GAS);
   for (const u of units) if (u.attacker) u.attacker.targetId = target.id;
   return OK;
 }
@@ -112,12 +126,22 @@ function queuedHousing(state: GameState, player: PlayerId): number {
   return sum;
 }
 
+/** Why this building cannot train this unit (null = it can). */
+function trainerProblem(state: GameState, cmd: TrainCommand, b: Entity | undefined): string | null {
+  if (!b?.building || b.owner !== cmd.player || b.building.level < 1)
+    return 'Gebäude nicht bereit.';
+  if (!BUILDINGS[b.building.type].trains?.includes(cmd.unit))
+    return 'Kann diese Einheit nicht bauen.';
+  const need = UNITS[cmd.unit].requires;
+  if (need && !hasResearch(state, cmd.player, need))
+    return `Braucht zuerst: ${RESEARCH[need].name}.`;
+  return null;
+}
+
 export function train(state: GameState, cmd: TrainCommand): CommandResult {
   const b = findEntity(state, cmd.buildingId);
-  if (!b?.building || b.owner !== cmd.player || b.building.level < 1)
-    return fail('Gebäude nicht bereit.');
-  if (!BUILDINGS[b.building.type].trains?.includes(cmd.unit))
-    return fail('Kann diese Einheit nicht bauen.');
+  const problem = trainerProblem(state, cmd, b);
+  if (problem || !b) return fail(problem ?? 'Gebäude nicht bereit.');
   const def = UNITS[cmd.unit];
   const stats = playerStats(state, cmd.player);
   if (stats.housingUsed + queuedHousing(state, cmd.player) + def.housing > stats.housing) {

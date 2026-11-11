@@ -10,6 +10,7 @@ const MARK_SOUND: Record<Mark['kind'], { name: SfxName; volume: number }> = {
   building: { name: 'big_kill', volume: 0.8 },
   spider: { name: 'kill', volume: 0.45 },
   egg: { name: 'hit', volume: 0.3 },
+  strike: { name: 'big_kill', volume: 0.7 },
 };
 
 /**

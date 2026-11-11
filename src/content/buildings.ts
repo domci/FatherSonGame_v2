@@ -1,6 +1,6 @@
 import type { ResourceAmounts } from './resources';
 import type { ResearchId } from './research';
-import type { UnitId } from './units';
+import type { Hits, UnitId } from './units';
 import { BUILDING_LIST } from './building-list';
 import { stageSeconds } from './time-curve';
 
@@ -22,7 +22,10 @@ export type BuildingId =
   | 'wall'
   | 'turret'
   | 'shieldReactor'
-  | 'forceField';
+  | 'forceField'
+  | 'airfield'
+  | 'flakTower'
+  | 'orbitalCannon';
 
 export type BuildingCategory =
   | 'command'
@@ -42,6 +45,8 @@ export interface WeaponDef {
   /** Range in tiles. */
   range: number;
   cooldownMs: number;
+  /** What it can hit (default: ground). 'space' = ships in orbit above the planet. */
+  hits?: Hits | 'space';
 }
 
 /** A shield bubble around a building. It takes damage for everything inside. */

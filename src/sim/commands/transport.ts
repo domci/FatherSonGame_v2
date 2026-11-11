@@ -46,7 +46,8 @@ export function spaceLeft(state: GameState, ship: Entity): number {
 /** Can this unit go into this ship? */
 function canBoard(u: Entity | undefined, ship: Entity, player: PlayerId): u is Entity {
   if (!u?.unit || u.owner !== player || u.zone !== ship.zone) return false;
-  return !u.ship && !u.busyWith && !u.aboard && !UNITS[u.unit.type].flying;
+  const def = UNITS[u.unit.type];
+  return !u.ship && !u.busyWith && !u.aboard && !def.space && (!def.flying || !!def.air);
 }
 
 export function board(state: GameState, cmd: BoardCommand): CommandResult {

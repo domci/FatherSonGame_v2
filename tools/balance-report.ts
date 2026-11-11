@@ -5,6 +5,10 @@ import type { PlayerId } from '../src/sim/entity';
 export interface Snapshot {
   buildings: number;
   army: number;
+  /** Fighters and bombers. */
+  air: number;
+  /** War ships in space. */
+  fleet: number;
 }
 
 export interface Job {
@@ -29,6 +33,7 @@ export interface Result extends Job {
   firstAttack?: number;
   at60: Record<'player' | 'ai', Snapshot>;
   at120: Record<'player' | 'ai', Snapshot>;
+  atEnd: Record<'player' | 'ai', Snapshot>;
 }
 
 export interface RunInfo {
@@ -76,6 +81,13 @@ ${levels
 `;
 }
 
+/** Median over both sides: "at 120 min / at the end". */
+function both(rs: Result[], key: 'air' | 'fleet'): string {
+  const of = (snap: (r: Result) => Record<'player' | 'ai', Snapshot>): number =>
+    median(rs.flatMap((r) => [snap(r).player[key], snap(r).ai[key]]));
+  return `${of((r) => r.at120)} / ${of((r) => r.atEnd)}`;
+}
+
 const humanSide = (r: Result): 'player' | 'ai' => (r.faction === 'human' ? 'player' : 'ai');
 
 function part2(rs: Result[]): string {
@@ -89,6 +101,8 @@ function part2(rs: Result[]): string {
 | Siege Menschen | ${humanWins} (${pct(humanWins, done.length)}) |
 | Siege Aliens | ${done.length - humanWins} (${pct(done.length - humanWins, done.length)}) |
 | Spieldauer Median | ${minutes(done.map((r) => r.minutes))} |
+| Flieger pro Seite (Median: 120 min / Ende) | ${both(rs, 'air')} |
+| Kampfschiffe pro Seite (Median: 120 min / Ende) | ${both(rs, 'fleet')} |
 `;
 }
 

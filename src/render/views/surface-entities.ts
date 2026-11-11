@@ -12,6 +12,7 @@ import { lookOf } from '../models/unit-models';
 import { animateSpider } from '../models/spider-model';
 import { toWorldX } from './surface-terrain';
 import { animateParts } from './building-anim';
+import { AIR_HEIGHT, flies } from './air';
 
 interface Shown {
   obj: Object3D;
@@ -116,8 +117,11 @@ export class SurfaceEntities {
     if (!e.position) return;
     const { x, y } = e.position;
     const t = this.clock / 1000 + e.id;
-    const flies = e.unit?.type === 'drone' || (e.unit?.type === 'hunter' && obj.userData.alien);
-    const bob = flies ? 0.9 + Math.sin(t * 2.5) * 0.1 : 0;
+    const hovers = e.unit?.type === 'drone' || (e.unit?.type === 'hunter' && obj.userData.alien);
+    const wave = Math.sin(t * 2.5);
+    const bob = flies(e) ? AIR_HEIGHT + wave * 0.15 : hovers ? 0.9 + wave * 0.1 : 0;
+    const shadow = obj.getObjectByName('shadow');
+    if (shadow) shadow.position.y = -bob + 0.05;
     obj.position.set(
       toWorldX(this.map, x),
       visualHeight(this.map, x, y) + bob,
@@ -168,6 +172,7 @@ export class SurfaceEntities {
       const r = selectionRing(e.owner !== 'player');
       r.scale.setScalar(e.building ? BUILDINGS[e.building.type].size * 0.7 : 0.9);
       if (e.unit?.type === 'drone') r.position.y = -1.3;
+      if (flies(e)) r.position.y = -AIR_HEIGHT;
       obj.add(r);
     } else if (!selected && ring) obj.remove(ring);
     if (ring) ring.rotation.z += 0.02;

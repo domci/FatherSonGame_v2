@@ -2,7 +2,7 @@ import { Group, type Material, type Object3D } from 'three/webgpu';
 import type { Faction } from '../../content/factions';
 import type { UnitId } from '../../content/units';
 import { ALIEN_KIT } from './alien-materials';
-import { kitModelWithHeight, remapMaterials } from './kit';
+import { kitModelWithHeight, kitModelWithLength, remapMaterials } from './kit';
 import { buildModel, partMaterial } from './parts';
 import { spiderModel } from './spider-model';
 import { UNIT_LOOKS, type UnitLook } from './unit-looks';
@@ -35,10 +35,17 @@ function paint(obj: Object3D, look: UnitLook): void {
 export function unitModel(type: UnitId, faction: Faction = 'human'): Object3D {
   if (type === 'spider') return spiderModel();
   if (type === 'transport' && faction === 'alien') return sporeShip();
+  if (type === 'cruiser' && faction === 'alien') {
+    const mother = sporeShip();
+    mother.scale.multiplyScalar(1.6);
+    return mother;
+  }
   const look = lookOf(type, faction);
   const g = new Group();
   if (!look) return g;
-  const model = kitModelWithHeight(look.kit, look.height);
+  const model = look.length
+    ? kitModelWithLength(look.kit, look.length)
+    : kitModelWithHeight(look.kit, look.height);
   paint(model, look);
   g.add(model);
   return g;

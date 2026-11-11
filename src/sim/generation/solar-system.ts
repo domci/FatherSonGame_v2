@@ -68,7 +68,13 @@ function uniqueName(rng: Rng, used: Set<string>): string {
   return name;
 }
 
-function makeBody(rng: Rng, index: number, orbitRadius: number, kind: BodyKind, used: Set<string>): Body {
+function makeBody(
+  rng: Rng,
+  index: number,
+  orbitRadius: number,
+  kind: BodyKind,
+  used: Set<string>,
+): Body {
   const size = kind === 'gas' ? rng.range(2.2, 3.4) : rng.range(0.8, 1.4);
   return {
     id: `p${index}`,
@@ -89,6 +95,20 @@ function kindFor(rng: Rng, orbitRadius: number, beltOuter: number): BodyKind {
   return rng.next() < 0.75 ? 'gas' : 'ice';
 }
 
+/**
+ * Planes and war ships need gas, so every system has a gas planet.
+ * If there is none, the first outer planet becomes one (no extra random numbers: old saves stay the same).
+ */
+function ensureGasPlanet(bodies: Body[]): void {
+  if (bodies.some((b) => b.kind === 'gas')) return;
+  const outer = bodies.find((b) => b.kind === 'ice');
+  if (!outer) return;
+  outer.kind = 'gas';
+  outer.mineable = KIND_MINEABLE.gas;
+  outer.color = KIND_COLORS.gas[0] ?? outer.color;
+  outer.radius = Math.round(outer.radius * 2.4 * 100) / 100;
+}
+
 /** Makes a random solar system. Same seed = same system. */
 export function generateSolarSystem(seed: number): SolarSystem {
   const rng = createRng(seed ^ 0x5eed);
@@ -107,6 +127,7 @@ export function generateSolarSystem(seed: number): SolarSystem {
     bodies.push(makeBody(rng, i, Math.round(radius * 10) / 10, kindFor(rng, radius, outer), names));
     radius += rng.range(5, 8) + (i > beltIndex ? 3 : 0);
   }
+  ensureGasPlanet(bodies);
   const rocky = bodies.filter((b) => b.kind === 'rocky');
   const home = rocky[rocky.length - 1] ?? bodies[0];
   const alien = rocky.find((b) => b !== home) ?? bodies[bodies.length - 1];

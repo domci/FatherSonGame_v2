@@ -5,8 +5,8 @@ All models and sounds here are public domain (CC0 1.0). Crediting is not require
 ## Models
 
 - `kenney/` – Space Kit 2.0 by Kenney (https://kenney.nl/assets/space-kit), CC0 1.0.
-  Includes the cargo ship, speeder and turrets.
-- `quaternius/` – robots, astronaut, tank and monsters (alien, crab, jelly, bee) by Quaternius
+  Includes the cargo ships, speeders (planes and war ships), hangars and turrets.
+- `quaternius/` – robots, mechs, astronaut, tank and monsters (alien, crab, jelly, bee, bat, wyvern) by Quaternius
   (https://quaternius.com), CC0 1.0
   (meshopt-optimized copies from the `@netforge/asset-library-files` npm package).
 

@@ -1,8 +1,10 @@
 import { sendTo } from '../commands/units';
 import type { Entity } from '../entity';
+import { canHit, layerOf } from '../layers';
 import { findEntity } from '../spawn';
 import type { GameState } from '../state';
 import { dealDamage, hitDamage } from './damage';
+import { hasFuel, needsFuel } from './fuel';
 import { aggroRange, distanceTo, nearestEnemy, targetsByZone } from './targeting';
 
 export { distanceTo } from './targeting';
@@ -16,7 +18,8 @@ type Targets = Map<string, Entity[]>;
 function strike(state: GameState, unit: Entity, target: Entity): void {
   if (!unit.attacker || !target.health || !target.position) return;
   unit.attacker.readyAt = state.time + unit.attacker.cooldownMs;
-  unit.attacker.shot = { at: state.time, x: target.position.x, y: target.position.y };
+  const { x, y } = target.position;
+  unit.attacker.shot = { at: state.time, x, y, air: layerOf(target) === 'air' };
   dealDamage(state, target, hitDamage(state, unit, target), unit);
   if (!state.world.has(target)) delete unit.attacker.targetId;
 }
@@ -57,7 +60,8 @@ function currentTarget(state: GameState, unit: Entity, targets: Targets): Entity
   if (!unit.attacker) return undefined;
   const id = unit.attacker.targetId;
   const target = id === undefined ? undefined : findEntity(state, id);
-  const valid = target?.health && target.zone === unit.zone && !target.aboard;
+  const valid =
+    target?.health && target.zone === unit.zone && !target.aboard && canHit(unit, target);
   if (target && valid) {
     const tooFar =
       unit.building && unit.position && distanceTo(unit.position, target) > unit.attacker.range;
@@ -69,6 +73,7 @@ function currentTarget(state: GameState, unit: Entity, targets: Targets): Entity
 
 function fight(state: GameState, unit: Entity, targets: Targets): void {
   if (!unit.attacker || !unit.position || unit.aboard || unit.construction) return;
+  if (needsFuel(unit) && !hasFuel(state, unit.owner)) return;
   const target = currentTarget(state, unit, targets);
   if (!target) return;
   if (!state.world.has(target)) {

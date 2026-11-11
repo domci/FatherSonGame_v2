@@ -1,17 +1,20 @@
 import { Group, Vector3 } from 'three/webgpu';
 import type { Entity } from '../../sim/entity';
 import type { SurfaceMap } from '../../sim/generation/surface';
-import type { GameState } from '../../sim/state';
+import type { GameState, Mark } from '../../sim/state';
 import { BUILDINGS } from '../../content/buildings';
 import { factionOf } from '../../sim/names';
 import { visualHeight } from '../terrain-shape';
 import { LaserBeams } from './laser-beams';
+import { AIR_HEIGHT, flies } from './air';
 import { Explosions } from './explosions';
 import { ShieldBubbles, type BubbleInfo } from './shield-bubbles';
 import type { Sight } from './surface-entities';
 
 const LASER = { human: 0xffd84a, alien: 0x6dff7a } as const;
 const SHIELD = { human: 0x5ab8ff, alien: 0x6dffa8 } as const;
+/** Bombs fall as a hot orange streak. */
+const BOMB = 0xff8a3d;
 const FRESH_SHOT_MS = 400;
 const FRESH_MARK_MS = 1500;
 
@@ -45,22 +48,26 @@ export class SurfaceEffects {
     return sight.visible[Math.floor(y) * this.map.size + Math.floor(x)] === 1;
   }
 
+  /** A new shot that the player may see (own, or in sight). */
+  private newShot(state: GameState, sight: Sight, e: Entity): boolean {
+    const shot = e.attacker?.shot;
+    if (e.zone !== this.map.bodyId || !shot || !e.position || e.owner === 'wild') return false;
+    if (this.lastShot.get(e.id) === shot.at) return false;
+    this.lastShot.set(e.id, shot.at);
+    if (state.time - shot.at > FRESH_SHOT_MS) return false;
+    if (e.owner === 'player') return true;
+    return this.sees(sight, e.position.x, e.position.y) || this.sees(sight, shot.x, shot.y);
+  }
+
   private shoot(state: GameState, sight: Sight): void {
     for (const e of state.world.with('attacker', 'position')) {
       const shot = e.attacker.shot;
-      if (e.zone !== this.map.bodyId || !shot || e.owner === 'wild') continue;
-      if (this.lastShot.get(e.id) === shot.at) continue;
-      this.lastShot.set(e.id, shot.at);
-      if (state.time - shot.at > FRESH_SHOT_MS) continue;
-      const { x, y } = e.position;
-      if (e.owner !== 'player' && !this.sees(sight, x, y) && !this.sees(sight, shot.x, shot.y))
-        continue;
-      const lift = e.building ? 1.5 : 0.9;
-      this.lasers.fire(
-        this.at(x, y, lift),
-        this.at(shot.x, shot.y, 0.6),
-        LASER[factionOf(state, e.owner)],
-      );
+      if (!shot || !this.newShot(state, sight, e)) continue;
+      const lift = flies(e) ? AIR_HEIGHT : e.building ? 1.5 : 0.9;
+      const from = this.at(e.position.x, e.position.y, lift);
+      const to = this.at(shot.x, shot.y, shot.air ? AIR_HEIGHT : 0.6);
+      if (e.unit?.type === 'bomber') this.lasers.fire(from, to, BOMB, 0.14, 380);
+      else this.lasers.fire(from, to, LASER[factionOf(state, e.owner)]);
     }
   }
 
@@ -73,8 +80,16 @@ export class SurfaceEffects {
       if (this.seenMarks.has(key) || state.time - m.time > FRESH_MARK_MS) continue;
       if (m.owner !== 'player' && !this.sees(sight, m.x, m.y)) continue;
       this.booms.spawn(this.at(m.x, m.y, 0.5), m.kind, m.time % 97);
+      if (m.kind === 'strike') this.skyBeam(state, m.x, m.y, m.owner);
     }
     this.seenMarks = keys;
+  }
+
+  /** A thick laser from a ship in orbit, straight down from the sky. */
+  private skyBeam(state: GameState, x: number, y: number, owner: Mark['owner']): void {
+    const to = this.at(x, y, 0.3);
+    const from = to.clone().add(new Vector3(6, 60, -4));
+    this.lasers.fire(from, to, LASER[factionOf(state, owner)], 0.35, 700);
   }
 
   private bubbles(state: GameState, sight: Sight): BubbleInfo[] {

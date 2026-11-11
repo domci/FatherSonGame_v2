@@ -24,7 +24,7 @@ export const MILITARY_BUILDINGS: readonly BuildingDef[] = [
     tier: 3,
     requires: 'lasers',
     description: 'Baut schwere Laser-Panzer. Panzer brauchen Metall.',
-    trains: ['tank'],
+    trains: ['tank', 'flakTank'],
     levels: [
       { cost: { regolith: 700, diamonds: 25 }, hp: 1200, energy: -8, armor: 3 },
       { cost: { regolith: 1600, diamonds: 60, metal: 100 }, hp: 1500, energy: -10, armor: 4 },

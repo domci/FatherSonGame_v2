@@ -29,12 +29,12 @@ describe('solar system generator', () => {
     }
   });
 
-  it('has at least one gas planet in most systems', () => {
-    let withGas = 0;
-    for (let seed = 0; seed < 50; seed++) {
-      if (generateSolarSystem(seed).bodies.some((b) => b.kind === 'gas')) withGas++;
+  it('always has a gas planet (fuel for planes and war ships)', () => {
+    for (let seed = 0; seed < 300; seed++) {
+      const gas = generateSolarSystem(seed).bodies.filter((b) => b.kind === 'gas');
+      expect(gas.length).toBeGreaterThan(0);
+      expect(gas[0]?.mineable).toEqual(['gas']);
     }
-    expect(withGas).toBeGreaterThan(40);
   });
 
   it('planets closer to the sun get more sunlight', () => {

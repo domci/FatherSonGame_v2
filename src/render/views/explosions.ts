@@ -59,6 +59,15 @@ const STYLES: Record<Mark['kind'], Style> = {
     flash: 0.4,
     colors: [0xd9ffb0, 0x9bd66b],
   },
+  strike: {
+    sparks: 24,
+    smoke: 8,
+    speed: 5,
+    size: 0.14,
+    life: 1100,
+    flash: 3.6,
+    colors: [0xffffff, 0x9fdcff, 0xffd27a],
+  },
 };
 
 const SPARK_GEO = new IcosahedronGeometry(1, 0);

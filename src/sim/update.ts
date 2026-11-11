@@ -7,6 +7,10 @@ import { miningSystem } from './systems/mining';
 import { movementSystem } from './systems/movement';
 import { productionSystem } from './systems/production';
 import { researchSystem } from './systems/research';
+import { fleetSystem } from './systems/fleet';
+import { fuelSystem } from './systems/fuel';
+import { orbitStrikeSystem } from './systems/orbit-strike';
+import { spaceCombatSystem } from './systems/space-combat';
 import { eggSystem, spiderSystem } from './systems/spiders';
 import { transportSystem } from './systems/transport';
 import { visibilitySystem } from './visibility';
@@ -29,7 +33,8 @@ export function economyStep(state: GameState, dtMs: number, opts: StepOptions = 
   trainingSystem(state);
   researchSystem(state);
   productionSystem(state, dtMs);
-  miningSystem(state);
+  fleetSystem(state);
+  miningSystem(state, opts);
   transportSystem(state, opts);
   defenseSystem(state, dtMs);
   eggSystem(state);
@@ -42,6 +47,9 @@ export function liveStep(state: GameState, dtMs: number): void {
   spiderSystem(state);
   guardSystem(state, dtMs);
   combatSystem(state);
+  spaceCombatSystem(state);
+  orbitStrikeSystem(state);
+  fuelSystem(state, dtMs);
   visibilitySystem(state);
 }
 

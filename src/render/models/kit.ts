@@ -51,6 +51,11 @@ export const KENNEY = [
   'cargo_ship',
   'speeder_c',
   'turret_double',
+  'craft_speederA',
+  'craft_speederB',
+  'craft_speederD',
+  'craft_cargoB',
+  'hangar_largeB',
 ] as const;
 
 /** Animated robots by Quaternius (CC0). */
@@ -63,6 +68,10 @@ export const QUATERNIUS = [
   'crab',
   'jelly_flyer',
   'armored_bee',
+  'wyvern',
+  'bat',
+  'mech',
+  'mech_heavy',
 ] as const;
 
 export type KitName = (typeof KENNEY)[number] | (typeof QUATERNIUS)[number];
@@ -138,6 +147,15 @@ export function kitModelWithHeight(name: KitName, height: number): Object3D {
   const obj = kitModel(name);
   const h = cache.get(name)?.size.y ?? 1;
   obj.scale.setScalar(height / Math.max(0.001, h));
+  return obj;
+}
+
+/** A kit model scaled so that its longest side on the ground is `length` tiles. */
+export function kitModelWithLength(name: KitName, length: number): Object3D {
+  const obj = kitModel(name);
+  const size = cache.get(name)?.size;
+  const l = size ? Math.max(size.x, size.z) : 1;
+  obj.scale.setScalar(length / Math.max(0.001, l));
   return obj;
 }
 

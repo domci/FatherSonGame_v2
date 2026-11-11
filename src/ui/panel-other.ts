@@ -9,6 +9,7 @@ import { resourceIcon } from './icons';
 import { action, header, progress, section, stat, text } from './panel-kit';
 import { nameOfUnit } from '../sim/names';
 import { transportRows } from './panel-transport';
+import { fleetRows } from './panel-fleet';
 
 const PHASE_TEXT = {
   docked: 'Im Hafen',
@@ -45,6 +46,9 @@ const HINTS: Partial<Record<keyof typeof UNITS, string>> = {
   infantry:
     'Tippt auf den Boden: Die Truppe läuft hin und kämpft unterwegs. Tippt auf einen Feind: Angriff!',
   tank: 'Stark gegen Gebäude. Tippt auf einen Feind: Angriff!',
+  flakTank: 'Schießt nur auf Flugzeuge. Gegen Bodentruppen hilft er nicht.',
+  fighter: 'Fliegt über Mauern und trifft alles. Verbraucht Gas, solange es fliegt oder kämpft.',
+  bomber: 'Wirft Bomben auf Gebäude und Bodentruppen. Verbraucht Gas. Flak ist gefährlich!',
 };
 
 function ownerLabel(e: Entity): string {
@@ -100,7 +104,7 @@ export function bodyPanel(session: Session, bodyId: string): HTMLElement[] {
   ];
   if (body)
     out.push(stat('sun', 'Sonnenlicht', `${Math.round(body.solarFactor * 100)} %`, '#ffd25a'));
-  out.push(...lookButton(session, bodyId));
+  out.push(...lookButton(session, bodyId), ...fleetRows(session, bodyId));
   if (bodyId === s.system.homeBodyId) return [...out, text('Euer Heimatplanet', 'p-text good')];
   if (bodyId === s.players.ai?.homeBodyId)
     out.push(text('Hier lebt der Feind!', 'p-text bad'), ...transportButtons(session, bodyId));

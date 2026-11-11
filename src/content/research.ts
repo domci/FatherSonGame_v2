@@ -11,7 +11,11 @@ export type ResearchId =
   | 'armor'
   | 'shields'
   | 'strongLasers'
-  | 'radar';
+  | 'radar'
+  | 'flak'
+  | 'aviation'
+  | 'warships'
+  | 'orbitalLaser';
 
 export interface ResearchDef {
   id: ResearchId;
@@ -119,6 +123,42 @@ export const RESEARCH_LIST: readonly ResearchDef[] = [
     stage: 4,
     labLevel: 3,
     requires: 'spaceflight',
+  },
+  {
+    id: 'flak',
+    name: 'Flugabwehr',
+    description: 'Schaltet Flak-Turm und Flak-Panzer frei. Sie schießen Flugzeuge ab.',
+    cost: { regolith: 500, diamonds: 20 },
+    stage: 3,
+    labLevel: 2,
+    requires: 'lasers',
+  },
+  {
+    id: 'aviation',
+    name: 'Luftfahrt',
+    description: 'Schaltet das Flugfeld frei: Jagdflugzeuge und Bomber. Flugzeuge tanken Gas.',
+    cost: { regolith: 900, diamonds: 40, gas: 40 },
+    stage: 3,
+    labLevel: 2,
+    requires: 'spaceflight',
+  },
+  {
+    id: 'warships',
+    name: 'Kampfschiffe',
+    description: 'Der Raumhafen baut Raumjäger und Kreuzer. Dazu: die Orbitalkanone.',
+    cost: { regolith: 1500, diamonds: 70, metal: 150, gas: 60 },
+    stage: 4,
+    labLevel: 3,
+    requires: 'aviation',
+  },
+  {
+    id: 'orbitalLaser',
+    name: 'Orbitallaser',
+    description: 'Kreuzer beschießen feindliche Gebäude aus dem Orbit. Schilde fangen das ab.',
+    cost: { regolith: 2500, diamonds: 120, metal: 300, gas: 100 },
+    stage: 4,
+    labLevel: 3,
+    requires: 'warships',
   },
 ];
 

@@ -2,6 +2,14 @@
 
 Short notes when something went wrong or was surprising. Newest on top.
 
+- 2026-11-11: Flat Kenney craft scaled by height were 3–4 tiles long, bigger than buildings. Flat models are now
+  fitted by their longest side on the ground (`UnitLook.length`).
+- 2026-11-11: War ships that each flew at their own speed arrived one by one, and the fast ones died alone. Ships
+  that start together now fly at the speed of the slowest one.
+- 2026-11-11: War ships have no `position`, only an `orbit` component. All surface systems query `position`, so they
+  skip war ships by themselves; no extra checks needed.
+- 2026-11-11: In a browser test, a zoom level change clears the selection (also the selected planet). Change the
+  zoom first, then select.
 - 2026-11-09: "Zum Hauptmenü" did not stop the old game: its loop and its autosave timer kept running and could
   overwrite the save of the next game. Every game start now returns stop functions (loop, autosave, sound, listeners).
 - 2026-11-09: Miniplex `world.addComponent` does nothing if the entity already has the component. A second move order

@@ -9,6 +9,7 @@ import { hasResearch } from '../research-helpers';
 import { activeBuildings, playerStats } from '../stats';
 import type { GameState, PlayerState } from '../state';
 import { canAfford, missing } from '../wallet';
+import { GAS_MINERS_FROM } from './miners';
 import { findBuildSpot } from './placement';
 import { buildingsOf, trainerFor, unitCount, unitsOf } from './queries';
 
@@ -23,8 +24,9 @@ function income(state: GameState, owner: PlayerId): Set<ResourceId> {
     const lvl = buildingLevel(BUILDINGS[b.building.type], b.building.level);
     for (const id of Object.keys(lvl.produces ?? {}) as ResourceId[]) out.add(id);
   }
-  if (unitsOf(state, owner, 'miningShip').length)
-    ['metal', 'regolith'].forEach((r) => out.add(r as ResourceId));
+  const miners = unitsOf(state, owner, 'miningShip').length;
+  if (miners) ['metal', 'regolith'].forEach((r) => out.add(r as ResourceId));
+  if (miners >= GAS_MINERS_FROM) out.add('gas');
   return out;
 }
 

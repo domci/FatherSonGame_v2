@@ -51,7 +51,8 @@ export interface Mark {
   zone: string;
   x: number;
   y: number;
-  kind: 'unit' | 'building' | 'spider' | 'egg';
+  /** strike = a shot from orbit hit here. */
+  kind: 'unit' | 'building' | 'spider' | 'egg' | 'strike';
   owner?: PlayerId;
 }
 

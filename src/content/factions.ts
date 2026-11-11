@@ -77,6 +77,12 @@ const ALIEN_BUILDINGS: Record<BuildingId, Label> = {
     name: 'Energiemembran',
     description: 'Eine leuchtende Haut, die sich selbst heilt.',
   },
+  airfield: { name: 'Nistfelsen', description: 'Brütet Flugwesen: Stachelflieger und Brutträger.' },
+  flakTower: { name: 'Dornenschleuder', description: 'Schießt Dornen auf Flugwesen.' },
+  orbitalCannon: {
+    name: 'Himmelsstachel',
+    description: 'Ein riesiger Stachel. Schießt feindliche Schiffe im Orbit ab.',
+  },
 };
 
 const ALIEN_UNITS: Record<UnitId, string> = {
@@ -87,6 +93,11 @@ const ALIEN_UNITS: Record<UnitId, string> = {
   miningShip: 'Sammler-Schiff',
   transport: 'Sporenschiff',
   spider: 'Spinnenwesen',
+  flakTank: 'Sporenspucker',
+  fighter: 'Stachelflieger',
+  bomber: 'Brutträger',
+  spaceFighter: 'Schwarmschiff',
+  cruiser: 'Mutterschiff',
 };
 
 export function buildingName(id: BuildingId, faction: Faction): string {

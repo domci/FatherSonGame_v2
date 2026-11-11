@@ -2,6 +2,7 @@ import { Group, type Object3D } from 'three/webgpu';
 import type { GameState } from '../../sim/state';
 import { unitModel } from '../models/unit-models';
 import { shipPose } from './ship-path';
+import { factionOf } from '../../sim/names';
 
 /** Ships flying between planets (system scale). */
 export class SpaceShips {
@@ -16,7 +17,7 @@ export class SpaceShips {
       seen.add(ship.id);
       let obj = this.ships.get(ship.id);
       if (!obj) {
-        obj = unitModel('miningShip');
+        obj = unitModel(ship.unit?.type ?? 'miningShip', factionOf(state, ship.owner));
         this.ships.set(ship.id, obj);
         this.group.add(obj);
       }

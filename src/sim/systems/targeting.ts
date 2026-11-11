@@ -1,5 +1,7 @@
 import { BUILDINGS } from '../../content/buildings';
+import { UNITS } from '../../content/units';
 import type { Entity } from '../entity';
+import { canHit } from '../layers';
 import type { GameState } from '../state';
 
 /** Distance from a point to the edge of a target (buildings are big). */
@@ -27,7 +29,8 @@ export function aggroRange(unit: Entity): number {
 
 /** Lower is more interesting: fighters first, then other units, then buildings. */
 function score(unit: Entity, other: Entity, d: number): number {
-  if (other.building) return d + (other.attacker ? 1 : 4);
+  const breaker = !!unit.unit && !!UNITS[unit.unit.type].prefersBuildings;
+  if (other.building) return d + (other.attacker ? 1 : breaker ? 0 : 4);
   return d + (other.attacker ? 0 : 2);
 }
 
@@ -53,7 +56,7 @@ export function nearestEnemy(
   let best: Entity | undefined;
   let bestScore = Infinity;
   for (const other of candidates) {
-    if (!isEnemy(unit, other)) continue;
+    if (!isEnemy(unit, other) || !canHit(unit, other)) continue;
     const d = distanceTo(unit.position, other);
     if (d > maxDist) continue;
     const s = score(unit, other, d);

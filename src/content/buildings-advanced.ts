@@ -51,8 +51,8 @@ export const ADVANCED_BUILDINGS: readonly BuildingDef[] = [
     size: 4,
     tier: 3,
     requires: 'spaceflight',
-    description: 'Baut Mining-Schiffe und Transportschiffe für eure Truppen.',
-    trains: ['miningShip', 'transport'],
+    description: 'Baut Mining-Schiffe, Transportschiffe und (mit Forschung) Kampfschiffe.',
+    trains: ['miningShip', 'transport', 'spaceFighter', 'cruiser'],
     levels: [
       { cost: { regolith: 800, diamonds: 30, water: 50 }, hp: 900, energy: -12 },
       { cost: { regolith: 2000, diamonds: 80, metal: 200 }, hp: 1200, energy: -16 },
