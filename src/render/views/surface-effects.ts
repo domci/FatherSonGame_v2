@@ -10,6 +10,7 @@ import { AIR_HEIGHT, flies } from './air';
 import { Explosions } from './explosions';
 import { ShieldBubbles, type BubbleInfo } from './shield-bubbles';
 import type { Sight } from './surface-entities';
+import { SteamPuffs } from './steam-puffs';
 
 const LASER = { human: 0xffd84a, alien: 0x6dff7a } as const;
 const SHIELD = { human: 0x5ab8ff, alien: 0x6dffa8 } as const;
@@ -26,9 +27,11 @@ export class SurfaceEffects {
   private shields = new ShieldBubbles();
   private lastShot = new Map<number, number>();
   private seenMarks = new Set<string>();
+  private steam: SteamPuffs;
 
   constructor(private map: SurfaceMap) {
-    this.group.add(this.lasers.group, this.booms.group, this.shields.group);
+    this.steam = new SteamPuffs(map);
+    this.group.add(this.lasers.group, this.booms.group, this.shields.group, this.steam.group);
   }
 
   update(state: GameState, sight: Sight, dtMs: number): void {
@@ -37,6 +40,7 @@ export class SurfaceEffects {
     this.shields.update(this.bubbles(state, sight), dtMs);
     this.lasers.update(dtMs);
     this.booms.update(dtMs);
+    this.steam.update(state, sight, dtMs);
   }
 
   private at(x: number, y: number, lift: number): Vector3 {

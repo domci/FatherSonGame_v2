@@ -20,7 +20,7 @@ test('colony window, first mission and knowledge quiz', async ({ page }) => {
   const errors = await startNewGame(page);
   await expect(page.locator('.mission-card')).toContainText('Solarfeld');
 
-  await page.getByTitle('Laune der Bewohner').click();
+  await page.getByTitle(/Bewohner und Laune/).click();
   await expect(page.locator('.info-panel')).toContainText('Eure Kolonie');
   await expect(page.locator('.info-panel')).toContainText('Darum ist die Laune so');
 

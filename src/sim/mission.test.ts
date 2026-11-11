@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { BUILDINGS } from '../content/buildings';
 import { MISSION } from '../content/mission';
 import { applyCommand } from './commands';
 import { spawnBuilding } from './spawn';
@@ -79,6 +80,12 @@ describe('first mission', () => {
     });
     missionSystem(s);
     expect(me(s).mission.step).toBe(0);
+  });
+
+  it('names only real buildings in the hints', () => {
+    for (const step of MISSION)
+      for (const [, id] of step.hint.matchAll(/\{b:(\w+)\}/g))
+        expect(Object.keys(BUILDINGS)).toContain(id);
   });
 
   it('writes rewards for people', () => {

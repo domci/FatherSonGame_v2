@@ -11,7 +11,7 @@ export type MissionGoal =
 
 export interface MissionStep {
   goal: MissionGoal;
-  /** Why and how, in one or two short sentences. */
+  /** Why and how, in one or two short sentences. {b:lab} = the faction's name of a building. */
   hint: string;
   reward: ResourceAmounts;
 }
@@ -27,7 +27,7 @@ export const MISSION: readonly MissionStep[] = [
   },
   {
     goal: { kind: 'build', building: 'pinkPump' },
-    hint: 'Die Pumpe holt pinke Flüssigkeit aus dem Boden. Sie muss auf eine pinke Quelle.',
+    hint: 'Holt pinke Flüssigkeit aus dem Boden. Baut es auf eine pinke Quelle.',
     reward: { regolith: 100 },
   },
   {
@@ -57,12 +57,12 @@ export const MISSION: readonly MissionStep[] = [
   },
   {
     goal: { kind: 'build', building: 'lab' },
-    hint: 'Im Labor erforscht ihr neue Technik.',
+    hint: 'Hier erforscht ihr neue Technik.',
     reward: { regolith: 150 },
   },
   {
     goal: { kind: 'research' },
-    hint: 'Wählt das Labor aus und startet eine Forschung.',
+    hint: 'Tippt auf euer Gebäude „{b:lab}“ und startet eine Forschung.',
     reward: { crystals: 2 },
   },
   {

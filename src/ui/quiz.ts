@@ -19,6 +19,7 @@ function showResult(
   buttons: HTMLElement[],
   o: { q: QuizQuestion; order: number[]; choice: number; right: boolean; next: () => void },
 ): void {
+  box.querySelector('.quiz-left')?.remove();
   buttons.forEach((b, i) => {
     (b as HTMLButtonElement).disabled = true;
     if (o.order[i] === 0) b.classList.add('right');
@@ -72,7 +73,7 @@ function questionBox(session: Session, close: () => void): HTMLElement | null {
     el('div', { class: 'p-sub' }, `Wissens-Quiz · ${QUIZ_TOPICS[q.topic]}`),
     el('h2', { class: 'quiz-q' }, q.question),
     ...buttons,
-    el('p', { class: 'p-text muted' }, leftText(session)),
+    el('p', { class: 'p-text muted quiz-left' }, leftText(session)),
   );
   return box;
 }

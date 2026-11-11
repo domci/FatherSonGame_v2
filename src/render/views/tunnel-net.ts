@@ -16,6 +16,7 @@ import type { GameState } from '../../sim/state';
 import { boxOf, gapBetween, networkBuildings, TUNNEL_REACH } from '../../sim/tunnels';
 import { partMaterial } from '../models/parts';
 import type { Sight } from './surface-entities';
+import { TunnelWalkers, type TunnelPath } from './tunnel-walkers';
 
 const REFRESH_MS = 500;
 const FRONT = new Vector3(0, 0, 1);
@@ -60,12 +61,18 @@ function mat(name: 'domeGlass' | 'steel' | 'dark' | 'fleshDark' | 'glowGreen'): 
 /** Glass tunnels (humans) or living veins (aliens) between the buildings of a base. */
 export class TunnelNet {
   readonly group = new Group();
+  private tubes = new Group();
+  private walkers = new TunnelWalkers();
+  private paths: TunnelPath[] = [];
   private key = '';
   private wait = 0;
 
-  constructor(private map: SurfaceMap) {}
+  constructor(private map: SurfaceMap) {
+    this.group.add(this.tubes, this.walkers.group);
+  }
 
   update(state: GameState, sight: Sight | undefined, dtMs: number): void {
+    this.walkers.update(state, this.paths, dtMs);
     this.wait -= dtMs;
     if (this.wait > 0) return;
     this.wait = REFRESH_MS;
@@ -74,7 +81,8 @@ export class TunnelNet {
     const key = nets.map((n) => `${n.o}:${n.list.map((e) => e.id).join(',')}`).join('|');
     if (key === this.key) return this.updateShown(sight);
     this.key = key;
-    this.group.clear();
+    this.tubes.clear();
+    this.paths = [];
     for (const { o, list } of nets) {
       const faction = state.players[o]?.faction ?? 'human';
       for (const link of tunnelLinks(list)) this.addTunnel(link, faction, o);
@@ -84,7 +92,7 @@ export class TunnelNet {
 
   /** Enemy tunnels only where the player has explored. */
   private updateShown(sight: Sight | undefined): void {
-    for (const child of this.group.children) {
+    for (const child of this.tubes.children) {
       const tile = child.userData.tile as number;
       child.visible = child.userData.owner === 'player' || !sight || sight.explored[tile] === 1;
     }
@@ -107,7 +115,8 @@ export class TunnelNet {
     const mid = tunnel.position;
     const tile = Math.floor(mid.z + half) * this.map.size + Math.floor(mid.x + half);
     tunnel.userData = { owner, tile };
-    this.group.add(tunnel);
+    this.tubes.add(tunnel);
+    this.paths.push({ owner, faction, from, to, node: tunnel });
   }
 }
 

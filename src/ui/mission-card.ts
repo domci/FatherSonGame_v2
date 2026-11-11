@@ -1,4 +1,5 @@
 import type { Session } from '../app/session';
+import { BUILDINGS, type BuildingId } from '../content/buildings';
 import { MISSION, MISSION_NAME, type MissionGoal } from '../content/mission';
 import { nameOfBuilding } from '../sim/names';
 import { clear, el } from './dom';
@@ -12,10 +13,17 @@ function goalTitle(session: Session, goal: MissionGoal): string {
     case 'people':
       return `Habt ${goal.count} Bewohner (jetzt ${s.players.player?.colony.people ?? 0})`;
     case 'research':
-      return 'Erforscht etwas im Labor';
+      return 'Erforscht etwas';
     case 'quiz':
       return 'Beantwortet eine Quizfrage richtig';
   }
+}
+
+/** Puts the faction's building names into a hint: {b:lab} → "Labor" or "Denkkristall". */
+function hintText(session: Session, hint: string): string {
+  return hint.replace(/\{b:(\w+)\}/g, (all, id: string) =>
+    id in BUILDINGS ? nameOfBuilding(session.state, 'player', id as BuildingId) : all,
+  );
 }
 
 /** Small card at the top left: the current step of the first mission. */
@@ -50,7 +58,7 @@ export class MissionCard {
         `Mission „${MISSION_NAME}“ · ${m.step + 1} von ${MISSION.length}`,
       ),
       el('div', { class: 'mission-goal' }, icon('flag'), goalTitle(this.session, step.goal)),
-      el('p', { class: 'p-text muted' }, step.hint),
+      el('p', { class: 'p-text muted' }, hintText(this.session, step.hint)),
       el('div', { class: 'mission-reward' }, el('span', {}, 'Belohnung'), costChips(step.reward)),
     );
   }
