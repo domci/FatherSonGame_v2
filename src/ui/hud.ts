@@ -1,9 +1,12 @@
 import { RESOURCE_IDS, RESOURCE_INFO } from '../content/resources';
 import type { Session, Speed } from '../app/session';
-import { playerStats } from '../sim/stats';
+import { healthy } from '../sim/colony';
+import type { ColonyState } from '../sim/state';
+import { playerStats, type PlayerStats } from '../sim/stats';
 import type { ViewName } from '../render/views/view';
 import { el, formatNumber } from './dom';
 import { icon, resourceIcon, type IconName } from './icons';
+import { moodIcon } from './panel-colony';
 
 const VIEWS: { name: ViewName; label: string; icon: IconName }[] = [
   { name: 'surface', label: 'Basis', icon: 'house' },
@@ -14,6 +17,7 @@ const VIEWS: { name: ViewName; label: string; icon: IconName }[] = [
 export interface HudActions {
   goView(name: ViewName): void;
   openMenu(): void;
+  openColony(): void;
 }
 
 /** Top bar: resources and status on the left, views and menu on the right. */
@@ -22,18 +26,39 @@ export class Hud {
   private values = new Map<string, HTMLElement>();
   private viewButtons = new Map<ViewName, HTMLElement>();
   private speedLabel = el('span', {}, 'x1');
+  private moodIcon = icon('smile', '#ffd25a');
+  private moodShown = '';
 
   constructor(
     private session: Session,
     actions: HudActions,
   ) {
+    this.root.append(
+      this.resBar(actions),
+      el('div', { class: 'hud-right' }, this.navBar(actions), this.toolBar(actions)),
+    );
+  }
+
+  private resBar(actions: HudActions): HTMLElement {
     const res = el('div', { class: 'panel res-bar' });
     for (const id of RESOURCE_IDS)
       res.append(this.item(id, resourceIcon(id), RESOURCE_INFO[id].name));
     res.append(el('span', { class: 'divider' }));
     res.append(this.item('energy', icon('zap', '#ffd25a'), 'Energie: erzeugt / verbraucht'));
     res.append(this.item('drones', icon('bot', '#7fd4ff'), 'Freie Bau-Drohnen'));
-    res.append(this.item('housing', icon('users', '#c9d4e3'), 'Platz für Einheiten'));
+    res.append(this.item('housing', icon('shield', '#c9d4e3'), 'Platz für Einheiten'));
+    res.append(el('span', { class: 'divider' }));
+    const people = this.item('people', icon('users', '#9fe0b0'), 'Bewohner: gesund / alle');
+    const mood = this.item('mood', this.moodIcon, 'Laune der Bewohner');
+    for (const b of [people, mood]) {
+      b.classList.add('click');
+      b.onclick = () => actions.openColony();
+    }
+    res.append(people, mood);
+    return res;
+  }
+
+  private navBar(actions: HudActions): HTMLElement {
     const nav = el('div', { class: 'panel seg' });
     for (const v of VIEWS) {
       const b = el(
@@ -45,7 +70,11 @@ export class Hud {
       this.viewButtons.set(v.name, b);
       nav.append(b);
     }
-    const tools = el(
+    return nav;
+  }
+
+  private toolBar(actions: HudActions): HTMLElement {
+    return el(
       'div',
       { class: 'panel seg' },
       el(
@@ -60,7 +89,6 @@ export class Hud {
         icon('menu'),
       ),
     );
-    this.root.append(res, el('div', { class: 'hud-right' }, nav, tools));
   }
 
   update(): void {
@@ -81,8 +109,22 @@ export class Hud {
     this.set('drones', `${stats.freeDrones}/${stats.drones}`, stats.freeDrones === 0 ? 'warn' : '');
     const full = stats.housingUsed >= stats.housing;
     this.set('housing', `${stats.housingUsed}/${stats.housing}`, full ? 'warn' : '');
+    this.colony(player.colony, stats);
     for (const [name, b] of this.viewButtons) b.classList.toggle('on', name === s.ui.view);
     this.speedLabel.textContent = `x${s.speed}`;
+  }
+
+  private colony(c: ColonyState, stats: PlayerStats): void {
+    const well = Math.floor(healthy(c));
+    const state = c.sick >= 1 ? 'bad' : c.people >= stats.residents ? 'warn' : '';
+    this.set('people', `${well}/${c.people}`, state);
+    this.set('mood', String(Math.round(c.mood)), c.mood < 35 ? 'bad' : c.mood < 60 ? 'warn' : '');
+    const name = moodIcon(c.mood);
+    if (name === this.moodShown) return;
+    this.moodShown = name;
+    const next = icon(name, '#ffd25a');
+    this.moodIcon.replaceWith(next);
+    this.moodIcon = next;
   }
 
   private item(key: string, ico: HTMLElement, title: string): HTMLElement {
@@ -97,7 +139,7 @@ export class Hud {
     const v = item?.lastElementChild;
     if (!item || !v) return;
     if (v.textContent !== text) v.textContent = text;
-    item.className = `res ${state}`;
+    for (const c of ['warn', 'bad', 'zero']) item.classList.toggle(c, c === state);
   }
 
   private cycleSpeed(): void {

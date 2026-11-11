@@ -21,6 +21,8 @@ export interface UiState {
   zone: string;
   /** Touch: the next drag draws a selection box. */
   boxMode?: boolean;
+  /** A window that is not about a selected thing. */
+  panel?: 'colony';
 }
 
 /** One running game in the browser: state + UI selection + saving. */
@@ -50,6 +52,13 @@ export class Session {
   select(ids: number[]): void {
     this.ui.selectedIds = new Set(ids);
     delete this.ui.selectedBodyId;
+    delete this.ui.panel;
+  }
+
+  /** Opens a window like the colony window (and clears the selection). */
+  openPanel(panel: 'colony'): void {
+    this.select([]);
+    this.ui.panel = panel;
   }
 
   startPlacing(type: BuildingId | undefined): void {

@@ -7,6 +7,7 @@ import '@fontsource/rajdhani/700.css';
 import './ui/theme.css';
 import './ui/hud.css';
 import './ui/menu.css';
+import './ui/colony.css';
 import { createGame } from './sim/game';
 import { randomSeed } from './sim/rng';
 import { fromSaveData, type SaveData } from './sim/save/save';

@@ -13,6 +13,7 @@ import type { Session } from '../app/session';
 import type { Entity } from '../sim/entity';
 import { factionOf, nameOfBuilding, nameOfUnit } from '../sim/names';
 import { thumb } from './build-menu';
+import { colonyStats } from './panel-colony';
 import { action, header, levelPips, progress, section, stat, text } from './panel-kit';
 
 export { timer } from './panel-kit';
@@ -100,13 +101,14 @@ function researchRows(session: Session, e: Entity): HTMLElement | null {
   return section('Forschung', ...rows);
 }
 
-/** Life, armor, weapon and shield of a building. */
+/** Life, colony values, armor, weapon and shield of a building. */
 function fightStats(e: Entity): HTMLElement[] {
   const out: HTMLElement[] = [];
   if (!e.building || e.building.level < 1) return out;
   const lvl = buildingLevel(BUILDINGS[e.building.type], e.building.level);
   if (e.health && e.health.hp < e.health.max)
     out.push(stat('heart', 'Leben', `${Math.ceil(e.health.hp)} / ${e.health.max}`, '#ff6b81'));
+  out.push(...colonyStats(lvl));
   if (lvl.armor) out.push(stat('shield', 'Panzerung', String(lvl.armor), '#9fb4cc'));
   if (lvl.weapon) out.push(stat('crosshair', 'Schaden', String(lvl.weapon.damage), '#ffb35a'));
   if (e.shield)

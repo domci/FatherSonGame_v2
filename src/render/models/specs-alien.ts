@@ -7,16 +7,8 @@ import { ALIEN_AIR_SPACE } from './specs-alien-air-space';
 import { ALIEN_COLONY } from './specs-alien-colony';
 
 /** Alien buildings: living mounds, chitin shells, glowing veins. Same footprint as the human ones. */
-const BASE: Record<
-  Exclude<
-    BuildingId,
-    | keyof typeof ALIEN_MILITARY
-    | keyof typeof ALIEN_AIR_SPACE
-    | keyof typeof ALIEN_COLONY
-    | 'spaceport'
-  >,
-  readonly ModelPart[]
-> = {
+type Other = keyof typeof ALIEN_MILITARY | keyof typeof ALIEN_AIR_SPACE | keyof typeof ALIEN_COLONY;
+const BASE: Record<Exclude<BuildingId, Other | 'spaceport'>, readonly ModelPart[]> = {
   commandDome: [
     ...mound(4),
     ...veins(8, 1.6),

@@ -97,6 +97,7 @@ export function buildUi(root: HTMLElement, session: Session, d: UiDeps): GameUi 
   const hud = new Hud(session, {
     goView: (n) => d.views.go(n),
     openMenu: () => openMenu(root, session, d.sound, d.onQuit),
+    openColony: () => session.openPanel('colony'),
   });
   const parts = [
     hud,
