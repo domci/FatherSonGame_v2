@@ -7,7 +7,7 @@ import { blockers, shipsAt, warships } from '../space/places';
 import type { AiState, GameState, PlayerState } from '../state';
 import { tuningOf, type AiOptions } from './attack';
 import { trainUnit } from './economy';
-import { buildingsOf } from './queries';
+import { buildingsOf, unitCount } from './queries';
 import { progressOf, sumPower, unitPower } from './strength';
 
 /** Never more war ships than this (keeps long games fast). */
@@ -47,7 +47,9 @@ function fleetLimit(state: GameState, player: PlayerState, ai: AiState): number 
 export function trainFleet(state: GameState, player: PlayerState, ai: AiState): void {
   if (!hasResearch(state, player.id, 'warships')) return;
   const ships = fleetOf(state, player.id);
-  if (ships.length >= MAX_SHIPS) return;
+  const planned =
+    unitCount(state, player.id, 'spaceFighter') + unitCount(state, player.id, 'cruiser');
+  if (planned >= MAX_SHIPS) return;
   const room = fleetLimit(state, player, ai) - sumPower(ships);
   if (room <= 0) return;
   if (room < unitPower('cruiser') || trainUnit(state, player, 'cruiser') !== 'acted')

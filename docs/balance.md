@@ -1,6 +1,6 @@
 # Balancing: Computer gegen Computer
 
-Erzeugt mit `bun tools/balance.ts 24` (647 s Rechenzeit).
+Erzeugt mit `bun tools/balance.ts 24` (489 s Rechenzeit).
 Halbe Partien: Menschen auf dem Heimatplaneten (mit Spinnen-Nestern), halbe Partien: Aliens dort.
 Schritt: 250 ms. Höchstens 8 Stunden Spielzeit pro Partie (sonst: unentschieden).
 
@@ -10,15 +10,17 @@ Der „Spieler“ ist ein Computer mit voller Stärke, der aber nur alle 15 s ha
 
 | Stufe | Siege Spieler | Siege Computer | unentschieden | erster Angriff (Median) | Partien mit Angriff | Angriffe pro Partie |
 | --- | --- | --- | --- | --- | --- | --- |
-| Leicht | 29 % | 0 % | 71 % | 178 min | 75 % | 4.2 |
-| Mittel | 4 % | 8 % | 88 % | 116 min | 100 % | 9.0 |
-| Schwer | 0 % | 92 % | 8 % | 119 min | 100 % | 11.0 |
+| Leicht | 33 % | 0 % | 67 % | 175 min | 71 % | 4.0 |
+| Mittel | 21 % | 13 % | 67 % | 116 min | 100 % | 9.2 |
+| Schwer | 4 % | 92 % | 4 % | 119 min | 100 % | 9.8 |
 
 ## Teil 2: Menschen gegen Aliens (24 Partien, beide volle Stärke)
 
 | Wert | Zahl |
 | --- | --- |
-| mit Sieger | 6 (25 %) |
-| Siege Menschen | 4 (67 %) |
-| Siege Aliens | 2 (33 %) |
-| Spieldauer Median | 447 min |
+| mit Sieger | 12 (50 %) |
+| Siege Menschen | 7 (58 %) |
+| Siege Aliens | 5 (42 %) |
+| Spieldauer Median | 354 min |
+| Flieger pro Seite (Median: 120 min / Ende) | 0 / 2 |
+| Kampfschiffe pro Seite (Median: 120 min / Ende) | 0 / 0 |

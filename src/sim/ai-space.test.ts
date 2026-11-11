@@ -85,6 +85,19 @@ describe('computer in the air and in space', () => {
     expect(training?.training.unit).toBe('cruiser');
   });
 
+  it('never plans more than 12 war ships (ships in the queue count)', () => {
+    const s = newBattleGame(3);
+    s.ai.ai!.free = true;
+    rich(s);
+    s.players.ai!.research.done.push('warships');
+    const port = aiBuilding(s, 'spaceport', 4);
+    const home = s.players.ai!.homeBodyId;
+    for (let i = 0; i < 11; i++) spawnWarship(s, 'ai', home, 'spaceFighter');
+    s.world.addComponent(port, 'training', { unit: 'cruiser', finishAt: 1e9, queue: [] });
+    runMilitary(s, s.players.ai!, s.ai.ai!, LIVE);
+    expect(port.training?.queue).toEqual([]);
+  });
+
   it('blocks the enemy mining, and attacks from orbit with the Orbitallaser', () => {
     const s = newBattleGame(3);
     const ai = s.ai.ai!;
