@@ -2,6 +2,9 @@
 
 Short notes when something went wrong or was surprising. Newest on top.
 
+- 2026-11-11: In CI (software rendering, two workers) a click in the quiz window and the tablet screenshot timed out.
+  An endless CSS glow animation and a full-screen `backdrop-filter` blur over the moving 3D picture cost a repaint
+  each frame. Use static highlights and no blur behind big windows over the canvas.
 - 2026-11-11: A test helper made the AI player with `{ ...player }`. The shallow copy shared the `colony` object,
   so both sides ate from the same colony. Build test players with `makePlayer`, never by spreading another player.
 - 2026-11-11: Population needs a brake for the computer. "Build room when full" alone grew its colony to 160+ people
