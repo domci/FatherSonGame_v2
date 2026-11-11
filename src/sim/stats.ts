@@ -1,4 +1,5 @@
 import { BUILDINGS, buildingLevel } from '../content/buildings';
+import { WORKERS_PER_BUILDING } from '../content/colony';
 import { BASE_STORAGE } from '../content/resources';
 import { UNITS } from '../content/units';
 import type { Entity, PlayerId } from './entity';
@@ -14,6 +15,14 @@ export interface PlayerStats {
   storage: number;
   housing: number;
   housingUsed: number;
+  /** Places for people. */
+  residents: number;
+  /** Workers that the producing buildings need. */
+  jobs: number;
+  /** Mood points from parks. */
+  parks: number;
+  /** Sick people made well per minute (medical stations). */
+  heals: number;
   drones: number;
   freeDrones: number;
 }
@@ -48,6 +57,7 @@ export function playerStats(state: GameState, owner: PlayerId): PlayerStats {
   let energyUsed = 0;
   let storage = BASE_STORAGE;
   let housing = 0;
+  const colony = { residents: 0, jobs: 0, parks: 0, heals: 0 };
   const solar = solarBonus(state, owner);
   for (const e of activeBuildings(state, owner)) {
     if (!e.building) continue;
@@ -57,7 +67,19 @@ export function playerStats(state: GameState, owner: PlayerId): PlayerStats {
     else energyUsed -= lvl.energy;
     storage += lvl.storage ?? 0;
     housing += lvl.housing ?? 0;
+    colony.residents += lvl.residents ?? 0;
+    colony.jobs += lvl.produces ? WORKERS_PER_BUILDING : 0;
+    colony.parks += lvl.mood ?? 0;
+    colony.heals += lvl.heals ?? 0;
   }
   const efficiency = energyUsed <= 0 ? 1 : Math.min(1, energyMade / energyUsed);
-  return { energyMade, energyUsed, efficiency, storage, housing, ...countUnits(state, owner) };
+  return {
+    energyMade,
+    energyUsed,
+    efficiency,
+    storage,
+    housing,
+    ...colony,
+    ...countUnits(state, owner),
+  };
 }

@@ -25,7 +25,9 @@ export type BuildingId =
   | 'forceField'
   | 'airfield'
   | 'flakTower'
-  | 'orbitalCannon';
+  | 'orbitalCannon'
+  | 'park'
+  | 'medbay';
 
 export type BuildingCategory =
   | 'command'
@@ -67,7 +69,14 @@ export interface BuildingLevel {
   produces?: ResourceAmounts;
   consumes?: ResourceAmounts;
   storage?: number;
+  /** Places for units (army). */
   housing?: number;
+  /** Places for people (colonists). */
+  residents?: number;
+  /** Better mood for all people (parks). */
+  mood?: number;
+  /** Sick people made well per minute. */
+  heals?: number;
   /** Takes this much less damage per hit. */
   armor?: number;
   weapon?: WeaponDef;

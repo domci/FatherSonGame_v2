@@ -1,3 +1,4 @@
+import { newColony } from '../colony';
 import { SAVE_VERSION } from '../state';
 import type { SaveData } from './save';
 
@@ -12,7 +13,17 @@ const MIGRATIONS: Record<number, (old: Record<string, unknown>) => Record<string
     settings: { difficulty: 'normal', offlineAttacks: false, opponent: true },
     ai: {},
   }),
+  // M5: people in the domes.
+  2: (old) => ({ ...old, players: withColony(old.players) }),
 };
+
+function withColony(players: unknown): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (!isRecord(players)) return out;
+  for (const [id, p] of Object.entries(players))
+    out[id] = isRecord(p) && !p.colony ? { ...p, colony: newColony() } : p;
+  return out;
+}
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;

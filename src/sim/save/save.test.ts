@@ -47,6 +47,17 @@ describe('save and load', () => {
     expect(loaded.world.with('building').entities.some((b) => b.owner === 'ai')).toBe(true);
   });
 
+  it('loads a save from before M5 (version 2) and gives every side its people', () => {
+    const s = newBattleGame(15);
+    const old = JSON.parse(JSON.stringify({ ...toSaveData(s, 0), version: 2 })) as {
+      players: Record<string, Record<string, unknown>>;
+    };
+    for (const p of Object.values(old.players)) delete p.colony;
+    const loaded = fromSaveData(old);
+    expect(loaded.players.player?.colony.people).toBe(8);
+    expect(loaded.players.ai?.colony.mood).toBeGreaterThan(50);
+  });
+
   it('keeps settings, the enemy memory and the winner', () => {
     const s = newBattleGame(14);
     s.settings.offlineAttacks = true;

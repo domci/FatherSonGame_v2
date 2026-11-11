@@ -4,10 +4,17 @@ import type { ModelPart } from './parts';
 import { ALIEN_MILITARY } from './specs-alien-military';
 import { ALIEN_SPACEPORT } from './specs-alien-space';
 import { ALIEN_AIR_SPACE } from './specs-alien-air-space';
+import { ALIEN_COLONY } from './specs-alien-colony';
 
 /** Alien buildings: living mounds, chitin shells, glowing veins. Same footprint as the human ones. */
 const BASE: Record<
-  Exclude<BuildingId, keyof typeof ALIEN_MILITARY | keyof typeof ALIEN_AIR_SPACE | 'spaceport'>,
+  Exclude<
+    BuildingId,
+    | keyof typeof ALIEN_MILITARY
+    | keyof typeof ALIEN_AIR_SPACE
+    | keyof typeof ALIEN_COLONY
+    | 'spaceport'
+  >,
   readonly ModelPart[]
 > = {
   commandDome: [
@@ -196,4 +203,5 @@ export const ALIEN_BUILDINGS: Record<BuildingId, readonly ModelPart[]> = {
   spaceport: ALIEN_SPACEPORT,
   ...ALIEN_MILITARY,
   ...ALIEN_AIR_SPACE,
+  ...ALIEN_COLONY,
 };

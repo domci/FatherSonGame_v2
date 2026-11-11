@@ -59,7 +59,7 @@ describe('computer enemy', () => {
     play(s, 4 * HOUR);
     const t = AI_TUNING.normal;
     const limit = t.lead * progressOf(s, 'player') + t.leadBonus;
-    // Plus a few urgent things (energy, housing, storage), but far below a free computer.
+    // Plus a few urgent things (energy, air, water, food, housing, storage), but far below a free computer.
     expect(progressOf(s, 'ai')).toBeLessThan(limit + 8);
     expect(s.ai.ai!.waves).toBe(0);
     expect(s.winner).toBeUndefined();

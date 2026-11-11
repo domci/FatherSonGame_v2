@@ -44,7 +44,12 @@ const ALIEN_BUILDINGS: Record<BuildingId, Label> = {
   },
   solarField: { name: 'Lichtsammler', description: 'Riesige Blätter, die Sternenlicht trinken.' },
   regolithExcavator: { name: 'Gesteinsfresser', description: 'Frisst Gestein und gibt Regolith.' },
-  habitatDome: { name: 'Wohn-Kokon', description: 'Ein warmer Kokon. Platz für mehr Einheiten.' },
+  habitatDome: {
+    name: 'Wohn-Kokon',
+    description: 'Ein warmer Kokon. Platz für Bewohner und Einheiten.',
+  },
+  medbay: { name: 'Heilnest', description: 'Warme Heilschleim-Becken machen Kranke gesund.' },
+  park: { name: 'Sporengarten', description: 'Leuchtende Sporen und weiche Moose. Macht froh.' },
   storage: { name: 'Vorratsblase', description: 'Eine große Blase für Rohstoffe.' },
   pinkPump: { name: 'Saugwurzel', description: 'Saugt pinke Flüssigkeit aus einer Quelle.' },
   waterOxygenPlant: {

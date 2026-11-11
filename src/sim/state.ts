@@ -2,6 +2,7 @@ import type { World } from 'miniplex';
 import type { Difficulty } from '../content/ai';
 import type { Faction } from '../content/factions';
 import type { ResearchId } from '../content/research';
+import type { NeedId } from '../content/colony';
 import type { ResourceAmounts } from '../content/resources';
 import type { Entity, PlayerId } from './entity';
 import type { SolarSystem } from './generation/solar-system';
@@ -14,12 +15,30 @@ export interface ResearchState {
   current?: { id: ResearchId; finishAt: number };
 }
 
+/** The people in the domes (M5). */
+export interface ColonyState {
+  people: number;
+  /** Sick people (part of `people`), can be a fraction. */
+  sick: number;
+  /** 0..100 */
+  mood: number;
+  /** Progress to the next new person (0..1). */
+  grow: number;
+  /** Progress to the next person who leaves (0..1). */
+  leave: number;
+  /** Share of each need that was there in the last step (0..1). */
+  met: Record<NeedId, number>;
+  /** Needs that are missing and were already reported. */
+  warned: NeedId[];
+}
+
 export interface PlayerState {
   id: PlayerId;
   faction: Faction;
   resources: ResourceAmounts;
   research: ResearchState;
   homeBodyId: string;
+  colony: ColonyState;
   /** Fog of war: explored tiles per surface, one char per tile ('1' = seen). */
   explored?: Record<string, string>;
 }
@@ -82,4 +101,4 @@ export interface GameState {
   marks: Mark[];
 }
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;

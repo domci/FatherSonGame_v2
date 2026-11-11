@@ -4,6 +4,7 @@ import type { ResearchId } from '../../content/research';
 import type { PlayerId } from '../entity';
 import { hasResearch } from '../research-helpers';
 import { activeBuildings, playerStats } from '../stats';
+import { workFactor } from '../colony';
 import type { GameState, PlayerState } from '../state';
 import { addResources, amount, scaleAmounts } from '../wallet';
 import { MINUTE } from '../clock';
@@ -32,11 +33,12 @@ function inputFactor(player: PlayerState, needed: ResourceAmounts): number {
 
 function runPlayer(state: GameState, player: PlayerState, minutes: number): void {
   const stats = playerStats(state, player.id);
+  const work = workFactor(player.colony, stats);
   for (const b of activeBuildings(state, player.id)) {
     if (!b.building) continue;
     const lvl = buildingLevel(BUILDINGS[b.building.type], b.building.level);
     if (!lvl.produces) continue;
-    let factor = stats.efficiency * minutes;
+    let factor = stats.efficiency * work * minutes;
     if (lvl.consumes) {
       const needed = scaleAmounts(lvl.consumes, factor);
       const f = inputFactor(player, needed);

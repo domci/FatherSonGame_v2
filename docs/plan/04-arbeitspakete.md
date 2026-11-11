@@ -127,13 +127,26 @@ Ziel: Krieg in drei Ebenen: Boden, Luft, All. Jede Ebene hat ihre Abwehr. Detail
 | M4-13 | Grafik | Modelle für neue Gebäude und Einheiten (beide Völker), Flughöhe, Bomben, Flotte im All, Strahl aus dem Orbit | Screenshots |
 | M4-14 | Bedienung | Flotte im Planeten-Fenster, Treibstoff-Hinweise, Bau-Bilder | e2e |
 
-## M5 – Leben in der Kuppel (grob)
+## M5 – Leben in der Kuppel
 
-- Bewohner brauchen Sauerstoff, Wasser, Nahrung. Fehlt etwas: langsamer, krank, gehen weg.
-- Zufriedenheit, Wachstum der Bevölkerung.
-- Grafik-Runde 2: echte glTF-Modelle für alle Gebäude und Einheiten, bessere Effekte.
-- Tutorial / erste Mission mit der Bruchlandungs-Story.
-- **Wissens-Quiz:** Quizfragen ab 10 Jahren, Belohnung "Wissenskristalle" zum Beschleunigen, Grenzen gegen Ausnutzen, Fragen als Daten-Tabelle.
+Ziel: Die Kolonie lebt. Bewohner atmen, trinken, essen, arbeiten, werden krank, freuen sich und wachsen.
+Dazu: Wissens-Quiz, Story mit erster Mission, mehr Leben im Bild. Details: [ADR 0007](../adr/0007-m5-leben-in-der-kuppel.md).
+
+| AP | Titel | Inhalt | Abnahme |
+|---|---|---|---|
+| M5-1 | Bewohner | Jede Seite hat Bewohner (Start: 8). Wohnplätze in Kommando-Kuppel und Wohn-Kuppel (getrennt vom Platz für Einheiten) | Tests |
+| M5-2 | Bedürfnisse | Jeder Bewohner braucht pro Minute Sauerstoff, Wasser und Nahrung. Fehlt etwas: Bewohner werden krank und unzufrieden | Tests |
+| M5-3 | Arbeit | Abbau- und Produktions-Gebäude brauchen je 2 Arbeiter. Zu wenig gesunde Bewohner oder schlechte Laune = weniger Produktion (nie unter 25 %) | Tests |
+| M5-4 | Laune und Wachstum | Zufriedenheit 0–100. Gute Laune + freie Wohnplätze = neue Bewohner. Schlechte Laune = Bewohner gehen (nie unter 2). Läuft auch offline | Tests |
+| M5-5 | Neue Gebäude | Krankenstation (heilt Kranke), Park-Kuppel (bessere Laune). Alien-Namen und Modelle | Tests, Bilder |
+| M5-6 | KI | Computer baut Wohnplätze und sorgt für Luft, Wasser, Essen | Simulations-Tests, Balancing |
+| M5-7 | Kolonie-Anzeige | Oben: Bewohner und Laune. Kolonie-Fenster mit Gründen für die Laune. Warnung bei Mangel | e2e |
+| M5-8 | Wissens-Quiz | Fragen als Daten in `src/content/quiz/` (Thema, 4 Antworten, Erklärung). Richtige Antwort = 1 Wissenskristall | Tests |
+| M5-9 | Grenzen fürs Quiz | Höchstens 6 Fragen pro Stunde, falsche Antwort = 1 Minute Pause, Fragen kommen erst wieder, wenn alle dran waren | Tests |
+| M5-10 | Beschleunigen | Wissenskristalle machen Bau, Ausbau, Forschung und Training sofort fertig (Preis nach Restzeit) | Tests |
+| M5-11 | Story und erste Mission | Story-Fenster beim Start. Mission „Überleben“ in Schritten mit Belohnung, kann man überspringen | Tests, e2e |
+| M5-12 | Grafik | Bewohner laufen sichtbar durch die Tunnel (mehr Bewohner = mehr Leute), Dampf aus Anlagen, Bau-Bilder | Screenshots |
+| M5-13 | Spielstände | Alte Spielstände bekommen Bewohner, Quiz und Mission (Migration) | Test |
 
 ## M6 – Viele Völker (grob)
 

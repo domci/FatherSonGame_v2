@@ -3,6 +3,7 @@ import type { ModelPart } from './parts';
 import { cornerLights, pad, ringOfLights, row } from './specs-helpers';
 import type { MilitaryId } from './specs-military';
 import type { AirSpaceId } from './specs-air-space';
+import type { ColonyId } from './specs-colony';
 
 type Advanced = Exclude<
   BuildingId,
@@ -13,6 +14,7 @@ type Advanced = Exclude<
   | 'storage'
   | MilitaryId
   | AirSpaceId
+  | ColonyId
 >;
 
 const Y = 0.1;

@@ -18,6 +18,8 @@ const DOMES: Partial<Record<BuildingId, number>> = {
   lab: 0.85,
   barracks: 1.05,
   vehicleFactory: 0.95,
+  medbay: 0.85,
+  park: 0.62,
 };
 
 /** A glass dome with steel ribs over a round foot ring. */

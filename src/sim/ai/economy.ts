@@ -9,6 +9,7 @@ import { hasResearch } from '../research-helpers';
 import { activeBuildings, playerStats } from '../stats';
 import type { GameState, PlayerState } from '../state';
 import { canAfford, missing } from '../wallet';
+import { colonySteps } from './colony';
 import { GAS_MINERS_FROM } from './miners';
 import { findBuildSpot } from './placement';
 import { buildingsOf, trainerFor, unitCount, unitsOf } from './queries';
@@ -105,20 +106,22 @@ function doStep(state: GameState, player: PlayerState, step: AiStep): Outcome {
   return research(state, player, step);
 }
 
-/** Emergency needs come before the plan: energy, housing, storage. */
-function urgentStep(state: GameState, owner: PlayerId): AiStep | null {
+/** Emergency needs come before the plan: energy, the people, housing, storage. */
+function urgentSteps(state: GameState, owner: PlayerId, holdBack: boolean): AiStep[] {
   const stats = playerStats(state, owner);
   const building = (t: BuildingId): number =>
     buildingsOf(state, owner, t).filter((b) => b.construction).length;
   if (stats.energyMade - stats.energyUsed < 3 && building('solarField') === 0)
-    return { build: 'solarField', count: buildingsOf(state, owner, 'solarField').length + 1 };
+    return [{ build: 'solarField', count: buildingsOf(state, owner, 'solarField').length + 1 }];
+  const people = colonySteps(state, owner, stats, holdBack);
+  if (people.length) return people;
   if (stats.housing - stats.housingUsed < 2 && building('habitatDome') === 0)
-    return { build: 'habitatDome', count: buildingsOf(state, owner, 'habitatDome').length + 1 };
+    return [{ build: 'habitatDome', count: buildingsOf(state, owner, 'habitatDome').length + 1 }];
   const player = state.players[owner];
   const full = Object.values(player?.resources ?? {}).some((v) => v >= stats.storage * 0.9);
   if (full && building('storage') === 0 && buildingsOf(state, owner, 'storage').length < 3)
-    return { build: 'storage', count: buildingsOf(state, owner, 'storage').length + 1 };
-  return null;
+    return [{ build: 'storage', count: buildingsOf(state, owner, 'storage').length + 1 }];
+  return [];
 }
 
 /**
@@ -133,9 +136,8 @@ export function runEconomy(
 ): void {
   const player = state.players[owner];
   if (!player) return;
-  const urgent = urgentStep(state, owner);
   const plan = holdBack ? [] : AI_PLAN;
-  const steps = urgent ? [urgent, ...plan] : plan;
+  const steps = [...urgentSteps(state, owner, holdBack), ...plan];
   let actions = 0;
   for (const step of steps) {
     const outcome = doStep(state, player, step);
