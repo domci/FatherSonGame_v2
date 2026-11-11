@@ -33,7 +33,8 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 
 function tabOf(def: BuildingDef): Tab {
   if (def.category === 'defense') return 'defense';
-  return def.trains?.some((u) => u === 'infantry' || u === 'tank') ? 'army' : 'base';
+  const army = ['infantry', 'tank', 'fighter'];
+  return def.trains?.some((u) => army.includes(u)) ? 'army' : 'base';
 }
 
 interface Card {

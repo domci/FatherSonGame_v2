@@ -4,6 +4,7 @@ import { nameOfUnit } from '../names';
 import { findBody } from '../generation/solar-system';
 import type { GameState } from '../state';
 import { landingSpot, unloadShip } from '../transport';
+import { isBlocked, runBlockade } from '../space/blockade';
 
 export interface FlightOptions {
   /** The game is closed right now (catch-up). */
@@ -38,10 +39,16 @@ function land(state: GameState, ship: Entity, zone: string): void {
 
 /** Transport ships fly between planets (timestamps, so it also works offline). */
 export function transportSystem(state: GameState, opts: FlightOptions): void {
-  for (const ship of state.world.with('ship', 'unit')) {
+  for (const ship of [...state.world.with('ship', 'unit')]) {
     if (ship.unit.type !== 'transport' || ship.ship.phase !== 'outbound') continue;
     const zone = ship.ship.targetBodyId;
     if (!zone || ship.ship.phaseEndsAt > state.time) continue;
-    if (!mustWait(state, ship, zone, opts)) land(state, ship, zone);
+    if (mustWait(state, ship, zone, opts)) continue;
+    if (isBlocked(state, ship, zone, opts) && !runBlockade(state, ship, zone)) {
+      if (ship.owner === 'player')
+        addEvent(state, 'Blockade! Euer Transportschiff wurde abgeschossen.', 'bad');
+      continue;
+    }
+    land(state, ship, zone);
   }
 }

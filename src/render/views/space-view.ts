@@ -30,6 +30,7 @@ import { beltObject, orbitLine, selectionMarker, sunObject } from './system-obje
 import { spaceBodies, type SpaceBody } from './space-bodies';
 import { SpaceOrbit } from './space-orbit';
 import { SpaceShips } from './space-ships';
+import { SpaceFleet } from './space-fleet';
 import type { Pick, View, ViewUi } from './view';
 
 function beltPicker(system: SolarSystem): Mesh {
@@ -61,6 +62,7 @@ export class SpaceView implements View {
   readonly orbit: SpaceOrbit;
   private bodies: Map<string, SpaceBody>;
   private ships = new SpaceShips();
+  private fleet: SpaceFleet;
   private belt: Object3D;
   private marker = selectionMarker();
   private pickables: Object3D[] = [];
@@ -83,7 +85,8 @@ export class SpaceView implements View {
     this.belt = beltObject(system);
     const picker = beltPicker(system);
     this.pickables.push(picker);
-    this.scene.add(this.belt, picker, this.ships.group, this.marker);
+    this.fleet = new SpaceFleet(this.bodies);
+    this.scene.add(this.belt, picker, this.ships.group, this.fleet.group, this.marker);
     this.orbit = new SpaceOrbit(dom);
   }
 
@@ -102,6 +105,7 @@ export class SpaceView implements View {
     }
     this.belt.rotation.y = -state.time / 400000;
     this.ships.update(state);
+    this.fleet.update(state, dtMs);
     this.updateMarker(ui.selectedBodyId);
     this.placeCamera(dtMs);
   }

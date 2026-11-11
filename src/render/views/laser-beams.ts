@@ -17,6 +17,8 @@ interface Beam {
   mesh: Mesh;
   mat: MeshBasicNodeMaterial;
   born: number;
+  width: number;
+  life: number;
 }
 
 /** Short glowing laser shots. Meshes are reused (pool). */
@@ -25,13 +27,16 @@ export class LaserBeams {
   private pool: Beam[] = [];
   private clock = 0;
 
-  fire(from: Vector3, to: Vector3, color: number): void {
+  /** A shot. Wider and longer-lasting beams for big guns (shots from orbit). */
+  fire(from: Vector3, to: Vector3, color: number, width = WIDTH, life = BEAM_MS): void {
     const beam = this.pool.find((b) => !b.mesh.visible) ?? this.make();
     beam.mat.color.setHex(color);
     beam.mesh.position.copy(from).add(to).multiplyScalar(0.5);
     beam.mesh.lookAt(to);
-    beam.mesh.scale.set(WIDTH, WIDTH, Math.max(0.01, from.distanceTo(to)));
+    beam.mesh.scale.set(width, width, Math.max(0.01, from.distanceTo(to)));
     beam.born = this.clock;
+    beam.width = width;
+    beam.life = life;
     beam.mesh.visible = true;
   }
 
@@ -39,13 +44,13 @@ export class LaserBeams {
     this.clock += dtMs;
     for (const b of this.pool) {
       if (!b.mesh.visible) continue;
-      const age = (this.clock - b.born) / BEAM_MS;
+      const age = (this.clock - b.born) / b.life;
       if (age >= 1) {
         b.mesh.visible = false;
         continue;
       }
       b.mat.opacity = 1 - age;
-      const w = WIDTH * (1.3 - age);
+      const w = b.width * (1.3 - age);
       b.mesh.scale.x = w;
       b.mesh.scale.y = w;
     }
@@ -61,7 +66,7 @@ export class LaserBeams {
     mesh.visible = false;
     mesh.frustumCulled = false;
     this.group.add(mesh);
-    const beam = { mesh, mat, born: 0 };
+    const beam = { mesh, mat, born: 0, width: WIDTH, life: BEAM_MS };
     this.pool.push(beam);
     return beam;
   }

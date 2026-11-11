@@ -6,6 +6,7 @@ import { header, tickTimers } from './panel-kit';
 import { buildingKey, buildingPanel } from './panel-building';
 import { bodyPanel, unitPanel, wildPanel } from './panel-other';
 import { boardButtons } from './panel-transport';
+import { fleetKey } from './panel-fleet';
 import { text } from './panel-kit';
 import { nameOfUnit } from '../sim/names';
 import type { UnitId } from '../content/units';
@@ -64,7 +65,7 @@ export class InfoPanel {
       .join();
     if (s.ui.selectedBodyId)
       return {
-        key: `body:${s.ui.selectedBodyId}:${ships}`,
+        key: `body:${s.ui.selectedBodyId}:${ships}:${fleetKey(s)}`,
         build: () => bodyPanel(s, s.ui.selectedBodyId ?? ''),
       };
     const ids = [...s.ui.selectedIds];

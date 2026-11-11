@@ -3,12 +3,13 @@
 Jedes Arbeitspaket (AP) = **ein Pull Request**, ca. 1–3 Stunden Arbeit für Claude Code.
 Ein AP ist fertig, wenn alle Abnahmekriterien erfüllt sind und CI grün ist (siehe [05-arbeitsweise.md](05-arbeitsweise.md)).
 
-## Status (2026-11-09)
+## Status (2026-11-11)
 
 - **M0, M1, M2, M3: gebaut.** Erster Test von Dom und Sohn am 2026-11-09, Änderungen danach siehe
   [ADR 0005](../adr/0005-playtest-m3.md): Zoom ohne Schnitte über alle Planeten, Fernradar für die Feind-Basis,
   Computer auf eurem Stand (Leicht/Mittel/Schwer), Truppen verteidigen die Basis selbst, Glaskuppeln mit Tunneln.
-  Danach: zweiter Test, dann Planung M4.
+- **M4 (Luft und All): gebaut** am 2026-11-11, alle Pakete M4-1 bis M4-14. Entscheidungen:
+  [ADR 0006](../adr/0006-m4-luft-und-all.md). Nächster Schritt: Testspiel von Dom und Sohn, dann Planung M5.
 - Abweichungen M3: „Wiederholung“ von Offline-Kämpfen ist ein **Kampf-Bericht** im „Während du weg warst“-Fenster
   (kein Video). Die KI sieht durch den Nebel (sie schummelt, wie in vielen Strategiespielen).
   Spinnen-Nester gibt es nur auf dem Heimatplaneten. Die Kommando-Kuppel hat einen kleinen Laser (gegen frühe Überfälle).
@@ -105,13 +106,26 @@ Ziel: 1 gegen 1 gegen die Alien-KI, Bodenkampf, Sieg oder Niederlage. Man kann a
 | M3-14 | Balancing-Lauf | KI gegen KI 100× automatisch, Statistik | Bericht in `docs/` |
 | M3-15 | Sound (Basis) | Laser, Explosion, Bau, Musik (freie Lizenzen) | manuell geprüft |
 
-## M4 – Luft und All (grob)
+## M4 – Luft und All
 
-- Flugfeld, Jagdflugzeuge, Bomber, Treibstoff aus Gas.
-- Luftabwehr (Flak-Turm, Flak-Fahrzeug).
-- Kampfschiffe im All (Jäger, Kreuzer), Weltraumkampf, Blockade von Mining-Routen.
-- Angriff aus dem Orbit auf Basen (mit Schild-Gegenwehr).
-- KI nutzt Luft und All.
+Ziel: Krieg in drei Ebenen: Boden, Luft, All. Jede Ebene hat ihre Abwehr. Details: [ADR 0006](../adr/0006-m4-luft-und-all.md).
+
+| AP | Titel | Inhalt | Abnahme |
+|---|---|---|---|
+| M4-1 | Ebenen im Kampf | Einheiten sind am Boden, in der Luft oder im All. Jede Waffe trifft nur bestimmte Ebenen (`hits`) | Tests: Panzer trifft kein Flugzeug, Flak nur Flugzeuge |
+| M4-2 | Forschung | Flugabwehr, Luftfahrt, Kampfschiffe, Orbitallaser. Einheiten können Forschung brauchen | Tests freischalten |
+| M4-3 | Flugfeld + Flugzeuge | Flugfeld baut Jagdflugzeuge (treffen alles) und Bomber (stark gegen Gebäude). Fliegen über Mauern | Tests Kampfwerte, Bewegung |
+| M4-4 | Treibstoff | Flugzeuge verbrauchen Gas, solange sie fliegen oder kämpfen. Ohne Gas starten sie nicht | Tests Verbrauch, ohne Gas |
+| M4-5 | Gas sicher | Jedes Sonnensystem hat mindestens einen Gasplaneten | Test über viele Seeds |
+| M4-6 | Luftabwehr | Flak-Turm (Gebäude), Flak-Panzer (Fahrzeugfabrik) | Tests |
+| M4-7 | Flugzeuge im Transportschiff | Transportschiffe nehmen Flugzeuge mit | Test |
+| M4-8 | Kampfschiffe | Raumhafen baut Raumjäger und Kreuzer. Sie warten im Orbit. Befehl „Flotte hierher" | Tests Flug, Ankunft |
+| M4-9 | Weltraumkampf | Flotten am gleichen Ort kämpfen. Orbitalkanone schießt vom Boden ins All | Tests |
+| M4-10 | Blockade | Feindliche Flotte am Abbau-Ziel: Mining-Schiffe werden beschossen und kehren um. Transporter werden bei der Landung beschossen | Tests |
+| M4-11 | Angriff aus dem Orbit | Kreuzer (mit Orbitallaser) beschießen Gebäude, wenn keine feindliche Flotte im Orbit ist. Schilde fangen das ab | Tests |
+| M4-12 | KI Luft und All | KI baut Flak, Flugfeld, Flotte, holt Gas, blockiert, greift aus dem Orbit an. Bleibt auf eurem Stand | Simulations-Tests, Balancing-Bericht |
+| M4-13 | Grafik | Modelle für neue Gebäude und Einheiten (beide Völker), Flughöhe, Bomben, Flotte im All, Strahl aus dem Orbit | Screenshots |
+| M4-14 | Bedienung | Flotte im Planeten-Fenster, Treibstoff-Hinweise, Bau-Bilder | e2e |
 
 ## M5 – Leben in der Kuppel (grob)
 

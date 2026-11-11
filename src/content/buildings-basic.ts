@@ -20,7 +20,7 @@ export const BASIC_BUILDINGS: readonly BuildingDef[] = [
         storage: 500,
         housing: 6,
         armor: 3,
-        weapon: { damage: 12, range: 6.5, cooldownMs: 1200 },
+        weapon: { damage: 12, range: 6.5, cooldownMs: 1200, hits: 'all' },
       },
       {
         cost: { regolith: 1500, diamonds: 40 },
@@ -29,7 +29,7 @@ export const BASIC_BUILDINGS: readonly BuildingDef[] = [
         storage: 1000,
         housing: 8,
         armor: 4,
-        weapon: { damage: 16, range: 7, cooldownMs: 1100 },
+        weapon: { damage: 16, range: 7, cooldownMs: 1100, hits: 'all' },
       },
       {
         cost: { regolith: 4000, diamonds: 150, metal: 500 },
@@ -38,7 +38,7 @@ export const BASIC_BUILDINGS: readonly BuildingDef[] = [
         storage: 2000,
         housing: 10,
         armor: 5,
-        weapon: { damage: 20, range: 7.5, cooldownMs: 1000 },
+        weapon: { damage: 20, range: 7.5, cooldownMs: 1000, hits: 'all' },
       },
     ],
   },

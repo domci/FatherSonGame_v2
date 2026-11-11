@@ -44,8 +44,8 @@ export interface AttackerData {
   cooldownMs: number;
   readyAt: number;
   targetId?: number;
-  /** Last shot (for laser effects and sounds). */
-  shot?: { at: number; x: number; y: number };
+  /** Last shot (for laser effects and sounds). air = the target was a plane. */
+  shot?: { at: number; x: number; y: number; air?: boolean };
   /** Idle: next time to look around for enemies (saves work). */
   scanAt?: number;
 }
@@ -86,6 +86,17 @@ export interface ShipData {
   fromBodyId?: string;
 }
 
+/** A war ship in space: where it waits, or where it flies. Places are planet ids or 'belt'. */
+export interface OrbitData {
+  at: string;
+  /** Flies to this place. */
+  to?: string;
+  departAt: number;
+  arriveAt: number;
+  /** Next shot from orbit at a building. */
+  strikeAt?: number;
+}
+
 /**
  * One thing in the game world. Every field is an optional "component".
  * Only plain data here (no functions, no classes), so it can be saved as JSON.
@@ -112,4 +123,6 @@ export interface Entity {
   shield?: ShieldData;
   /** Unit sits inside a transport ship. */
   aboard?: { shipId: number };
+  /** War ship in space (no position on a surface). */
+  orbit?: OrbitData;
 }

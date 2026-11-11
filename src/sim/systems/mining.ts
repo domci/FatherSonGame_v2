@@ -7,6 +7,8 @@ import { playerStats } from '../stats';
 import type { GameState } from '../state';
 import { addResources } from '../wallet';
 import { SECOND } from '../clock';
+import { isBlocked, runBlockade, type BlockadeOptions } from '../space/blockade';
+import { placeName } from './fleet';
 
 export const MINING_MS = 60 * SECOND;
 /** Flight time per map unit. */
@@ -67,11 +69,28 @@ function unload(state: GameState, ship: Entity, data: ShipData): void {
   data.cargo = 0;
 }
 
-function nextPhase(state: GameState, ship: Entity, data: ShipData): void {
+/** Enemy war ships wait at the target: the ship is shot at and flies home empty. */
+function meetBlockade(state: GameState, ship: Entity, data: ShipData, target: string): void {
+  const end = data.phaseEndsAt;
+  const survived = runBlockade(state, ship, target);
+  const mine = ship.owner === 'player';
+  const where = placeName(state, target);
+  if (!survived) {
+    if (mine) addEvent(state, `Blockade bei ${where}: Mining-Schiff abgeschossen!`, 'bad');
+    return;
+  }
+  data.repeat = false;
+  setPhase(data, 'returning', end, travelMs(state, ship, target));
+  if (mine) addEvent(state, `Blockade bei ${where}! Das Mining-Schiff kehrt um.`, 'bad');
+}
+
+function nextPhase(state: GameState, ship: Entity, data: ShipData, opts: BlockadeOptions): void {
   const end = data.phaseEndsAt;
   const target = data.targetBodyId ?? BELT_ID;
-  if (data.phase === 'outbound') setPhase(data, 'mining', end, MINING_MS);
-  else if (data.phase === 'mining') {
+  if (data.phase === 'outbound') {
+    if (isBlocked(state, ship, target, opts)) meetBlockade(state, ship, data, target);
+    else setPhase(data, 'mining', end, MINING_MS);
+  } else if (data.phase === 'mining') {
     data.cargo = data.capacity;
     setPhase(data, 'returning', end, travelMs(state, ship, target));
   } else if (data.phase === 'returning') {
@@ -84,14 +103,17 @@ function nextPhase(state: GameState, ship: Entity, data: ShipData): void {
   }
 }
 
+const LIVE: BlockadeOptions = { offline: false };
+
 /** Ships fly, mine and bring cargo home. Uses timestamps, so it also works offline. */
-export function miningSystem(state: GameState): void {
-  for (const ship of state.world.with('ship')) {
+export function miningSystem(state: GameState, opts: BlockadeOptions = LIVE): void {
+  for (const ship of [...state.world.with('ship')]) {
     if (ship.unit?.type === 'transport') continue;
     for (let guard = 0; guard < 1000; guard++) {
       const data = ship.ship;
       if (data.phase === 'docked' || data.phaseEndsAt > state.time) break;
-      nextPhase(state, ship, data);
+      nextPhase(state, ship, data, opts);
+      if (!state.world.has(ship)) break;
     }
   }
 }

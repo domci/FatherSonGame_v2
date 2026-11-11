@@ -5,9 +5,10 @@ import {
   type BuildingCategory,
 } from '../content/buildings';
 import { buildingDescription } from '../content/factions';
-import { RESEARCH_LIST } from '../content/research';
+import { RESEARCH, RESEARCH_LIST } from '../content/research';
+import { hasResearch } from '../sim/research-helpers';
 import { stageSeconds } from '../content/time-curve';
-import { UNITS } from '../content/units';
+import { UNITS, type UnitId } from '../content/units';
 import type { Session } from '../app/session';
 import type { Entity } from '../sim/entity';
 import { factionOf, nameOfBuilding, nameOfUnit } from '../sim/names';
@@ -53,16 +54,22 @@ function trainRows(session: Session, e: Entity): HTMLElement | null {
     const label = `${name(u.id)}${q ? ` (+${q} in Warteschlange)` : ''}`;
     rows.push(progress(label, e.training.finishAt - u.trainSeconds * 1000, e.training.finishAt));
   }
-  for (const unit of trains)
-    rows.push(
-      action('plus', name(unit), {
-        cost: UNITS[unit].cost,
-        have: session.state.players.player?.resources,
-        timeMs: UNITS[unit].trainSeconds * 1000,
-        onclick: () => session.command({ type: 'train', player: 'player', buildingId: e.id, unit }),
-      }),
-    );
+  for (const unit of trains) rows.push(trainButton(session, e, unit, name(unit)));
   return section('Einheiten', ...rows);
+}
+
+/** Train button. Locked (with the research name) when the unit needs research. */
+function trainButton(session: Session, e: Entity, unit: UnitId, label: string): HTMLElement {
+  const need = UNITS[unit].requires;
+  const locked = !!need && !hasResearch(session.state, 'player', need);
+  return action(locked ? 'lock' : 'plus', label, {
+    cost: UNITS[unit].cost,
+    have: session.state.players.player?.resources,
+    timeMs: UNITS[unit].trainSeconds * 1000,
+    disabled: locked,
+    title: locked && need ? `Braucht Forschung: ${RESEARCH[need].name}` : undefined,
+    onclick: () => session.command({ type: 'train', player: 'player', buildingId: e.id, unit }),
+  });
 }
 
 function researchRows(session: Session, e: Entity): HTMLElement | null {

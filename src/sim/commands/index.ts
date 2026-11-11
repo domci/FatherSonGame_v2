@@ -1,5 +1,6 @@
 import type { GameState } from '../state';
 import { build, upgrade, type BuildCommand, type UpgradeCommand } from './build';
+import { fleet, type FleetCommand } from './fleet';
 import { research, type ResearchCommand } from './research';
 import { fail, type CommandResult } from './result';
 import { recallShip, sendShip, type RecallShipCommand, type SendShipCommand } from './ships';
@@ -34,6 +35,7 @@ export type Command =
   | BoardCommand
   | UnloadCommand
   | FlyCommand
+  | FleetCommand
   | SettingsCommand;
 
 export type { CommandResult };
@@ -54,6 +56,7 @@ const HANDLERS: Handlers = {
   board,
   unload,
   fly,
+  fleet,
   settings: changeSettings,
 };
 

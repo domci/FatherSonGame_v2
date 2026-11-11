@@ -11,6 +11,7 @@ import { writeFileSync } from 'node:fs';
 import { AI_TUNING, type Difficulty } from '../src/content/ai';
 import type { Faction } from '../src/content/factions';
 import { THINK_MS } from '../src/sim/ai/brain';
+import { UNITS } from '../src/content/units';
 import { buildingsOf, isFighter, unitsOf } from '../src/sim/ai/queries';
 import type { PlayerId } from '../src/sim/entity';
 import { createGame } from '../src/sim/game';
@@ -23,10 +24,15 @@ const MAX_HOURS = 8;
 const MINUTE = 60_000;
 
 function snapshot(s: GameState): Record<'player' | 'ai', Snapshot> {
-  const of = (id: PlayerId): Snapshot => ({
-    buildings: buildingsOf(s, id).length,
-    army: unitsOf(s, id).filter(isFighter).length,
-  });
+  const of = (id: PlayerId): Snapshot => {
+    const units = unitsOf(s, id);
+    return {
+      buildings: buildingsOf(s, id).length,
+      army: units.filter(isFighter).length,
+      air: units.filter((u) => u.unit && UNITS[u.unit.type].air).length,
+      fleet: s.world.with('orbit').entities.filter((e) => e.owner === id).length,
+    };
+  };
   return { player: of('player'), ai: of('ai') };
 }
 
@@ -47,7 +53,17 @@ function playOne(job: Job): Result {
     if (firstAttack === undefined && (s.ai.ai?.waves ?? 0) > 0) firstAttack = s.time / MINUTE;
   }
   const waves = s.ai.ai?.waves ?? 0;
-  return { ...job, winner: s.winner, minutes: s.time / MINUTE, waves, firstAttack, at60, at120 };
+  const atEnd = snapshot(s);
+  return {
+    ...job,
+    winner: s.winner,
+    minutes: s.time / MINUTE,
+    waves,
+    firstAttack,
+    at60,
+    at120,
+    atEnd,
+  };
 }
 
 function jobs(games: number): Job[] {

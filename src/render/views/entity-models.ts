@@ -16,6 +16,7 @@ import { buildModel } from '../models/parts';
 import { buildingParts } from '../models/building-models';
 import { eggModel, nestModel, unitModel } from '../models/unit-models';
 import { solidMaterial } from '../materials';
+import { flies, shadowBlob } from './air';
 
 /** Units are drawn a bit bigger than real size, so kids can see and tap them. */
 export const UNIT_SCALE: Record<UnitId, number> = {
@@ -26,6 +27,11 @@ export const UNIT_SCALE: Record<UnitId, number> = {
   spider: 1.5,
   miningShip: 1.4,
   transport: 1.9,
+  flakTank: 1.9,
+  fighter: 2.2,
+  bomber: 2.4,
+  spaceFighter: 1.6,
+  cruiser: 2.4,
 };
 
 export function modelKey(e: Entity, faction: Faction): string {
@@ -71,6 +77,7 @@ export function makeModel(e: Entity, faction: Faction): Object3D {
     m.scale.setScalar(UNIT_SCALE[e.unit.type]);
     m.name = 'body';
     holder.add(m);
+    if (flies(e)) holder.add(shadowBlob());
     return holder;
   }
   const m = e.egg ? eggModel() : nestModel();

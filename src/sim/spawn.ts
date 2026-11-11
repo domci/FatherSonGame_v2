@@ -93,3 +93,16 @@ export function spawnUnit(
   }
   return spawn(state, entity);
 }
+
+/** A war ship waits in orbit above `at` (no position on the ground). */
+export function spawnWarship(state: GameState, owner: PlayerId, at: string, type: UnitId): Entity {
+  const def = UNITS[type];
+  return spawn(state, {
+    owner,
+    zone: 'space',
+    unit: { type },
+    health: { hp: def.hp, max: def.hp },
+    attacker: { damage: def.damage, range: 0, cooldownMs: def.cooldownMs, readyAt: 0 },
+    orbit: { at, departAt: state.time, arriveAt: state.time },
+  });
+}

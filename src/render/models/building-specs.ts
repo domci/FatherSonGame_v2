@@ -2,6 +2,7 @@ import type { BuildingId } from '../../content/buildings';
 import type { ModelPart, Part } from './parts';
 import { ADVANCED_SPECS } from './specs-advanced';
 import { MILITARY_SPECS } from './specs-military';
+import { AIR_SPACE_SPECS } from './specs-air-space';
 import { cornerLights, pad, row } from './specs-helpers';
 
 const Y = 0.1; // top of the landing pad
@@ -85,4 +86,5 @@ export const HUMAN_BUILDINGS: Record<BuildingId, readonly ModelPart[]> = {
   storage,
   ...ADVANCED_SPECS,
   ...MILITARY_SPECS,
+  ...AIR_SPACE_SPECS,
 };

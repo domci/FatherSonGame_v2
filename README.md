@@ -5,11 +5,12 @@ Der komplette Plan steht in [docs/plan/](docs/plan/README.md).
 
 ## Stand
 
-Meilensteine **M0 bis M3** sind gebaut: Basis auf dem Planeten, Rohstoffe, Spinnenwesen,
+Meilensteine **M0 bis M4** sind gebaut: Basis auf dem Planeten, Rohstoffe, Spinnenwesen,
 Forschung, Speichern, Sonnensystem mit Zoom und Mining-Schiffen – und jetzt die **Aliens**:
 eine komplette Partie gegen den Computer, mit Truppen, Kampf, Verteidigung, Nebel und Sieg oder Niederlage.
 Man kann als Menschen oder als Aliens spielen. Nach dem ersten Test: Zoom ohne Schnitte, Glaskuppeln mit Tunneln,
-und ein Computer, der auf eurem Stand bleibt.
+und ein Computer, der auf eurem Stand bleibt. **M4 (Luft und All):** Flugzeuge, Flugabwehr, Kampfschiffe,
+Blockaden und Angriffe aus dem Orbit.
 
 ## Lokal starten (einmalig einrichten)
 
@@ -62,6 +63,17 @@ Neue Version holen: `git pull` und dann wieder `bun run dev`.
   Kraftfeld. Die Kommando-Kuppel hat selbst einen kleinen Laser.
 - **Angriff:** Transportschiff im Raumhafen bauen. Truppen wählen und auf das Schiff tippen = einsteigen.
   Dann „Angriff: zu … fliegen“. **Front** (links) zeigt die Truppen beim Feind, **Basis** bringt euch zurück.
+- **Luft (Forschung „Luftfahrt“):** Flugfeld bauen → Jagdflugzeuge (treffen alles) und Bomber (stark gegen Gebäude).
+  Flugzeuge fliegen über Mauern und **verbrauchen Gas** ☁️, solange sie fliegen oder kämpfen. Ohne Gas bleiben sie
+  stehen. Gas holt ein Mining-Schiff vom Gasplaneten (jedes Sonnensystem hat einen).
+- **Flugabwehr (Forschung „Flugabwehr“):** Flak-Turm (Tab _Schutz_) und Flak-Panzer (Fahrzeugfabrik) treffen nur
+  Flugzeuge. Panzer und Geschütztürme treffen keine Flugzeuge.
+- **Kampfschiffe (Forschung „Kampfschiffe“):** Raumjäger und Kreuzer im Raumhafen bauen. Sie warten im Orbit.
+  Planet oder Asteroidenring antippen → „Flotte hierher schicken“. Flotten am gleichen Ort kämpfen von selbst.
+- **Blockade:** Stehen feindliche Kampfschiffe an einem Abbau-Ort, werden Mining-Schiffe beschossen und fliegen leer
+  zurück. Transportschiffe werden bei der Landung beschossen. Eigene Flotte hinschicken = Blockade brechen.
+- **Angriff aus dem Orbit:** Kreuzer mit der Forschung „Orbitallaser“ schießen von oben auf Gebäude, wenn keine
+  feindliche Flotte dort ist. Dagegen helfen: eigene Flotte, **Orbitalkanone** (schießt ins All) und Schilde.
 - **Sieg:** Zerstört die Haupt-Kuppel des Gegners (Brutkern oder Kommando-Kuppel). Verliert ihr eure, ist das Spiel vorbei.
 - **Einstellungen (Menü ☰):** Geräusche, Musik, Stärke des Gegners, „Angriffe, auch wenn keiner spielt“ (Standard: aus).
 - **⏩ x1 / x10 / x100:** Test-Geschwindigkeit, damit man nicht lange warten muss.

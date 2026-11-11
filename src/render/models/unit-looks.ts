@@ -8,6 +8,8 @@ export interface UnitLook {
   kit: KitName;
   /** Height in tiles (before UNIT_SCALE). */
   height: number;
+  /** Longest side on the ground in tiles (before UNIT_SCALE). Flat craft use it instead of height. */
+  length?: number;
   /** Paint the model by its material names. */
   mats?: Partial<Record<string, MaterialName>>;
   anims?: ClipNames;
@@ -39,6 +41,16 @@ const HUMAN: Looks = {
   },
   miningShip: { kit: 'craft_miner', height: 0.5 },
   transport: { kit: 'cargo_ship', height: 0.7 },
+  flakTank: {
+    kit: 'mech',
+    height: 0.8,
+    mats: { Atlas: 'white' },
+    anims: { attack: 'Shoot_Small' },
+  },
+  fighter: { kit: 'craft_speederD', height: 0.3, length: 0.6 },
+  bomber: { kit: 'craft_speederB', height: 0.42, length: 0.7, mats: { metal: 'steel' } },
+  spaceFighter: { kit: 'craft_speederA', height: 0.35, length: 0.7 },
+  cruiser: { kit: 'craft_cargoB', height: 0.6, length: 1.3 },
 };
 
 const ALIEN: Looks = {
@@ -77,6 +89,25 @@ const ALIEN: Looks = {
     anims: { idle: 'Idle', move: 'Walk', attack: 'Bite_InPlace' },
   },
   miningShip: { kit: 'speeder_c', height: 0.4, alienPaint: true },
+  flakTank: {
+    kit: 'mech_heavy',
+    height: 0.8,
+    mats: { Atlas: 'skinChitin' },
+    anims: { attack: 'Shoot_Big' },
+  },
+  fighter: {
+    kit: 'bat',
+    height: 0.45,
+    mats: { Main: 'skinChitin', Belly: 'skinFlesh', Eyes: 'glowGreen', Nose: 'glowViolet' },
+    anims: { idle: 'Bat_Flying', move: 'Bat_Flying', attack: 'Bat_Attack' },
+  },
+  bomber: {
+    kit: 'wyvern',
+    height: 0.6,
+    mats: { Main: 'skinChitin', Belly: 'skinFlesh', Eyes: 'glowGreen', Claws: 'bone' },
+    anims: { idle: 'Dragon_Flying', move: 'Dragon_Flying', attack: 'Dragon_Attack' },
+  },
+  spaceFighter: { kit: 'craft_speederD', height: 0.35, length: 0.7, alienPaint: true },
 };
 
 export const UNIT_LOOKS: Record<Faction, Looks> = { human: HUMAN, alien: ALIEN };

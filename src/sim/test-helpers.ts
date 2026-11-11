@@ -49,3 +49,14 @@ export function freeSpot(state: GameState, type: BuildingId): { tileX: number; t
 export function buildingsOf(state: GameState, type: BuildingId): Entity[] {
   return state.world.with('building').entities.filter((e) => e.building.type === type);
 }
+
+/** Player and a computer side ('ai') on the player's home surface, no spiders. */
+export function battleArena(): { s: GameState; zone: string; c: number } {
+  const s = newTestGame();
+  const player = s.players.player;
+  if (!player) throw new Error('no player');
+  s.players.ai = { ...player, id: 'ai', faction: 'alien', research: { done: [] }, resources: {} };
+  for (const nest of s.world.with('nest').entities) s.world.remove(nest);
+  const zone = homeZone(s);
+  return { s, zone, c: (s.surfaces[zone]?.size ?? 64) / 2 };
+}

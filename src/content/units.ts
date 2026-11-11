@@ -1,7 +1,12 @@
+import type { ResearchId } from './research';
 import type { ResourceAmounts } from './resources';
+import { AIR_SPACE_UNITS, type AirSpaceId } from './units-air-space';
 
 export type UnitId =
-  'drone' | 'hunter' | 'infantry' | 'tank' | 'miningShip' | 'transport' | 'spider';
+  'drone' | 'hunter' | 'infantry' | 'tank' | 'miningShip' | 'transport' | 'spider' | AirSpaceId;
+
+/** Which things a weapon can hit: on the ground, in the air, or both. */
+export type Hits = 'ground' | 'air' | 'all';
 
 export interface UnitDef {
   id: UnitId;
@@ -18,12 +23,26 @@ export interface UnitDef {
   armor: number;
   /** Damage factor against buildings (tanks are good at it). */
   vsBuildings?: number;
+  /** Goes for buildings first (bombers). */
+  prefersBuildings?: boolean;
   cost: ResourceAmounts;
   trainSeconds: number;
   /** Uses housing space (and space in a transport ship). */
   housing: number;
   /** Space ships: how much housing fits inside. */
   carries?: number;
+  /** Flies high: only weapons that hit the air can hit it (fighters, flak). */
+  air?: boolean;
+  /** What its weapon can hit (default: ground). */
+  hits?: Hits;
+  /** War ship: lives in orbit, fights other ships. */
+  space?: boolean;
+  /** Needs this research before it can be trained. */
+  requires?: ResearchId;
+  /** Fuel: gas per minute while it flies or fights. */
+  gasPerMinute?: number;
+  /** Damage of one shot from orbit at a building (needs the Orbitallaser research). */
+  orbitStrike?: number;
 }
 
 const NO_WEAPON = { damage: 0, range: 0, cooldownMs: 0 } as const;
@@ -123,6 +142,7 @@ export const UNITS: Record<UnitId, UnitDef> = {
     trainSeconds: 0,
     housing: 0,
   },
+  ...AIR_SPACE_UNITS,
 };
 
 /** Food the hunter's owner gets for a defeated spider or a collected egg. */

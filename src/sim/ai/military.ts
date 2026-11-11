@@ -7,6 +7,9 @@ import { homeArmy, launchAttack, tuningOf, waveSize, type AiOptions } from './at
 import { trainUnit } from './economy';
 import { coreOf, housingOf, isFighter, unitsOf } from './queries';
 import { militaryPower, sumPower, unitPower } from './strength';
+import { moveFleet, trainFleet } from './fleet';
+import { layerOf } from '../layers';
+import type { UnitId } from '../../content/units';
 
 export type { AiOptions } from './attack';
 
@@ -19,15 +22,28 @@ function armyPowerLimit(state: GameState, player: PlayerState, ai: AiState): num
   return Math.max(floor, t.armyShare * militaryPower(state, enemy));
 }
 
-/** Keeps training soldiers (tanks when there is metal), but not more than allowed. */
+/** What the army needs next: flak against enemy planes, some planes, tanks, soldiers. */
+function wishList(state: GameState, player: PlayerState, army: Entity[], room: number): UnitId[] {
+  const enemyAir = unitsOf(state, enemyOf(player.id)).filter((u) => layerOf(u) === 'air').length;
+  const flak = army.filter((u) => u.unit?.type === 'flakTank').length;
+  const out: UnitId[] = [];
+  if (enemyAir > 2 * flak) out.push('flakTank');
+  const air = housingOf(army.filter((u) => layerOf(u) === 'air'));
+  if (air * 3 < housingOf(army)) out.push(room >= unitPower('bomber') ? 'bomber' : 'fighter');
+  if (room >= unitPower('tank')) out.push('tank');
+  out.push('infantry');
+  return out;
+}
+
+/** Keeps training an army, but not more than allowed. */
 function trainArmy(state: GameState, player: PlayerState, ai: AiState): void {
   const t = tuningOf(state, ai);
   const army = homeArmy(state, player);
   if (housingOf(army) >= t.defenders + waveSize(state, ai)) return;
   const room = armyPowerLimit(state, player, ai) - sumPower(army);
   if (room <= 0) return;
-  if (room < unitPower('tank') || trainUnit(state, player, 'tank') !== 'acted')
-    trainUnit(state, player, 'infantry');
+  for (const unit of wishList(state, player, army, room))
+    if (trainUnit(state, player, unit) === 'acted') return;
 }
 
 function attackMove(state: GameState, owner: PlayerId, units: Entity[], target: Vec2): void {
@@ -71,7 +87,9 @@ export function runMilitary(
   opts: AiOptions,
 ): void {
   trainArmy(state, player, ai);
+  trainFleet(state, player, ai);
   defend(state, player);
   front(state, player);
   launchAttack(state, player, ai, opts);
+  moveFleet(state, player, ai, opts);
 }

@@ -2,7 +2,7 @@ import { BUILDINGS, buildingLevel } from '../../content/buildings';
 import { UNITS } from '../../content/units';
 import { addEvent, nextRandom } from '../game';
 import { nameOfBuilding, nameOfUnit } from '../names';
-import { equipBuilding, findEntity, spawnUnit } from '../spawn';
+import { equipBuilding, findEntity, spawnUnit, spawnWarship } from '../spawn';
 import type { Entity } from '../entity';
 import type { GameState } from '../state';
 
@@ -35,6 +35,12 @@ export function constructionSystem(state: GameState): void {
 
 function spawnTrained(state: GameState, b: Entity, unit: Entity['unit'] & object): void {
   if (!b.owner || !b.zone || !b.position || !b.building) return;
+  if (UNITS[unit.type].space) {
+    spawnWarship(state, b.owner, b.zone, unit.type);
+    if (b.owner === 'player')
+      addEvent(state, `${nameOfUnit(state, b.owner, unit.type)} bereit. Wartet im Orbit.`, 'good');
+    return;
+  }
   const size = BUILDINGS[b.building.type].size;
   const at = {
     x: b.position.x + (nextRandom(state) - 0.5) * size,
