@@ -1,0 +1,10 @@
+{
+  "//": "The game server (Cloudflare Worker + Durable Objects). Uses the game logic, no DOM.",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": ["server", "src/sim", "src/content", "src/net/protocol.ts", "src/net/digest.ts", "src/net/names.ts"],
+  "exclude": ["**/*.test.ts"]
+}

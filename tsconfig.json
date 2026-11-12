@@ -4,6 +4,6 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "tests", "tools", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
+  "include": ["src", "server/**/*.test.ts", "tests", "tools", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
   "references": []
 }

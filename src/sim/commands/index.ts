@@ -92,6 +92,9 @@ const HANDLERS: Handlers = {
   restart,
 };
 
+/** All command types (the server checks commands from browsers against this list). */
+export const COMMAND_TYPES: readonly string[] = Object.keys(HANDLERS);
+
 export function applyCommand(state: GameState, cmd: Command): CommandResult {
   if (cmd.type === 'join') return join(state, cmd);
   if (!state.players[cmd.player]) return fail('Unbekannter Spieler.');

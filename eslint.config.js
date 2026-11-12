@@ -10,7 +10,7 @@ const SIM_FORBIDDEN = [
 ];
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'node_modules', 'playwright-report', 'test-results'] },
+  { ignores: ['dist', 'coverage', 'node_modules', 'playwright-report', 'test-results', '.wrangler'] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   prettier,
@@ -27,6 +27,10 @@ export default tseslint.config(
   },
   {
     files: ['src/sim/**', 'src/content/**'],
+    rules: { 'no-restricted-imports': ['error', { patterns: SIM_FORBIDDEN }] },
+  },
+  {
+    files: ['server/**', 'src/net/**'],
     rules: { 'no-restricted-imports': ['error', { patterns: SIM_FORBIDDEN }] },
   },
   {

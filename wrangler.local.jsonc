@@ -1,0 +1,21 @@
+// LOCAL ONLY (tests): like wrangler.jsonc, but without Workers AI (needs a Cloudflare login).
+// The chat then uses only the simple rules. Start: bunx wrangler dev -c wrangler.local.jsonc
+{
+  "name": "bruchlandung",
+  "main": "server/worker.ts",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/ws/*"]
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "LOBBY", "class_name": "LobbyDO" },
+      { "name": "ROOM", "class_name": "WorldRoom" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["LobbyDO", "WorldRoom"] }],
+  "vars": { "MODERATION": "rules", "ADMIN_KEY": "test-admin", "EU": "off" }
+}
