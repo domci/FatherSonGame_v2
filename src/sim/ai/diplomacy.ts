@@ -3,6 +3,7 @@ import { DIPLOMACY } from '../../content/sides';
 import { applyCommand } from '../commands';
 import { offerFrom, whyNot, type DiplomacyAction } from '../diplomacy';
 import type { SideId } from '../entity';
+import { isHuman } from '../humans';
 import { aliveSides, hostileSides, relationOf, relationSince } from '../relations';
 import type { AiState, GameState, PlayerState } from '../state';
 import { commonThreat, difficultyOf } from './answer';
@@ -46,7 +47,7 @@ function seekWar(state: GameState, me: SideId): boolean {
   const easy = difficultyOf(state, me) === 'easy';
   const targets = aliveSides(state)
     .filter((id) => id !== me && relationOf(state, me, id) === 'peace')
-    .filter((id) => !(easy && id === 'player'))
+    .filter((id) => !(easy && isHuman(state, id)))
     .filter((id) => calm || militaryPower(state, id) < PREY * mine)
     .sort((a, b) => militaryPower(state, a) - militaryPower(state, b));
   const quiet = (id: SideId): boolean =>

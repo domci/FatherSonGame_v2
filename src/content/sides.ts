@@ -50,6 +50,8 @@ export const DIPLOMACY = {
   allianceAfterMs: 5 * 60_000,
   /** Offers to the player wait this long for an answer. */
   offerMs: 3 * 60_000,
+  /** Online the other person may be away: offers wait a day. */
+  onlineOfferMs: 24 * 60 * 60_000,
   /** The computer thinks about diplomacy this often. */
   thinkEveryMs: 60_000,
   /** After an offer to the player, the computer waits this long before the next one. */

@@ -1,5 +1,5 @@
 import type { ResourceAmounts } from '../../content/resources';
-import { addEvent } from '../game';
+import { tell } from '../humans';
 import type { Entity, ShipData } from '../entity';
 import { BELT_ID, bodyPosition, findBody } from '../generation/solar-system';
 import { hasResearch } from '../research-helpers';
@@ -73,15 +73,14 @@ function unload(state: GameState, ship: Entity, data: ShipData): void {
 function meetBlockade(state: GameState, ship: Entity, data: ShipData, target: string): void {
   const end = data.phaseEndsAt;
   const survived = runBlockade(state, ship, target);
-  const mine = ship.owner === 'player';
   const where = placeName(state, target);
   if (!survived) {
-    if (mine) addEvent(state, `Blockade bei ${where}: Mining-Schiff abgeschossen!`, 'bad');
+    tell(state, ship.owner, `Blockade bei ${where}: Mining-Schiff abgeschossen!`, 'bad');
     return;
   }
   data.repeat = false;
   setPhase(data, 'returning', end, travelMs(state, ship, target));
-  if (mine) addEvent(state, `Blockade bei ${where}! Das Mining-Schiff kehrt um.`, 'bad');
+  tell(state, ship.owner, `Blockade bei ${where}! Das Mining-Schiff kehrt um.`, 'bad');
 }
 
 function nextPhase(state: GameState, ship: Entity, data: ShipData, opts: BlockadeOptions): void {
@@ -98,7 +97,7 @@ function nextPhase(state: GameState, ship: Entity, data: ShipData, opts: Blockad
     if (data.repeat) setPhase(data, 'outbound', end, travelMs(state, ship, target));
     else {
       setPhase(data, 'docked', end, 0);
-      if (ship.owner === 'player') addEvent(state, 'Mining-Schiff ist zurück im Hafen.', 'info');
+      tell(state, ship.owner, 'Mining-Schiff ist zurück im Hafen.', 'info');
     }
   }
 }

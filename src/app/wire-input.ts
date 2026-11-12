@@ -18,7 +18,7 @@ function onSystemPick(session: Session, pick: Pick | null): void {
 function selectInBox(session: Session, project: Projector, r: Rect): void {
   const ids: number[] = [];
   for (const u of session.state.world.with('unit', 'position')) {
-    if (u.owner !== 'player' || u.zone !== session.ui.zone || u.ship || !u.attacker) continue;
+    if (u.owner !== session.me || u.zone !== session.ui.zone || u.ship || !u.attacker) continue;
     const p = project(u.position.x, u.position.y, 0.5);
     if (p && p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) ids.push(u.id);
   }

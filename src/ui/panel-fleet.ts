@@ -1,3 +1,4 @@
+import { viewerOf } from '../sim/viewer';
 import type { Session } from '../app/session';
 import type { UnitId } from '../content/units';
 import type { Entity, PlayerId } from '../sim/entity';
@@ -29,7 +30,7 @@ function listOf(session: Session, ships: Entity[]): string {
 function friendsAt(session: Session, place: string): Entity[] {
   const s = session.state;
   return shipsAt(s, place).filter(
-    (e) => e.owner && e.owner !== 'player' && relationOf(s, 'player', e.owner) !== 'war',
+    (e) => e.owner && e.owner !== viewerOf(s) && relationOf(s, viewerOf(s), e.owner) !== 'war',
   );
 }
 
@@ -37,10 +38,10 @@ function friendsAt(session: Session, place: string): Entity[] {
 export function fleetRows(session: Session, place: string): HTMLElement[] {
   const s = session.state;
   const rows: HTMLElement[] = [];
-  const mine = shipsAt(s, place, 'player');
-  const theirs = blockers(s, 'player', place);
+  const mine = shipsAt(s, place, viewerOf(s));
+  const theirs = blockers(s, viewerOf(s), place);
   const friends = friendsAt(session, place);
-  const coming = warships(s).filter((e) => e.owner === 'player' && e.orbit?.to === place);
+  const coming = warships(s).filter((e) => e.owner === viewerOf(s) && e.orbit?.to === place);
   if (mine.length) rows.push(stat('orbit', 'Eure Flotte hier', listOf(session, mine), '#7cff6b'));
   if (friends.length)
     rows.push(stat('handshake', 'Freunde im Orbit', listOf(session, friends), '#5fd0ff'));
@@ -51,16 +52,16 @@ export function fleetRows(session: Session, place: string): HTMLElement[] {
     rows.push(text('Blockade: Mining- und Transportschiffe werden hier beschossen.', 'p-text bad'));
   }
   const ready = warships(s).filter(
-    (e) => e.owner === 'player' && e.orbit && !e.orbit.to && e.orbit.at !== place,
+    (e) => e.owner === session.me && e.orbit && !e.orbit.to && e.orbit.at !== place,
   );
   if (ready.length)
     rows.push(
       action('rocket', `Flotte hierher schicken (${ready.length} Schiffe)`, {
         title: 'Alle wartenden Kampfschiffe fliegen hierher.',
-        onclick: () => void session.command({ type: 'fleet', player: 'player', targetId: place }),
+        onclick: () => void session.command({ type: 'fleet', player: session.me, targetId: place }),
       }),
     );
-  else if (!mine.length && hasResearch(s, 'player', 'warships'))
+  else if (!mine.length && hasResearch(s, viewerOf(s), 'warships'))
     rows.push(text('Keine freien Kampfschiffe. Baut welche im Raumhafen.', 'p-text muted'));
   return rows;
 }

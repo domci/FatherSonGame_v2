@@ -1,7 +1,7 @@
 import { World } from 'miniplex';
 import type { Difficulty } from '../content/ai';
 import { FACTIONS } from '../content/factions';
-import type { Entity, PlayerId } from './entity';
+import type { Entity, PlayerId, SideId } from './entity';
 import { generateSolarSystem } from './generation/solar-system';
 import { generateSurface } from './generation/surface';
 import { createRng } from './rng';
@@ -26,6 +26,8 @@ export interface NewGameOptions {
   opponent?: boolean;
   /** Number of computer sides, 1..3 (default 1). */
   opponents?: number;
+  /** Online world (M7): places for more people after the computer sides. */
+  online?: { humans: number };
 }
 
 /** Creates the start of a new game: crash site, two drones, spider nests and the enemy. */
@@ -35,6 +37,7 @@ export function createGame(options: NewGameOptions): GameState {
     offlineAttacks: options.offlineAttacks ?? false,
     opponent: options.opponent !== false,
     opponents: options.opponent === false ? 0 : (options.opponents ?? 1),
+    ...(options.online ? { online: true, humans: options.online.humans } : {}),
   };
   const system = generateSolarSystem(options.seed, homeCount(settings));
   const home = system.homeBodyId;
@@ -63,9 +66,18 @@ export function createGame(options: NewGameOptions): GameState {
   return state;
 }
 
-export function addEvent(state: GameState, text: string, kind: GameEvent['kind']): void {
-  state.events.push({ time: state.time, text, kind });
-  if (state.events.length > 50) state.events.shift();
+/** Most events kept (for all players together). */
+const MAX_EVENTS = 80;
+
+/** A news line. With `to`, only that side sees it (online games have more than one person). */
+export function addEvent(
+  state: GameState,
+  text: string,
+  kind: GameEvent['kind'],
+  to?: SideId,
+): void {
+  state.events.push(to ? { time: state.time, text, kind, to } : { time: state.time, text, kind });
+  if (state.events.length > MAX_EVENTS) state.events.shift();
 }
 
 export function getPlayer(state: GameState, id: PlayerId): PlayerState {

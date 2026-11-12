@@ -62,7 +62,7 @@ export class SteamPuffs {
   private works(e: Entity, sight: Sight): boolean {
     if (e.zone !== this.map.bodyId || !e.building || e.building.level < 1 || e.construction)
       return false;
-    if (e.owner === 'player' || !e.position) return true;
+    if (e.owner === sight.me || !e.position) return true;
     const tile = Math.floor(e.position.y) * this.map.size + Math.floor(e.position.x);
     return sight.visible[tile] === 1;
   }

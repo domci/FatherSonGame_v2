@@ -1,5 +1,5 @@
 import { UNITS } from '../../content/units';
-import { addEvent } from '../game';
+import { tell } from '../humans';
 import type { Entity, PlayerId } from '../entity';
 import type { GameState } from '../state';
 import { amount } from '../wallet';
@@ -48,6 +48,6 @@ export function fuelSystem(state: GameState, dtMs: number): void {
     player.resources.gas = left >= 1 ? left : 0;
     if (left >= 1) continue;
     ground(state, planes);
-    if (owner === 'player') addEvent(state, 'Kein Gas mehr! Eure Flugzeuge bleiben stehen.', 'bad');
+    tell(state, owner, 'Kein Gas mehr! Eure Flugzeuge bleiben stehen.', 'bad');
   }
 }

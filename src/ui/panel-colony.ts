@@ -1,3 +1,4 @@
+import { viewerOf } from '../sim/viewer';
 import type { Session } from '../app/session';
 import type { BuildingLevel } from '../content/buildings';
 import { NEED_IDS, NEEDS_PER_PERSON } from '../content/colony';
@@ -33,10 +34,10 @@ const pct = (v: number): string => `${Math.round(v * 100)} %`;
 
 /** One line per mood reason: "+10 Sauerstoff da". */
 function reasons(session: Session): HTMLElement {
-  const c = session.state.players.player?.colony;
+  const c = session.state.players[viewerOf(session.state)]?.colony;
   const list = el('div', { class: 'mood-list' });
   if (!c) return list;
-  for (const p of moodParts(c, playerStats(session.state, 'player'))) {
+  for (const p of moodParts(c, playerStats(session.state, viewerOf(session.state)))) {
     const sign = p.value > 0 ? '+' : '';
     const cls = p.value < 0 ? 'bad' : 'good';
     list.append(el('div', { class: `mood-row ${cls}` }, el('b', {}, `${sign}${p.value}`), p.text));
@@ -47,8 +48,8 @@ function reasons(session: Session): HTMLElement {
 /** What the player can do now. */
 function tip(session: Session): string {
   const s = session.state;
-  const c = s.players.player?.colony;
-  const stats = playerStats(s, 'player');
+  const c = s.players[viewerOf(s)]?.colony;
+  const stats = playerStats(s, viewerOf(s));
   if (!c) return '';
   if (NEED_IDS.some((id) => c.met[id] < 1))
     return 'Es fehlt etwas zum Leben! Baut mehr Anlagen für Luft, Wasser und Nahrung.';
@@ -64,9 +65,9 @@ function tip(session: Session): string {
 /** The colony window: people, work, needs and why they feel like they do. */
 export function colonyPanel(session: Session): HTMLElement[] {
   const s = session.state;
-  const c = s.players.player?.colony;
+  const c = s.players[viewerOf(s)]?.colony;
   if (!c) return [];
-  const stats = playerStats(s, 'player');
+  const stats = playerStats(s, viewerOf(s));
   const target = moodTarget(c, stats);
   const trend = target > c.mood + 1 ? ' ↑' : target < c.mood - 1 ? ' ↓' : '';
   const needs = NEED_IDS.map((id) => {
@@ -92,7 +93,7 @@ export function colonyPanel(session: Session): HTMLElement[] {
 
 /** Changes when the colony window must be rebuilt. */
 export function colonyKey(session: Session): string {
-  const c = session.state.players.player?.colony;
+  const c = session.state.players[viewerOf(session.state)]?.colony;
   if (!c) return 'colony';
   const met = NEED_IDS.map((id) => (c.met[id] >= 1 ? 1 : 0)).join('');
   return `colony:${c.people}:${Math.round(c.sick)}:${Math.round(c.mood)}:${met}`;

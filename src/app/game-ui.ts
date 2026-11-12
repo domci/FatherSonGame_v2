@@ -1,3 +1,4 @@
+import { viewerOf } from '../sim/viewer';
 import { toSaveData } from '../sim/save/save';
 import { exportSave } from '../platform/storage';
 import { Hud } from '../ui/hud';
@@ -21,13 +22,13 @@ function settingRows(session: Session, sound: Sound): HTMLElement[] {
     toggleRow('Geräusche', 'Laser, Explosionen, Klicks', sound.sfxOn, () => sound.toggleSfx()),
     toggleRow('Musik', 'Ruhige Klänge, Kampfmusik', sound.musicOn, () => sound.toggleMusic()),
     levelPicker(session.state.settings.difficulty, (difficulty) =>
-      session.command({ type: 'settings', player: 'player', difficulty }),
+      session.command({ type: 'settings', player: session.me, difficulty }),
     ),
     toggleRow(
       'Angriffe, auch wenn keiner spielt',
       'Aus: Die Gegner greifen nur an, wenn ihr spielt.',
       session.state.settings.offlineAttacks,
-      (on) => session.command({ type: 'settings', player: 'player', offlineAttacks: on }),
+      (on) => session.command({ type: 'settings', player: session.me, offlineAttacks: on }),
     ),
   ];
 }
@@ -70,7 +71,7 @@ function watchEnd(root: HTMLElement, session: Session, onQuit: () => void): () =
     const winner = session.state.winner;
     if (!winner || shown) return;
     shown = true;
-    const screen = endScreen(winner === 'player', endText(session.state), {
+    const screen = endScreen(winner === viewerOf(session.state), endText(session.state), {
       menu: () => void session.save().then(onQuit),
       watch: () => screen.remove(),
     });

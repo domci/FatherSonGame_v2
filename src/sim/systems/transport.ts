@@ -1,22 +1,23 @@
 import { addEvent } from '../game';
+import { isAway, isHuman, tell } from '../humans';
 import type { Entity } from '../entity';
 import { nameOfUnit } from '../names';
 import { findBody } from '../generation/solar-system';
 import type { GameState } from '../state';
 import { landingSpot, unloadShip } from '../transport';
 import { isBlocked, runBlockade } from '../space/blockade';
-import { hostile } from '../relations';
+import { homeOwner, hostile } from '../relations';
 
 export interface FlightOptions {
   /** The game is closed right now (catch-up). */
   offline: boolean;
 }
 
-/** Enemy ships wait in orbit while the player is away (unless offline attacks are on). */
+/** Computer ships wait in orbit while the person who lives there is away (unless offline attacks are on). */
 function mustWait(state: GameState, ship: Entity, zone: string, opts: FlightOptions): boolean {
-  if (!opts.offline || state.settings.offlineAttacks || !hostile(state, 'player', ship.owner))
-    return false;
-  return zone === state.players.player?.homeBodyId;
+  const owner = homeOwner(state, zone);
+  if (state.settings.offlineAttacks || !owner || isHuman(state, ship.owner)) return false;
+  return isAway(state, owner, opts.offline) && hostile(state, owner, ship.owner);
 }
 
 function land(state: GameState, ship: Entity, zone: string): void {
@@ -27,20 +28,18 @@ function land(state: GameState, ship: Entity, zone: string): void {
   ship.ship.phase = zone === home ? 'docked' : 'landed';
   ship.ship.phaseStartAt = state.time;
   const count = unloadShip(state, ship);
-  if (ship.owner === 'player') {
+  if (isHuman(state, ship.owner)) {
     const where = findBody(state.system, zone)?.name ?? zone;
-    addEvent(
+    tell(
       state,
+      ship.owner,
       `${nameOfUnit(state, ship.owner, 'transport')} ist auf ${where} gelandet.`,
       'info',
     );
-  } else if (
-    zone === state.players.player?.homeBodyId &&
-    count > 0 &&
-    hostile(state, 'player', ship.owner)
-  ) {
-    addEvent(state, 'Alarm! Feindliche Truppen sind gelandet!', 'bad');
   }
+  const victim = homeOwner(state, zone);
+  if (count > 0 && isHuman(state, victim) && hostile(state, victim, ship.owner))
+    addEvent(state, 'Alarm! Feindliche Truppen sind gelandet!', 'bad', victim);
 }
 
 /** Transport ships fly between planets (timestamps, so it also works offline). */
@@ -51,8 +50,7 @@ export function transportSystem(state: GameState, opts: FlightOptions): void {
     if (!zone || ship.ship.phaseEndsAt > state.time) continue;
     if (mustWait(state, ship, zone, opts)) continue;
     if (isBlocked(state, ship, zone, opts) && !runBlockade(state, ship, zone)) {
-      if (ship.owner === 'player')
-        addEvent(state, 'Blockade! Euer Transportschiff wurde abgeschossen.', 'bad');
+      tell(state, ship.owner, 'Blockade! Euer Transportschiff wurde abgeschossen.', 'bad');
       continue;
     }
     land(state, ship, zone);

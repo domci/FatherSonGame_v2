@@ -1,4 +1,6 @@
 import type { ResourceAmounts } from '../content/resources';
+import type { SideId } from './entity';
+import { humanSides } from './humans';
 import { hostile, isSide } from './relations';
 import type { GameState } from './state';
 import { economyStep, tick, TICK_MS, type StepOptions } from './update';
@@ -23,21 +25,23 @@ export interface CatchUpReport {
   battle?: BattleReport;
 }
 
+/** Attackers on the home planet of a person. */
 function invaders(state: GameState): number[] {
-  const home = state.players.player?.homeBodyId;
+  const homes = new Map(humanSides(state).map((id) => [state.players[id]?.homeBodyId, id]));
   return state.world
     .with('unit')
-    .entities.filter(
-      (u) => isSide(u.owner) && hostile(state, 'player', u.owner) && u.zone === home && u.attacker,
-    )
+    .entities.filter((u) => {
+      const victim = u.zone ? homes.get(u.zone) : undefined;
+      return !!victim && isSide(u.owner) && hostile(state, victim, u.owner) && !!u.attacker;
+    })
     .map((u) => u.id);
 }
 
-function playerIds(state: GameState, kind: 'building' | 'unit'): Set<number> {
+function idsOf(state: GameState, side: SideId, kind: 'building' | 'unit'): Set<number> {
   return new Set(
     state.world
       .with(kind)
-      .entities.filter((e) => e.owner === 'player')
+      .entities.filter((e) => e.owner === side)
       .map((e) => e.id),
   );
 }
@@ -48,9 +52,9 @@ function lost(state: GameState, before: Set<number>): number {
   return n;
 }
 
-function gainedSince(state: GameState, before: ResourceAmounts): ResourceAmounts {
+function gainedSince(state: GameState, side: SideId, before: ResourceAmounts): ResourceAmounts {
   const gained: ResourceAmounts = {};
-  const after = state.players.player?.resources ?? {};
+  const after = state.players[side]?.resources ?? {};
   for (const [id, v] of Object.entries(after) as [keyof ResourceAmounts, number][]) {
     const diff = v - (before[id] ?? 0);
     if (Math.abs(diff) >= 1) gained[id] = diff;
@@ -58,12 +62,19 @@ function gainedSince(state: GameState, before: ResourceAmounts): ResourceAmounts
   return gained;
 }
 
-/** Calculates what happened while the game was closed. Fights only with offline attacks on. */
-export function catchUp(state: GameState, elapsedMs: number): CatchUpReport {
-  const before = { ...(state.players.player?.resources ?? {}) };
+/**
+ * Calculates what happened while the game was closed. Fights only with offline attacks on.
+ * The report is for one side (the player on this device).
+ */
+export function catchUp(
+  state: GameState,
+  elapsedMs: number,
+  side: SideId = 'player',
+): CatchUpReport {
+  const before = { ...(state.players[side]?.resources ?? {}) };
   const eventsBefore = state.events.length;
-  const buildings = playerIds(state, 'building');
-  const units = playerIds(state, 'unit');
+  const buildings = idsOf(state, side, 'building');
+  const units = idsOf(state, side, 'unit');
   const enemies = new Set<number>();
   let left = Math.max(0, elapsedMs);
   let battleMs = 0;
@@ -80,7 +91,11 @@ export function catchUp(state: GameState, elapsedMs: number): CatchUpReport {
     economyStep(state, step, OFFLINE);
     left -= step;
   }
-  const report: CatchUpReport = { elapsedMs, gained: gainedSince(state, before), eventsBefore };
+  const report: CatchUpReport = {
+    elapsedMs,
+    gained: gainedSince(state, side, before),
+    eventsBefore,
+  };
   if (battleMs > 0)
     report.battle = {
       lostBuildings: lost(state, buildings),

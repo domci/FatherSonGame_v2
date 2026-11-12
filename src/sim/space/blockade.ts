@@ -2,6 +2,7 @@ import type { Entity } from '../entity';
 import type { GameState } from '../state';
 import { dealDamage, hitDamage } from '../systems/damage';
 import { blockers } from './places';
+import { isAway } from '../humans';
 
 export interface BlockadeOptions {
   /** The game is closed right now (catch-up). */
@@ -16,7 +17,7 @@ export function isBlocked(
   opts: BlockadeOptions,
 ): boolean {
   if (!ship.owner || ship.owner === 'wild') return false;
-  if (opts.offline && ship.owner === 'player' && !state.settings.offlineAttacks) return false;
+  if (isAway(state, ship.owner, opts.offline) && !state.settings.offlineAttacks) return false;
   return blockers(state, ship.owner, place).length > 0;
 }
 

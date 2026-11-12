@@ -1,3 +1,4 @@
+import { viewerOf } from '../sim/viewer';
 import { RESOURCE_IDS, RESOURCE_INFO } from '../content/resources';
 import type { Session, Speed } from '../app/session';
 import { quizStatus } from '../sim/quiz';
@@ -108,9 +109,9 @@ export class Hud {
 
   update(): void {
     const s = this.session;
-    const player = s.state.players.player;
+    const player = s.state.players[viewerOf(s.state)];
     if (!player) return;
-    const stats = playerStats(s.state, 'player');
+    const stats = playerStats(s.state, viewerOf(s.state));
     for (const id of RESOURCE_IDS) {
       const v = player.resources[id] ?? 0;
       this.set(id, formatNumber(v), v >= stats.storage ? 'warn' : v < 1 ? 'zero' : '');
@@ -126,7 +127,7 @@ export class Hud {
     this.set('housing', `${stats.housingUsed}/${stats.housing}`, full ? 'warn' : '');
     this.colony(player.colony, stats);
     this.quizButton.classList.toggle('quiz-ready', quizStatus(player.quiz, s.state.time).ready);
-    const offer = s.state.offers.some((o) => o.to === 'player');
+    const offer = s.state.offers.some((o) => o.to === viewerOf(s.state));
     this.peoplesButton.classList.toggle('offer-open', offer);
     this.peoplesButton.classList.toggle('on', s.ui.panel === 'peoples');
     for (const [name, b] of this.viewButtons) b.classList.toggle('on', name === s.ui.view);

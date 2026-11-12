@@ -1,3 +1,4 @@
+import { viewerOf } from '../sim/viewer';
 import type { Session } from '../app/session';
 import { findEntity } from '../sim/spawn';
 import { clear, el } from './dom';
@@ -20,7 +21,9 @@ function multiPanel(session: Session, ids: number[]): HTMLElement[] {
     const type = findEntity(session.state, id)?.unit?.type;
     if (type) counts.set(type, (counts.get(type) ?? 0) + 1);
   }
-  const list = [...counts].map(([t, n]) => `${n}× ${nameOfUnit(session.state, 'player', t)}`);
+  const list = [...counts].map(
+    ([t, n]) => `${n}× ${nameOfUnit(session.state, viewerOf(session.state), t)}`,
+  );
   return [
     header(`${ids.length} Einheiten`, 'Auswahl'),
     text(list.join(', ')),

@@ -1,3 +1,4 @@
+import { viewerOf } from '../../sim/viewer';
 import {
   AmbientLight,
   Color,
@@ -104,7 +105,7 @@ export class SpaceView implements View {
     );
     for (const b of this.bodies.values()) {
       const focus = b.body.id === this.focusId;
-      const known = knowsBase(state, 'player', b.body.id);
+      const known = knowsBase(state, viewerOf(state), b.body.id);
       b.alive = !gone.has(b.body.id);
       b.update(state.time, known, focus && this.z < 2.15, focus ? closeDetail(this.z) : 0);
     }

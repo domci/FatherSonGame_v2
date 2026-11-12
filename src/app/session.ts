@@ -1,3 +1,5 @@
+import type { SideId } from '../sim/entity';
+import { viewerHome, viewerOf } from '../sim/viewer';
 import type { BuildingId } from '../content/buildings';
 import { applyCommand, type Command } from '../sim/commands';
 import type { GameState } from '../sim/state';
@@ -41,9 +43,14 @@ export class Session {
     this.ui = {
       selectedIds: new Set(),
       view: 'surface',
-      faction: state.players.player?.faction ?? 'human',
-      zone: state.system.homeBodyId,
+      faction: state.players[viewerOf(state)]?.faction ?? 'human',
+      zone: viewerHome(state),
     };
+  }
+
+  /** The side this device plays (see sim/viewer.ts). */
+  get me(): SideId {
+    return viewerOf(this.state);
   }
 
   command(cmd: Command): boolean {

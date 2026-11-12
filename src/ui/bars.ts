@@ -1,3 +1,4 @@
+import { viewerHome, viewerOf } from '../sim/viewer';
 import { BUILDINGS } from '../content/buildings';
 import { UNITS } from '../content/units';
 import { RELATION_COLORS } from '../content/sides';
@@ -33,8 +34,8 @@ export function barFor(e: Entity, now: number, selected: boolean): BarInfo | nul
 
 /** Frame of a bar: the relation color for things of other sides, else the normal frame. */
 function frameColor(state: GameState, e: Entity): string {
-  if (!e.owner || e.owner === 'player') return '';
-  return RELATION_COLORS[relationOf(state, 'player', e.owner)];
+  if (!e.owner || e.owner === viewerOf(state)) return '';
+  return RELATION_COLORS[relationOf(state, viewerOf(state), e.owner)];
 }
 
 function liftOf(e: Entity): number {
@@ -52,7 +53,7 @@ export class Bars {
   update(state: GameState, selectedIds: ReadonlySet<number>): void {
     let used = 0;
     for (const e of state.world.with('position')) {
-      if (e.zone !== state.system.homeBodyId) continue;
+      if (e.zone !== viewerHome(state)) continue;
       const info = barFor(e, state.time, selectedIds.has(e.id));
       const p = info && this.project(e.position.x, e.position.y, liftOf(e));
       if (!info || !p) continue;

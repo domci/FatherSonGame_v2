@@ -1,4 +1,4 @@
-import { addEvent } from '../game';
+import { tell, tellHumans } from '../humans';
 import type { Entity, PlayerId } from '../entity';
 import { weaponHits } from '../layers';
 import { nameOfUnit } from '../names';
@@ -58,9 +58,11 @@ function report(state: GameState, dead: Entity, place: string): void {
   if (!dead.unit || !dead.owner) return;
   const name = nameOfUnit(state, dead.owner, dead.unit.type);
   const where = placeName(state, place);
-  if (dead.owner === 'player') addEvent(state, `${name} bei ${where} zerstört!`, 'bad');
-  else if (hostile(state, 'player', dead.owner))
-    addEvent(state, `Feind-${name} bei ${where} zerstört.`, 'good');
+  const owner = dead.owner;
+  tell(state, owner, `${name} bei ${where} zerstört!`, 'bad');
+  tellHumans(state, (h) =>
+    hostile(state, h, owner) ? [`Feind-${name} bei ${where} zerstört.`, 'good'] : undefined,
+  );
 }
 
 function shoot(state: GameState, shooter: Entity, target: Entity, place: string): void {

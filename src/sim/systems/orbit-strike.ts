@@ -1,7 +1,8 @@
 import { BUILDINGS, buildingLevel } from '../../content/buildings';
 import { UNITS } from '../../content/units';
 import { addEvent, nextRandom } from '../game';
-import type { Entity } from '../entity';
+import type { Entity, SideId } from '../entity';
+import { isHuman } from '../humans';
 import { hostile } from '../relations';
 import { hasResearch } from '../research-helpers';
 import { blockers, warships } from '../space/places';
@@ -13,13 +14,14 @@ export const STRIKE_MS = 4000;
 /** The player hears the alarm at most this often. */
 const ALARM_MS = 60_000;
 
-const lastAlarm = new WeakMap<GameState, number>();
+const lastAlarm = new WeakMap<GameState, Map<SideId, number>>();
 
-function alarm(state: GameState): void {
-  const last = lastAlarm.get(state) ?? -Infinity;
-  if (state.time - last < ALARM_MS) return;
-  lastAlarm.set(state, state.time);
-  addEvent(state, 'Angriff aus dem Orbit! Schilde und Orbitalkanonen helfen.', 'bad');
+function alarm(state: GameState, victim: SideId): void {
+  const times = lastAlarm.get(state) ?? new Map<SideId, number>();
+  lastAlarm.set(state, times);
+  if (state.time - (times.get(victim) ?? -Infinity) < ALARM_MS) return;
+  times.set(victim, state.time);
+  addEvent(state, 'Angriff aus dem Orbit! Schilde und Orbitalkanonen helfen.', 'bad', victim);
 }
 
 /** Cannons that shoot into orbit first, then any building. */
@@ -46,7 +48,7 @@ function strike(state: GameState, ship: Entity, place: string, power: number): v
   state.marks.push({ time: state.time, zone: place, x, y, kind: 'strike', owner: ship.owner });
   const victim = target.owner;
   dealDamage(state, target, Math.max(1, power - armor(target)), ship);
-  if (victim === 'player') alarm(state);
+  if (isHuman(state, victim)) alarm(state, victim);
 }
 
 /**

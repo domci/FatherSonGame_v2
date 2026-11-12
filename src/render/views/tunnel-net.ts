@@ -94,7 +94,7 @@ export class TunnelNet {
   private updateShown(sight: Sight | undefined): void {
     for (const child of this.tubes.children) {
       const tile = child.userData.tile as number;
-      child.visible = child.userData.owner === 'player' || !sight || sight.explored[tile] === 1;
+      child.visible = child.userData.owner === sight?.me || !sight || sight.explored[tile] === 1;
     }
   }
 

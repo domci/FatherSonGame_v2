@@ -2,12 +2,14 @@ import { FACTIONS } from '../content/factions';
 import type { Mark } from './state';
 import type { PlayerId, SideId } from './entity';
 import { addEvent } from './game';
+import { isOnline, tell, tellHumans } from './humans';
 import { aliveSides, allied, hostileSides, isSide } from './relations';
 import type { GameState } from './state';
 
-/** You (and your allies) win when only you and your allies are left. */
+/** You (and your allies) win when only you and your allies are left. Online worlds never end. */
 export function checkVictory(state: GameState): void {
-  if (state.winner || !state.players.player || state.players.player.defeated) return;
+  if (isOnline(state) || state.winner) return;
+  if (!state.players.player || state.players.player.defeated) return;
   const others = aliveSides(state).filter((id) => id !== 'player');
   if (others.length > 0 && others.every((id) => allied(state, 'player', id)))
     state.winner = 'player';
@@ -21,13 +23,17 @@ export function defeat(state: GameState, side: SideId, by?: PlayerId): void {
   p.defeated = true;
   state.offers = state.offers.filter((o) => o.from !== side && o.to !== side);
   const core = FACTIONS[p.faction].core;
-  if (side === 'player') {
+  if (side === 'player' && !isOnline(state)) {
     addEvent(state, `${core} zerstört!`, 'bad');
     state.winner ??= isSide(by) ? by : (hostileSides(state, 'player')[0] ?? 'ai');
     return;
   }
-  const friend = allied(state, 'player', side);
-  addEvent(state, `${core} zerstört: ${p.name} ist besiegt!`, friend ? 'bad' : 'good');
+  tell(state, side, `${core} zerstört! Ihr seid besiegt. Ihr könnt neu anfangen.`, 'bad');
+  tellHumans(state, (h) =>
+    h === side
+      ? undefined
+      : [`${core} zerstört: ${p.name} ist besiegt!`, allied(state, h, side) ? 'bad' : 'good'],
+  );
   checkVictory(state);
 }
 
@@ -35,11 +41,11 @@ function markKind(building: boolean): Mark['kind'] {
   return building ? 'building' : 'unit';
 }
 
-/** Removes everything of defeated computer sides (with explosions). */
+/** Removes everything of beaten sides (with explosions). Not yours in a game on this device (end screen). */
 export function defeatSystem(state: GameState): void {
   const gone = new Set<PlayerId>();
   for (const p of Object.values(state.players))
-    if (p?.defeated && p.id !== 'player') gone.add(p.id);
+    if (p?.defeated && (p.id !== 'player' || isOnline(state))) gone.add(p.id);
   if (gone.size === 0) return;
   const list = state.world.entities.filter((e) => !!e.owner && gone.has(e.owner));
   for (const e of list) {

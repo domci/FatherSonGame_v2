@@ -1,6 +1,7 @@
 import { BUILDINGS, buildingLevel } from '../../content/buildings';
 import { UNITS } from '../../content/units';
-import { addEvent, nextRandom } from '../game';
+import { nextRandom } from '../game';
+import { tell } from '../humans';
 import { nameOfBuilding, nameOfUnit } from '../names';
 import { equipBuilding, findEntity, spawnUnit, spawnWarship } from '../spawn';
 import type { Entity } from '../entity';
@@ -17,12 +18,9 @@ function finishConstruction(state: GameState, site: Entity): void {
   const drone = findEntity(state, site.construction.droneId);
   if (drone?.busyWith) state.world.removeComponent(drone, 'busyWith');
   state.world.removeComponent(site, 'construction');
-  if (site.owner === 'player') {
-    addEvent(
-      state,
-      `${nameOfBuilding(state, site.owner, def.id)} fertig${level > 1 ? ` (Stufe ${level})` : ''}.`,
-      'good',
-    );
+  if (site.owner) {
+    const name = nameOfBuilding(state, site.owner, def.id);
+    tell(state, site.owner, `${name} fertig${level > 1 ? ` (Stufe ${level})` : ''}.`, 'good');
   }
 }
 
@@ -37,8 +35,12 @@ function spawnTrained(state: GameState, b: Entity, unit: Entity['unit'] & object
   if (!b.owner || !b.zone || !b.position || !b.building) return;
   if (UNITS[unit.type].space) {
     spawnWarship(state, b.owner, b.zone, unit.type);
-    if (b.owner === 'player')
-      addEvent(state, `${nameOfUnit(state, b.owner, unit.type)} bereit. Wartet im Orbit.`, 'good');
+    tell(
+      state,
+      b.owner,
+      `${nameOfUnit(state, b.owner, unit.type)} bereit. Wartet im Orbit.`,
+      'good',
+    );
     return;
   }
   const size = BUILDINGS[b.building.type].size;
@@ -59,8 +61,7 @@ function spawnTrained(state: GameState, b: Entity, unit: Entity['unit'] & object
     });
     e.position = { ...b.position };
   }
-  if (b.owner === 'player')
-    addEvent(state, `${nameOfUnit(state, b.owner, unit.type)} bereit.`, 'good');
+  tell(state, b.owner, `${nameOfUnit(state, b.owner, unit.type)} bereit.`, 'good');
 }
 
 /** Finishes units in training queues. Works for long offline times too. */

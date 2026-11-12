@@ -1,3 +1,4 @@
+import { viewerHome, viewerOf } from '../sim/viewer';
 import { BUILDINGS, buildingLevel, type BuildingDef, type BuildingId } from '../content/buildings';
 import { BUILDING_LIST } from '../content/building-list';
 import { buildingDescription, buildingName, type Faction } from '../content/factions';
@@ -77,8 +78,8 @@ export class BuildMenu {
 
   update(): void {
     const s = this.session;
-    const player = s.state.players.player;
-    this.root.hidden = s.ui.view !== 'surface' || s.ui.zone !== s.state.system.homeBodyId;
+    const player = s.state.players[viewerOf(s.state)];
+    this.root.hidden = s.ui.view !== 'surface' || s.ui.zone !== viewerHome(s.state);
     this.cancel.hidden = !s.ui.placing;
     const have = JSON.stringify(player?.resources);
     const fresh = have !== this.lastHave;
@@ -86,7 +87,7 @@ export class BuildMenu {
     for (const [id, card] of this.cards) {
       const def = BUILDINGS[id];
       const cost = buildingLevel(def, 1).cost;
-      const locked = !!def.requires && !hasResearch(s.state, 'player', def.requires);
+      const locked = !!def.requires && !hasResearch(s.state, viewerOf(s.state), def.requires);
       card.root.classList.toggle('locked', locked);
       card.root.disabled = locked;
       if (locked)

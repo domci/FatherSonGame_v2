@@ -1,5 +1,5 @@
 import { RESEARCH } from '../../content/research';
-import { addEvent } from '../game';
+import { tell } from '../humans';
 import type { GameState } from '../state';
 
 export function researchSystem(state: GameState): void {
@@ -8,7 +8,6 @@ export function researchSystem(state: GameState): void {
     if (!player || !current || current.finishAt > state.time) continue;
     player.research.done.push(current.id);
     delete player.research.current;
-    if (player.id === 'player')
-      addEvent(state, `Forschung fertig: ${RESEARCH[current.id].name}.`, 'good');
+    tell(state, player.id, `Forschung fertig: ${RESEARCH[current.id].name}.`, 'good');
   }
 }

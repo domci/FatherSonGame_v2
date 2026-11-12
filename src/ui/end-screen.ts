@@ -1,3 +1,4 @@
+import { viewerOf } from '../sim/viewer';
 import { FACTIONS } from '../content/factions';
 import { alliesOf, sidesOf } from '../sim/relations';
 import type { GameState } from '../sim/state';
@@ -11,11 +12,11 @@ export interface EndActions {
 
 /** What happened: who won, and with whom. */
 export function endText(state: GameState): string {
-  const me = state.players.player;
+  const me = state.players[viewerOf(state)];
   const winner = state.winner && state.players[state.winner];
   if (!me || !winner) return '';
-  const others = sidesOf(state).filter((id) => id !== 'player');
-  if (state.winner !== 'player') {
+  const others = sidesOf(state).filter((id) => id !== viewerOf(state));
+  if (state.winner !== viewerOf(state)) {
     const who =
       others.length === 1 ? `Die ${FACTIONS[winner.faction].name} haben` : `${winner.name} hat`;
     return `Euer ${FACTIONS[me.faction].core} ist zerstört. ${who} gewonnen. Versucht es noch einmal!`;
@@ -23,7 +24,7 @@ export function endText(state: GameState): string {
   const enemy = state.players[others[0] ?? 'ai'];
   if (others.length === 1 && enemy)
     return `Ihr habt den ${FACTIONS[enemy.faction].core} der ${FACTIONS[enemy.faction].name} zerstört. Der Planet gehört euch!`;
-  const friends = alliesOf(state, 'player').map((id) => state.players[id]?.name ?? id);
+  const friends = alliesOf(state, viewerOf(state)).map((id) => state.players[id]?.name ?? id);
   const together = friends.length ? ` Zusammen mit ${friends.join(' und ')}.` : '';
   return `Alle Feinde sind besiegt. Das Sonnensystem gehört euch!${together}`;
 }

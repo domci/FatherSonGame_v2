@@ -1,3 +1,4 @@
+import { viewerHome, viewerOf } from '../sim/viewer';
 import { Vector2 } from 'three/webgpu';
 import type { GameState } from '../sim/state';
 import { canViewSurface } from '../sim/visibility';
@@ -45,11 +46,11 @@ export class ViewManager {
     private canvas: HTMLCanvasElement,
   ) {
     this.state = state;
-    this.focusId = state.system.homeBodyId;
+    this.focusId = viewerHome(state);
     const surface = this.surfaceFor(this.focusId);
     if (!surface) throw new Error('home surface missing');
     this.current = surface;
-    const faction = state.players.player?.faction ?? 'human';
+    const faction = state.players[viewerOf(state)]?.faction ?? 'human';
     this.space = new SpaceView(state.system, faction, canvas);
     this.setActive('surface');
     canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: true });
@@ -70,7 +71,7 @@ export class ViewManager {
   /** Zooms smoothly to a level (buttons in the HUD). */
   go(name: ViewName): void {
     if (name === 'surface' && !this.canLand(this.focusId)) {
-      this.flyTo(this.state.system.homeBodyId);
+      this.flyTo(viewerHome(this.state));
       return;
     }
     this.goal = Z_REST[name];
@@ -117,7 +118,7 @@ export class ViewManager {
   }
 
   private canLand(zone: string): boolean {
-    return canViewSurface(this.state, 'player', zone);
+    return canViewSurface(this.state, viewerOf(this.state), zone);
   }
 
   private minZoom(): number {

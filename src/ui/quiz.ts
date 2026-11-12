@@ -1,3 +1,4 @@
+import { viewerOf } from '../sim/viewer';
 import type { Session } from '../app/session';
 import { QUIZ_BY_ID, QUIZ_RULES, QUIZ_TOPICS, type QuizQuestion } from '../content/quiz';
 import { isRight, quizStatus } from '../sim/quiz';
@@ -7,7 +8,7 @@ import { icon } from './icons';
 const LETTERS = ['A', 'B', 'C', 'D'];
 
 function leftText(session: Session): string {
-  const quiz = session.state.players.player?.quiz;
+  const quiz = session.state.players[viewerOf(session.state)]?.quiz;
   if (!quiz) return '';
   const left = quizStatus(quiz, session.state.time).left;
   return `Richtig = ${QUIZ_RULES.reward} Wissenskristall. Noch ${left} Fragen in dieser Stunde.`;
@@ -44,7 +45,7 @@ function showResult(
 }
 
 function questionBox(session: Session, close: () => void): HTMLElement | null {
-  const quiz = session.state.players.player?.quiz;
+  const quiz = session.state.players[viewerOf(session.state)]?.quiz;
   const current = quiz?.current;
   const q = current && QUIZ_BY_ID.get(current.id);
   if (!quiz || !current || !q) return null;
@@ -56,7 +57,7 @@ function questionBox(session: Session, close: () => void): HTMLElement | null {
         class: 'm-item quiz-answer',
         onclick: () => {
           const right = isRight(quiz, i);
-          session.command({ type: 'quizAnswer', player: 'player', choice: i });
+          session.command({ type: 'quizAnswer', player: session.me, choice: i });
           showResult(box, buttons, { q, order: current.order, choice: i, right, next: close });
         },
       },
@@ -81,7 +82,7 @@ function questionBox(session: Session, close: () => void): HTMLElement | null {
 /** Opens the quiz window with a question. Shows a message instead when there is a pause. */
 export function openQuiz(root: HTMLElement, session: Session): void {
   if (root.querySelector('.quiz-screen')) return;
-  if (!session.command({ type: 'quizAsk', player: 'player' })) return;
+  if (!session.command({ type: 'quizAsk', player: session.me })) return;
   const overlay = el('div', { class: 'screen modal quiz-screen' });
   const box = questionBox(session, () => overlay.remove());
   if (!box) return;

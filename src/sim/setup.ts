@@ -61,9 +61,10 @@ export function opponentCount(state: GameState): number {
   return Math.max(1, Math.min(AI_IDS.length, state.settings.opponents || 1));
 }
 
-/** Planets with a home: the player and each computer side (at least 2, as in old saves). */
+/** Planets with a home: the player, each computer side and (online) each other person. At least 2. */
 export function homeCount(settings: GameSettings): number {
-  return settings.opponent ? Math.max(2, settings.opponents + 1) : 2;
+  const computers = settings.opponent ? settings.opponents : 0;
+  return Math.max(2, computers + 1 + (settings.humans ?? 0));
 }
 
 /** Time between the first attacks of two computer sides (they do not all come at once). */

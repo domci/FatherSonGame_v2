@@ -1,3 +1,4 @@
+import { viewerHome, viewerOf } from '../sim/viewer';
 import { RESOURCE_INFO } from '../content/resources';
 import { UNITS } from '../content/units';
 import type { Session } from '../app/session';
@@ -37,7 +38,7 @@ function shipRows(session: Session, e: Entity): HTMLElement[] {
   if (ship.repeat)
     rows.push(
       action('log-out', 'Nach dieser Runde zurück', {
-        onclick: () => session.command({ type: 'recallShip', player: 'player', shipId: e.id }),
+        onclick: () => session.command({ type: 'recallShip', player: session.me, shipId: e.id }),
       }),
     );
   return rows;
@@ -68,7 +69,7 @@ export function unitPanel(session: Session, e: Entity): HTMLElement[] {
   if (def.armor) out.push(stat('shield', 'Panzerung', String(def.armor), '#9fb4cc'));
   if (e.busyWith) out.push(stat('hammer', 'Status', 'Baut gerade', '#ffd25a'));
   const hint = HINTS[def.id];
-  if (hint && e.owner === 'player') out.push(text(hint, 'p-text muted'));
+  if (hint && e.owner === session.me) out.push(text(hint, 'p-text muted'));
   return [...out, ...shipRows(session, e)];
 }
 
@@ -107,7 +108,7 @@ export function bodyPanel(session: Session, bodyId: string): HTMLElement[] {
   if (body)
     out.push(stat('sun', 'Sonnenlicht', `${Math.round(body.solarFactor * 100)} %`, '#ffd25a'));
   out.push(...lookButton(session, bodyId), ...fleetRows(session, bodyId));
-  if (bodyId === s.system.homeBodyId) return [...out, text('Euer Heimatplanet', 'p-text good')];
+  if (bodyId === viewerHome(s)) return [...out, text('Euer Heimatplanet', 'p-text good')];
   const owner = homeOwner(s, bodyId);
   if (owner) out.push(...homeRows(session, owner, bodyId));
   return [...out, ...shipButtons(session, bodyId)];
@@ -121,7 +122,7 @@ function homeRows(session: Session, owner: SideId, bodyId: string): HTMLElement[
   const rel = relationLabel(s, owner);
   const line = stat('flag', p.name, rel.name, rel.color);
   if (p.defeated) return [line, text('Dieses Volk ist besiegt.', 'p-text muted')];
-  const war = relationOf(s, 'player', owner) === 'war';
+  const war = relationOf(s, viewerOf(s), owner) === 'war';
   return [
     line,
     text(
@@ -135,7 +136,7 @@ function homeRows(session: Session, owner: SideId, bodyId: string): HTMLElement[
 /** "Look at the surface": home, a planet with own troops, or a foreign home with the radar. */
 function lookButton(session: Session, bodyId: string): HTMLElement[] {
   const s = session.state;
-  if (canViewSurface(s, 'player', bodyId))
+  if (canViewSurface(s, viewerOf(s), bodyId))
     return [action('eye', 'Oberfläche ansehen', { onclick: () => session.goZone(bodyId) })];
   if (homeOwner(s, bodyId))
     return [text('Fremde Basen seht ihr erst mit dem Fernradar (Forschung).', 'p-text muted')];
@@ -146,12 +147,12 @@ function transportButtons(session: Session, bodyId: string): HTMLElement[] {
   const ready = session.state.world
     .with('ship', 'unit')
     .entities.filter(
-      (e) => e.owner === 'player' && e.unit.type === 'transport' && e.ship.phase === 'docked',
+      (e) => e.owner === session.me && e.unit.type === 'transport' && e.ship.phase === 'docked',
     );
   return ready.map((ship) =>
     action('plane-takeoff', `Transportschiff #${ship.id} hinschicken`, {
       onclick: () =>
-        session.command({ type: 'fly', player: 'player', shipId: ship.id, targetId: bodyId }),
+        session.command({ type: 'fly', player: session.me, shipId: ship.id, targetId: bodyId }),
     }),
   );
 }
@@ -160,14 +161,19 @@ function shipButtons(session: Session, bodyId: string): HTMLElement[] {
   const docked = session.state.world
     .with('ship', 'unit')
     .entities.filter(
-      (e) => e.owner === 'player' && e.unit.type === 'miningShip' && e.ship.phase === 'docked',
+      (e) => e.owner === session.me && e.unit.type === 'miningShip' && e.ship.phase === 'docked',
     );
   if (docked.length === 0)
     return [text('Kein freies Mining-Schiff. Baut eins im Raumhafen.', 'p-text muted')];
   return docked.map((ship) =>
     action('rocket', `Mining-Schiff #${ship.id} hierher schicken`, {
       onclick: () =>
-        session.command({ type: 'sendShip', player: 'player', shipId: ship.id, targetId: bodyId }),
+        session.command({
+          type: 'sendShip',
+          player: session.me,
+          shipId: ship.id,
+          targetId: bodyId,
+        }),
     }),
   );
 }

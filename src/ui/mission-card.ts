@@ -1,3 +1,4 @@
+import { viewerOf } from '../sim/viewer';
 import type { Session } from '../app/session';
 import { BUILDINGS, type BuildingId } from '../content/buildings';
 import { MISSION, MISSION_NAME, type MissionGoal } from '../content/mission';
@@ -9,9 +10,9 @@ function goalTitle(session: Session, goal: MissionGoal): string {
   const s = session.state;
   switch (goal.kind) {
     case 'build':
-      return `Baut: ${nameOfBuilding(s, 'player', goal.building)}`;
+      return `Baut: ${nameOfBuilding(s, viewerOf(s), goal.building)}`;
     case 'people':
-      return `Habt ${goal.count} Bewohner (jetzt ${s.players.player?.colony.people ?? 0})`;
+      return `Habt ${goal.count} Bewohner (jetzt ${s.players[viewerOf(s)]?.colony.people ?? 0})`;
     case 'research':
       return 'Erforscht etwas';
     case 'quiz':
@@ -22,7 +23,9 @@ function goalTitle(session: Session, goal: MissionGoal): string {
 /** Puts the faction's building names into a hint: {b:lab} → "Labor" or "Denkkristall". */
 function hintText(session: Session, hint: string): string {
   return hint.replace(/\{b:(\w+)\}/g, (all, id: string) =>
-    id in BUILDINGS ? nameOfBuilding(session.state, 'player', id as BuildingId) : all,
+    id in BUILDINGS
+      ? nameOfBuilding(session.state, viewerOf(session.state), id as BuildingId)
+      : all,
   );
 }
 
@@ -34,7 +37,7 @@ export class MissionCard {
   constructor(private session: Session) {}
 
   update(): void {
-    const m = this.session.state.players.player?.mission;
+    const m = this.session.state.players[viewerOf(this.session.state)]?.mission;
     const step = m && !m.off ? MISSION[m.step] : undefined;
     const key = step && m ? `${m.step}:${goalTitle(this.session, step.goal)}` : 'none';
     if (key === this.key) return;
@@ -48,7 +51,7 @@ export class MissionCard {
         {
           class: 'icon-btn close',
           title: 'Mission ausblenden',
-          onclick: () => this.session.command({ type: 'missionOff', player: 'player' }),
+          onclick: () => this.session.command({ type: 'missionOff', player: this.session.me }),
         },
         icon('x'),
       ),

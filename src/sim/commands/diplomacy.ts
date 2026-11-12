@@ -9,6 +9,7 @@ import {
   type DiplomacyAction,
 } from '../diplomacy';
 import type { PlayerId, SideId } from '../entity';
+import { isHuman, tell } from '../humans';
 import { isSide, relationOf } from '../relations';
 import type { GameState, Offer } from '../state';
 import { fail, OK, type CommandResult } from './result';
@@ -25,6 +26,14 @@ export interface DiplomacyCommand {
 function remember(state: GameState, victim: SideId, by: SideId): void {
   const ai = state.ai[victim];
   if (ai && !ai.distrust?.includes(by)) ai.distrust = [...(ai.distrust ?? []), by];
+}
+
+/** Who declares war on a person loses the own beginner shield (online). */
+function dropShield(state: GameState, from: SideId, to: SideId): void {
+  const me = state.players[from];
+  if (!me || !isHuman(state, to) || (me.shieldUntil ?? 0) <= state.time) return;
+  me.shieldUntil = state.time;
+  tell(state, from, 'Euer Anfänger-Schild ist aus, weil ihr Krieg erklärt habt.', 'info');
 }
 
 /** Does a computer play this side? (The player side too, in balancing runs.) */
@@ -57,6 +66,7 @@ export function diplomacy(state: GameState, cmd: DiplomacyCommand): CommandResul
     case 'war':
       if (relationOf(state, from, cmd.side) === 'peace') remember(state, cmd.side, from);
       changeRelation(state, from, cmd.side, 'war');
+      dropShield(state, from, cmd.side);
       return OK;
     case 'endAlliance':
       remember(state, cmd.side, from);

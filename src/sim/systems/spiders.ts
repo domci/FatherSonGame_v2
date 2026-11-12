@@ -1,6 +1,7 @@
 import { MINUTE, SECOND } from '../clock';
 import { sendTo } from '../commands/units';
-import { addEvent, nextRandom } from '../game';
+import { nextRandom } from '../game';
+import { tell } from '../humans';
 import type { Entity } from '../entity';
 import { findEntity, spawn, spawnUnit } from '../spawn';
 import type { GameState } from '../state';
@@ -46,9 +47,8 @@ function think(state: GameState, spider: Entity, nest: Entity | undefined): void
   if (!nest?.position) return;
   const intruder = nearest(playerThings(state, spider.zone), nest.position, TERRITORY);
   if (intruder) {
-    if (spider.spider.mode !== 'attack' && spider.owner === 'wild') {
-      addEvent(state, 'Spinnenwesen greifen an!', 'bad');
-    }
+    if (spider.spider.mode !== 'attack' && spider.owner === 'wild')
+      tell(state, intruder.owner, 'Spinnenwesen greifen an!', 'bad');
     spider.spider.mode = 'attack';
     spider.attacker.targetId = intruder.id;
     return;

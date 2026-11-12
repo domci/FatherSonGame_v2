@@ -1,3 +1,4 @@
+import { viewerOf } from '../../sim/viewer';
 import type { PlayerId } from '../../sim/entity';
 import type { GameState } from '../../sim/state';
 import { radarSees, visibleTiles } from '../../sim/visibility';
@@ -28,16 +29,17 @@ export class SightTracker {
     this.wait -= dtMs;
     if (this.sight && this.wait > 0) return this.sight;
     this.wait = REFRESH_MS;
-    const visible = visibleTiles(state, 'player', this.zone);
-    const text = state.players.player?.explored?.[this.zone] ?? '';
+    const me = viewerOf(state);
+    const visible = visibleTiles(state, me, this.zone);
+    const text = state.players[me]?.explored?.[this.zone] ?? '';
     if (text !== this.exploredText || this.explored.length !== visible.length) {
       this.exploredText = text;
       this.explored = decode(text, visible.length);
     }
-    const radar = radarSees(state, 'player', this.zone);
+    const radar = radarSees(state, me, this.zone);
     const explored = this.explored.map((v, i) => (radar ? 1 : v | (visible[i] ?? 0)));
     this.explored = explored;
-    this.sight = { visible, explored, powered: poweredOwners(state) };
+    this.sight = { me, visible, explored, powered: poweredOwners(state) };
     return this.sight;
   }
 }

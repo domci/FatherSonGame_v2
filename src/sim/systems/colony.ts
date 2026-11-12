@@ -13,14 +13,15 @@ import {
 } from '../../content/colony';
 import { MINUTE } from '../clock';
 import { moodTarget } from '../colony';
-import { addEvent } from '../game';
+import { isHuman, tell } from '../humans';
+import type { SideId } from '../entity';
 import { nameOfBuilding } from '../names';
 import { playerStats, type PlayerStats } from '../stats';
 import type { ColonyState, GameState, PlayerState } from '../state';
 import { amount } from '../wallet';
 
-function missingText(state: GameState, id: NeedId): string {
-  const name = (b: 'waterOxygenPlant' | 'greenhouse'): string => nameOfBuilding(state, 'player', b);
+function missingText(state: GameState, owner: SideId, id: NeedId): string {
+  const name = (b: 'waterOxygenPlant' | 'greenhouse'): string => nameOfBuilding(state, owner, b);
   if (id === 'food')
     return `Keine Nahrung mehr! Eure Bewohner werden krank. Hilfe: ${name('greenhouse')} bauen oder Spinnen jagen.`;
   const what = id === 'oxygen' ? 'Kein Sauerstoff' : 'Kein Wasser';
@@ -69,18 +70,20 @@ function leaving(c: ColonyState, stats: PlayerStats, minutes: number): boolean {
 }
 
 /** Messages for the human player: a need ran out, people came or left. */
-function report(state: GameState, c: ColonyState, grew: boolean, left: boolean): void {
+function report(state: GameState, owner: SideId, grew: boolean, left: boolean): void {
+  const c = state.players[owner]?.colony;
+  if (!c) return;
   for (const id of NEED_IDS) {
     const warned = c.warned.includes(id);
     if (c.met[id] < 0.5 && !warned) {
       c.warned.push(id);
-      addEvent(state, missingText(state, id), 'bad');
+      tell(state, owner, missingText(state, owner, id), 'bad');
     } else if (c.met[id] >= 1 && warned) c.warned = c.warned.filter((n) => n !== id);
   }
   if (grew && c.people % 5 === 0)
-    addEvent(state, `Die Kolonie wächst: ${c.people} Bewohner.`, 'good');
+    tell(state, owner, `Die Kolonie wächst: ${c.people} Bewohner.`, 'good');
   if (left)
-    addEvent(state, 'Ein Bewohner hat eure Kolonie verlassen. Sorgt für bessere Laune!', 'bad');
+    tell(state, owner, 'Ein Bewohner hat eure Kolonie verlassen. Sorgt für bessere Laune!', 'bad');
 }
 
 /** The people in the domes: needs, sickness, mood, new people and people who leave. */
@@ -95,6 +98,6 @@ export function colonySystem(state: GameState, dtMs: number): void {
     c.mood += (moodTarget(c, stats) - c.mood) * Math.min(1, MOOD_SPEED * minutes);
     const grew = growth(c, stats, shortage, minutes);
     const left = leaving(c, stats, minutes);
-    if (player.id === 'player') report(state, c, grew, left);
+    if (isHuman(state, player.id)) report(state, player.id, grew, left);
   }
 }

@@ -1,7 +1,7 @@
 import { AI_TUNING, type AiTuning } from '../../content/ai';
 import { UNITS } from '../../content/units';
 import { applyCommand } from '../commands';
-import { addEvent } from '../game';
+import { tell } from '../humans';
 import type { Entity, PlayerId } from '../entity';
 import type { AiState, GameState, PlayerState } from '../state';
 import { housingOf, isFighter, unitsOf } from './queries';
@@ -95,6 +95,5 @@ export function launchAttack(
   if (sendShips(state, player.id, riders, enemy.homeBodyId) === 0) return;
   ai.waves += 1;
   ai.nextAttackAt = state.time + t.attackEveryMs;
-  if (enemy.id === 'player')
-    addEvent(state, 'Achtung: Ein feindliches Schiff fliegt zu euch!', 'bad');
+  tell(state, enemy.id, 'Achtung: Ein feindliches Schiff fliegt zu euch!', 'bad');
 }

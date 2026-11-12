@@ -10,6 +10,16 @@ import { speedUp, type SpeedUpCommand } from './speed-up';
 import { missionOff, type MissionOffCommand } from './mission';
 import { diplomacy, type DiplomacyCommand } from './diplomacy';
 import {
+  join,
+  leave,
+  presence,
+  restart,
+  type JoinCommand,
+  type LeaveCommand,
+  type PresenceCommand,
+  type RestartCommand,
+} from './online';
+import {
   board,
   fly,
   unload,
@@ -45,7 +55,11 @@ export type Command =
   | QuizAnswerCommand
   | SpeedUpCommand
   | MissionOffCommand
-  | DiplomacyCommand;
+  | DiplomacyCommand
+  | JoinCommand
+  | PresenceCommand
+  | LeaveCommand
+  | RestartCommand;
 
 export type { CommandResult };
 
@@ -72,9 +86,14 @@ const HANDLERS: Handlers = {
   speedUp,
   missionOff,
   diplomacy,
+  join,
+  presence,
+  leave,
+  restart,
 };
 
 export function applyCommand(state: GameState, cmd: Command): CommandResult {
+  if (cmd.type === 'join') return join(state, cmd);
   if (!state.players[cmd.player]) return fail('Unbekannter Spieler.');
   if (state.winner) return fail('Das Spiel ist vorbei.');
   const handler = HANDLERS[cmd.type] as (s: GameState, c: Command) => CommandResult;

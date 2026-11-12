@@ -1,3 +1,4 @@
+import { viewerHome, viewerOf } from '../sim/viewer';
 import { UNITS } from '../content/units';
 import type { Session } from '../app/session';
 import type { Entity } from '../sim/entity';
@@ -21,12 +22,10 @@ function used(session: Session, ship: Entity): number {
 function flyButtons(session: Session, ship: Entity, loaded: boolean): HTMLElement[] {
   const s = session.state;
   const fly = (targetId: string): void =>
-    void session.command({ type: 'fly', player: 'player', shipId: ship.id, targetId });
-  if (ship.zone !== s.system.homeBodyId)
-    return [
-      action('plane-takeoff', 'Nach Hause fliegen', { onclick: () => fly(s.system.homeBodyId) }),
-    ];
-  return hostileSides(s, 'player').map((id) => {
+    void session.command({ type: 'fly', player: session.me, shipId: ship.id, targetId });
+  if (ship.zone !== viewerHome(s))
+    return [action('plane-takeoff', 'Nach Hause fliegen', { onclick: () => fly(viewerHome(s)) })];
+  return hostileSides(s, viewerOf(s)).map((id) => {
     const home = s.players[id]?.homeBodyId ?? '';
     const who = s.players[id]?.name ?? 'Feind';
     return action('plane-takeoff', `Angriff: zu ${planetName(session, home)} fliegen`, {
@@ -39,7 +38,7 @@ function flyButtons(session: Session, ship: Entity, loaded: boolean): HTMLElemen
 
 /** Passengers, unload and fly buttons of a transport ship. */
 export function transportRows(session: Session, ship: Entity): HTMLElement[] {
-  if (!ship.ship || ship.owner !== 'player') return [];
+  if (!ship.ship || ship.owner !== session.me) return [];
   const load = used(session, ship);
   const rows = [stat('users', 'An Bord', `${load} / ${UNITS.transport.carries ?? 0}`, '#c9d4e3')];
   const phase = ship.ship.phase;
@@ -50,7 +49,8 @@ export function transportRows(session: Session, ship: Entity): HTMLElement[] {
   if (load > 0)
     rows.push(
       action('plane-landing', 'Alle aussteigen', {
-        onclick: () => void session.command({ type: 'unload', player: 'player', shipId: ship.id }),
+        onclick: () =>
+          void session.command({ type: 'unload', player: session.me, shipId: ship.id }),
       }),
     );
   rows.push(...flyButtons(session, ship, load > 0));
@@ -65,7 +65,7 @@ export function boardButtons(session: Session, unitIds: number[]): HTMLElement[]
     .with('ship', 'unit')
     .entities.filter(
       (e) =>
-        e.owner === 'player' &&
+        e.owner === session.me &&
         e.unit.type === 'transport' &&
         e.zone === session.ui.zone &&
         (e.ship.phase === 'docked' || e.ship.phase === 'landed'),
@@ -73,7 +73,7 @@ export function boardButtons(session: Session, unitIds: number[]): HTMLElement[]
   return ships.map((ship) =>
     action('log-in', `In Transportschiff #${ship.id} einsteigen`, {
       onclick: () =>
-        void session.command({ type: 'board', player: 'player', shipId: ship.id, unitIds }),
+        void session.command({ type: 'board', player: session.me, shipId: ship.id, unitIds }),
     }),
   );
 }

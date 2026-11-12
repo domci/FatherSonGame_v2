@@ -1,5 +1,6 @@
 import { BUILDINGS } from '../content/buildings';
-import type { Entity, PlayerId } from './entity';
+import type { Entity, PlayerId, SideId } from './entity';
+import { humanSides } from './humans';
 import { allied, sidesOf } from './relations';
 import { hasResearch } from './research-helpers';
 import type { GameState } from './state';
@@ -78,14 +79,19 @@ export function canSee(visible: Uint8Array, size: number, e: Entity): boolean {
   return visible[ty * size + tx] === 1;
 }
 
-/** Updates the explored map of the human player on all surfaces where they or allies have things. */
-export function visibilitySystem(state: GameState): void {
-  if (state.time % 500 >= 100) return;
+/** Updates the explored map of one person on all surfaces where they or allies have things. */
+function exploreFor(state: GameState, side: SideId): void {
   const zones = new Set<string>();
-  const friends = friendsOf(state, 'player');
+  const friends = friendsOf(state, side);
   for (const e of state.world.with('position'))
     if (e.owner && friends.has(e.owner) && e.zone && state.surfaces[e.zone]) zones.add(e.zone);
-  for (const zone of zones) explore(state, 'player', zone, visibleTiles(state, 'player', zone));
+  for (const zone of zones) explore(state, side, zone, visibleTiles(state, side, zone));
+}
+
+/** Updates the explored maps of all people (computers see everything). */
+export function visibilitySystem(state: GameState): void {
+  if (state.time % 500 >= 100) return;
+  for (const side of humanSides(state)) if (!state.players[side]?.defeated) exploreFor(state, side);
 }
 
 /** Is this the home planet of another side? */

@@ -1,3 +1,4 @@
+import { viewerOf } from '../../sim/viewer';
 import { CylinderGeometry, Mesh, Vector3 } from 'three/webgpu';
 import { BUILDINGS } from '../../content/buildings';
 import type { SurfaceMap } from '../../sim/generation/surface';
@@ -24,7 +25,7 @@ export class TunnelPreview {
     const size = BUILDINGS[ghost.type].size;
     const box = { x: ghost.tileX, y: ghost.tileY, size };
     let best: { gap: number; x: number; y: number } | undefined;
-    for (const b of networkBuildings(state, 'player', this.map.bodyId)) {
+    for (const b of networkBuildings(state, viewerOf(state), this.map.bodyId)) {
       const other = boxOf(b);
       if (!other || !b.position) continue;
       const gap = gapBetween(box, other);

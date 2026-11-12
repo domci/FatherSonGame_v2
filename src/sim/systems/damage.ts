@@ -1,6 +1,6 @@
 import { BUILDINGS, buildingLevel } from '../../content/buildings';
 import { EGG_FOOD, SPIDER_FOOD, UNITS } from '../../content/units';
-import { addEvent } from '../game';
+import { tell, tellHumans } from '../humans';
 import type { Entity, PlayerId } from '../entity';
 import { defeat } from '../defeat';
 import { nameOfBuilding } from '../names';
@@ -49,8 +49,7 @@ function reward(state: GameState, dead: Entity, killer: Entity | undefined): voi
   const player = killer?.owner ? state.players[killer.owner] : undefined;
   if (!food || !player) return;
   addResources(player, { food }, playerStats(state, player.id).storage);
-  if (player.id === 'player')
-    addEvent(state, `+${food} Nahrung (${dead.egg ? 'Ei' : 'Spinne'}).`, 'good');
+  tell(state, player.id, `+${food} Nahrung (${dead.egg ? 'Ei' : 'Spinne'}).`, 'good');
 }
 
 function markKind(dead: Entity): Mark['kind'] {
@@ -76,10 +75,12 @@ function lostBuilding(state: GameState, dead: Entity, owner: PlayerId, killer?: 
   if (!dead.building || !isSide(owner)) return;
   const type = dead.building.type;
   if (type === 'commandDome') return defeat(state, owner, killer?.owner);
-  if (owner === 'player')
-    addEvent(state, `${nameOfBuilding(state, owner, type)} wurde zerstört!`, 'bad');
-  else if (type !== 'wall' && type !== 'forceField' && hostile(state, 'player', owner))
-    addEvent(state, `Feind: ${nameOfBuilding(state, owner, type)} zerstört.`, 'good');
+  const name = nameOfBuilding(state, owner, type);
+  tell(state, owner, `${name} wurde zerstört!`, 'bad');
+  if (type === 'wall' || type === 'forceField') return;
+  tellHumans(state, (h) =>
+    hostile(state, h, owner) ? [`Feind: ${name} zerstört.`, 'good'] : undefined,
+  );
 }
 
 /** Removes a dead thing, gives rewards and checks for the end of the game. */

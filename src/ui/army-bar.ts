@@ -1,3 +1,4 @@
+import { viewerHome, viewerOf } from '../sim/viewer';
 import type { Session } from '../app/session';
 import { isFighter } from '../sim/ai/queries';
 import { findBody } from '../sim/generation/solar-system';
@@ -8,15 +9,20 @@ import { icon, type IconName } from './icons';
 export function armyOf(session: Session): number[] {
   return session.state.world
     .with('unit', 'position')
-    .entities.filter((u) => u.owner === 'player' && u.zone === session.ui.zone && isFighter(u))
+    .entities.filter((u) => u.owner === session.me && u.zone === session.ui.zone && isFighter(u))
     .map((u) => u.id);
 }
 
 /** Planets other than home where the player has troops right now. */
 function frontZone(session: Session): string | undefined {
-  const home = session.state.system.homeBodyId;
+  const home = viewerHome(session.state);
   for (const e of session.state.world.with('unit', 'position'))
-    if (e.owner === 'player' && e.zone && e.zone !== home && session.state.surfaces[e.zone])
+    if (
+      e.owner === viewerOf(session.state) &&
+      e.zone &&
+      e.zone !== home &&
+      session.state.surfaces[e.zone]
+    )
       return e.zone;
   return undefined;
 }
@@ -59,7 +65,7 @@ export class ArmyBar {
     const s = this.session;
     this.root.hidden = s.ui.view !== 'surface';
     this.box.classList.toggle('on', !!s.ui.boxMode);
-    const home = s.state.system.homeBodyId;
+    const home = viewerHome(s.state);
     const away = s.ui.zone !== home;
     this.front.hidden = !away && !frontZone(s);
     this.frontLabel.textContent = away ? 'Basis' : 'Front';
@@ -76,7 +82,7 @@ export class ArmyBar {
 
   private toggleFront(): void {
     const s = this.session;
-    const home = s.state.system.homeBodyId;
+    const home = viewerHome(s.state);
     s.goZone(s.ui.zone !== home ? home : (frontZone(s) ?? home));
   }
 }

@@ -1,3 +1,4 @@
+import { viewerOf } from '../../sim/viewer';
 import { Group, type Object3D } from 'three/webgpu';
 import type { Entity, PlayerId } from '../../sim/entity';
 import type { SurfaceMap } from '../../sim/generation/surface';
@@ -24,6 +25,8 @@ interface Shown {
 
 /** What the player can see on this surface (fog of war). */
 export interface Sight {
+  /** The side this device shows. */
+  me: PlayerId;
   visible: Uint8Array;
   explored: Uint8Array;
   /** Owners whose buildings have enough energy. */
@@ -43,13 +46,13 @@ function tileOf(map: SurfaceMap, e: Entity): number {
 
 /** Green for own things, red for enemies, yellow for peace, blue for allies. */
 function ringColor(state: GameState, owner: PlayerId | undefined): number {
-  const r = owner ? relationOf(state, 'player', owner) : 'peace';
+  const r = owner ? relationOf(state, viewerOf(state), owner) : 'peace';
   return parseInt(RELATION_COLORS[r].slice(1), 16);
 }
 
 /** Own things always; other buildings once explored; other units only when in sight. */
 function isShown(map: SurfaceMap, e: Entity, sight: Sight | undefined): boolean {
-  if (!sight || e.owner === 'player') return true;
+  if (!sight || e.owner === sight.me) return true;
   const tile = tileOf(map, e);
   if (e.building || e.nest) return sight.explored[tile] === 1;
   return sight.visible[tile] === 1;

@@ -1,3 +1,4 @@
+import { viewerHome } from '../../sim/viewer';
 import { Group, Vector3, type Object3D } from 'three/webgpu';
 import type { Entity } from '../../sim/entity';
 import { BELT_ID } from '../../sim/generation/solar-system';
@@ -74,7 +75,7 @@ export class SpaceFleet {
       out.copy(body.group.position);
       return body.body.radius;
     }
-    const home = this.bodies.get(state.system.homeBodyId)?.group.position;
+    const home = this.bodies.get(viewerHome(state))?.group.position;
     const p = placePos(state, BELT_ID, home ? { x: home.x, y: home.z } : undefined);
     out.set(p.x, 0, p.y);
     return 1;

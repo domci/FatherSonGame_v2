@@ -1,3 +1,4 @@
+import { viewerOf } from '../sim/viewer';
 import {
   BUILDINGS,
   buildTimeSeconds,
@@ -41,9 +42,9 @@ function upgradeRow(session: Session, e: Entity): HTMLElement | null {
   if (next > def.levels.length) return text('Höchste Stufe erreicht.', 'p-text muted');
   return action('arrow-up', `Ausbauen auf Stufe ${next}`, {
     cost: buildingLevel(def, next).cost,
-    have: session.state.players.player?.resources,
+    have: session.state.players[viewerOf(session.state)]?.resources,
     timeMs: buildTimeSeconds(def, next) * 1000,
-    onclick: () => session.command({ type: 'upgrade', player: 'player', entityId: e.id }),
+    onclick: () => session.command({ type: 'upgrade', player: session.me, entityId: e.id }),
   });
 }
 
@@ -51,7 +52,8 @@ function trainRows(session: Session, e: Entity): HTMLElement | null {
   const trains = e.building ? (BUILDINGS[e.building.type].trains ?? []) : [];
   if (!e.building || e.building.level < 1 || !trains.length) return null;
   const rows: (HTMLElement | null)[] = [];
-  const name = (id: keyof typeof UNITS): string => nameOfUnit(session.state, 'player', id);
+  const name = (id: keyof typeof UNITS): string =>
+    nameOfUnit(session.state, viewerOf(session.state), id);
   if (e.training) {
     const u = UNITS[e.training.unit];
     const q = e.training.queue.length;
@@ -66,19 +68,19 @@ function trainRows(session: Session, e: Entity): HTMLElement | null {
 /** Train button. Locked (with the research name) when the unit needs research. */
 function trainButton(session: Session, e: Entity, unit: UnitId, label: string): HTMLElement {
   const need = UNITS[unit].requires;
-  const locked = !!need && !hasResearch(session.state, 'player', need);
+  const locked = !!need && !hasResearch(session.state, viewerOf(session.state), need);
   return action(locked ? 'lock' : 'plus', label, {
     cost: UNITS[unit].cost,
-    have: session.state.players.player?.resources,
+    have: session.state.players[viewerOf(session.state)]?.resources,
     timeMs: UNITS[unit].trainSeconds * 1000,
     disabled: locked,
     title: locked && need ? `Braucht Forschung: ${RESEARCH[need].name}` : undefined,
-    onclick: () => session.command({ type: 'train', player: 'player', buildingId: e.id, unit }),
+    onclick: () => session.command({ type: 'train', player: session.me, buildingId: e.id, unit }),
   });
 }
 
 function researchRows(session: Session, e: Entity): HTMLElement | null {
-  const player = session.state.players.player;
+  const player = session.state.players[viewerOf(session.state)];
   if (e.building?.type !== 'lab' || e.building.level < 1 || !player) return null;
   const current = player.research.current;
   const rows: (HTMLElement | null)[] = [];
@@ -98,7 +100,7 @@ function researchRows(session: Session, e: Entity): HTMLElement | null {
         timeMs: stageSeconds(r.stage) * 1000,
         title: r.description,
         disabled: !!current,
-        onclick: () => session.command({ type: 'research', player: 'player', research: r.id }),
+        onclick: () => session.command({ type: 'research', player: session.me, research: r.id }),
       }),
     );
   if (player.research.done.length)
@@ -128,7 +130,7 @@ function enemyPanel(session: Session, e: Entity): HTMLElement[] {
   if (!e.building) return [];
   const s = session.state;
   const def = BUILDINGS[e.building.type];
-  const war = hostile(s, 'player', e.owner);
+  const war = hostile(s, viewerOf(s), e.owner);
   return [
     header(
       nameOfBuilding(s, e.owner, def.id),
@@ -148,12 +150,12 @@ function enemyPanel(session: Session, e: Entity): HTMLElement[] {
 
 export function buildingPanel(session: Session, e: Entity): HTMLElement[] {
   if (!e.building) return [];
-  if (e.owner !== 'player') return enemyPanel(session, e);
+  if (e.owner !== session.me) return enemyPanel(session, e);
   const def = BUILDINGS[e.building.type];
   const faction = session.ui.faction;
   const out: (HTMLElement | null)[] = [
     header(
-      nameOfBuilding(session.state, 'player', def.id),
+      nameOfBuilding(session.state, viewerOf(session.state), def.id),
       CATEGORY[def.category],
       thumb(def.id, 'p-thumb', faction),
     ),
@@ -173,7 +175,7 @@ export function buildingPanel(session: Session, e: Entity): HTMLElement[] {
 
 /** Changes when the building panel must be rebuilt (not every second). */
 export function buildingKey(session: Session, e: Entity): string {
-  const p = session.state.players.player;
+  const p = session.state.players[viewerOf(session.state)];
   return JSON.stringify([
     e.building,
     !!e.construction,

@@ -1,3 +1,4 @@
+import { viewerOf } from '../../sim/viewer';
 import { Group, Vector3 } from 'three/webgpu';
 import type { Entity } from '../../sim/entity';
 import type { SurfaceMap } from '../../sim/generation/surface';
@@ -59,7 +60,7 @@ export class SurfaceEffects {
     if (this.lastShot.get(e.id) === shot.at) return false;
     this.lastShot.set(e.id, shot.at);
     if (state.time - shot.at > FRESH_SHOT_MS) return false;
-    if (e.owner === 'player') return true;
+    if (e.owner === viewerOf(state)) return true;
     return this.sees(sight, e.position.x, e.position.y) || this.sees(sight, shot.x, shot.y);
   }
 
@@ -82,7 +83,7 @@ export class SurfaceEffects {
       const key = `${m.time}:${m.x}:${m.y}:${m.kind}`;
       keys.add(key);
       if (this.seenMarks.has(key) || state.time - m.time > FRESH_MARK_MS) continue;
-      if (m.owner !== 'player' && !this.sees(sight, m.x, m.y)) continue;
+      if (m.owner !== viewerOf(state) && !this.sees(sight, m.x, m.y)) continue;
       this.booms.spawn(this.at(m.x, m.y, 0.5), m.kind, m.time % 97);
       if (m.kind === 'strike') this.skyBeam(state, m.x, m.y, m.owner);
     }
@@ -118,6 +119,6 @@ export class SurfaceEffects {
   private showsShield(e: Entity, sight: Sight): boolean {
     if (!e.shield || !e.position || e.zone !== this.map.bodyId) return false;
     if (e.shield.hp <= 0 || e.construction || !e.owner || !sight.powered.has(e.owner)) return false;
-    return e.owner === 'player' || this.sees(sight, e.position.x, e.position.y);
+    return e.owner === sight.me || this.sees(sight, e.position.x, e.position.y);
   }
 }

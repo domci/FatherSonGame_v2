@@ -72,6 +72,10 @@ export interface PlayerState {
   defeated?: boolean;
   /** Fog of war: explored tiles per surface, one char per tile ('1' = seen). */
   explored?: Record<string, string>;
+  /** Online (M7): the person is connected right now. */
+  here?: boolean;
+  /** Online (M7): other people cannot declare war before this game time (beginner shield). */
+  shieldUntil?: number;
 }
 
 /** Memory of the computer player. */
@@ -114,6 +118,10 @@ export interface GameSettings {
   opponent: boolean;
   /** Number of computer sides (1..3). */
   opponents: number;
+  /** Online world (M7): more people, no end of the game. */
+  online?: boolean;
+  /** Online: places for more people (after the computer sides). */
+  humans?: number;
 }
 
 /** Short-lived marks for effects (explosions). Not saved. */
@@ -131,6 +139,8 @@ export interface GameEvent {
   time: number;
   text: string;
   kind: 'info' | 'good' | 'bad';
+  /** Only this side sees it (missing = everybody). */
+  to?: SideId;
 }
 
 /** Everything about one running game. */

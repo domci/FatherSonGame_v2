@@ -1,5 +1,6 @@
 import type { Difficulty } from '../../content/ai';
 import type { SideId } from '../entity';
+import { isHuman } from '../humans';
 import { hostileSides } from '../relations';
 import type { GameState, Offer } from '../state';
 import { militaryPower } from './strength';
@@ -13,14 +14,14 @@ export function difficultyOf(state: GameState, side: SideId): Difficulty {
 
 /**
  * Strongest side at war with both, if it is a danger for `me` (at least as strong).
- * On easy, computers never team up against the player.
+ * On easy, computers never team up against a person.
  */
 export function commonThreat(state: GameState, me: SideId, other: SideId): SideId | undefined {
   const mine = militaryPower(state, me);
   const theirs = hostileSides(state, other);
-  const easy = difficultyOf(state, me) === 'easy' && me !== 'player' && other !== 'player';
+  const easy = difficultyOf(state, me) === 'easy' && !isHuman(state, me) && !isHuman(state, other);
   return hostileSides(state, me)
-    .filter((id) => id !== other && theirs.includes(id) && !(easy && id === 'player'))
+    .filter((id) => id !== other && theirs.includes(id) && !(easy && isHuman(state, id)))
     .filter((id) => militaryPower(state, id) >= mine)
     .sort((a, b) => militaryPower(state, b) - militaryPower(state, a))[0];
 }
@@ -28,7 +29,7 @@ export function commonThreat(state: GameState, me: SideId, other: SideId): SideI
 function peaceAnswer(state: GameState, me: SideId, other: SideId): string {
   if (commonThreat(state, me, other)) return '';
   const level = difficultyOf(state, me);
-  if (other === 'player' && level === 'easy') return '';
+  if (isHuman(state, other) && level === 'easy') return '';
   if (militaryPower(state, other) >= FEAR[level] * militaryPower(state, me)) return '';
   return 'fühlt sich stark und will keinen Frieden.';
 }

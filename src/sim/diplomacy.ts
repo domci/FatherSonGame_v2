@@ -1,7 +1,8 @@
 import { DIPLOMACY, type RelationKind } from '../content/sides';
 import { checkVictory } from './defeat';
 import type { SideId } from './entity';
-import { addEvent } from './game';
+import { isOnline, tell, tellHumans } from './humans';
+import { shieldRule } from './online';
 import { relationOf, relationSince, setRelation } from './relations';
 import type { GameEvent, GameState, Offer } from './state';
 
@@ -43,13 +44,18 @@ export function whyNot(
   if (a.defeated || b.defeated) return `${b.defeated ? b.name : a.name} ist besiegt.`;
   if (action === 'decline') return offerFrom(state, to, from) ? '' : 'Es gibt kein Angebot.';
   if (action === 'peace' || action === 'alliance') return offerRule(state, from, to, action);
-  return breakRule(relationOf(state, from, to), action);
+  return breakRule(state, [from, to], action);
 }
 
-/** War only from peace (an alliance must end first). */
-function breakRule(now: RelationKind | 'self', action: 'war' | 'endAlliance'): string {
+/** War only from peace (an alliance must end first). Online: not on weak or new people. */
+function breakRule(
+  state: GameState,
+  [from, to]: [SideId, SideId],
+  action: 'war' | 'endAlliance',
+): string {
+  const now = relationOf(state, from, to);
   if (action === 'endAlliance') return now === 'alliance' ? '' : 'Es gibt kein Bündnis.';
-  if (now === 'peace') return '';
+  if (now === 'peace') return shieldRule(state, from, to);
   return now === 'war' ? 'Es ist schon Krieg.' : 'Erst das Bündnis beenden.';
 }
 
@@ -65,10 +71,11 @@ export function offerFrom(
 
 export function addOffer(state: GameState, from: SideId, to: SideId, kind: Offer['kind']): void {
   if (offerFrom(state, from, to, kind)) return;
-  state.offers.push({ from, to, kind, until: state.time + DIPLOMACY.offerMs });
+  const wait = isOnline(state) ? DIPLOMACY.onlineOfferMs : DIPLOMACY.offerMs;
+  state.offers.push({ from, to, kind, until: state.time + wait });
   const name = state.players[from]?.name ?? from;
   const what = kind === 'peace' ? 'Frieden' : 'ein Bündnis';
-  addEvent(state, `${name} bietet euch ${what} an. Antwortet im Völker-Fenster.`, 'info');
+  tell(state, to, `${name} bietet euch ${what} an. Antwortet im Völker-Fenster.`, 'info');
 }
 
 export function removeOffers(state: GameState, a: SideId, b: SideId): void {
@@ -77,12 +84,18 @@ export function removeOffers(state: GameState, a: SideId, b: SideId): void {
   );
 }
 
-function eventText(state: GameState, by: SideId, other: SideId, kind: RelationKind): string {
+/** The news of a new relation, as one person (viewer) sees it. */
+function eventText(
+  state: GameState,
+  viewer: SideId,
+  [by, other]: [SideId, SideId],
+  kind: RelationKind,
+): string {
   const name = (id: SideId): string => state.players[id]?.name ?? id;
-  const you = by === 'player' ? other : other === 'player' ? by : undefined;
+  const you = by === viewer ? other : other === viewer ? by : undefined;
   if (kind === 'war') {
-    if (by === 'player') return `Ihr erklärt ${name(other)} den Krieg!`;
-    if (other === 'player') return `${name(by)} erklärt euch den Krieg!`;
+    if (by === viewer) return `Ihr erklärt ${name(other)} den Krieg!`;
+    if (other === viewer) return `${name(by)} erklärt euch den Krieg!`;
     return `${name(by)} erklärt ${name(other)} den Krieg.`;
   }
   const what = kind === 'peace' ? 'Frieden' : 'Bündnis';
@@ -92,9 +105,14 @@ function eventText(state: GameState, by: SideId, other: SideId, kind: RelationKi
     : `${name(by)} und ${name(other)} sind jetzt verbündet.`;
 }
 
-function eventKind(by: SideId, other: SideId, kind: RelationKind): GameEvent['kind'] {
-  if (by !== 'player' && other !== 'player') return 'info';
-  if (kind === 'war') return other === 'player' ? 'bad' : 'info';
+function eventKind(
+  viewer: SideId,
+  by: SideId,
+  other: SideId,
+  kind: RelationKind,
+): GameEvent['kind'] {
+  if (by !== viewer && other !== viewer) return 'info';
+  if (kind === 'war') return other === viewer ? 'bad' : 'info';
   return 'good';
 }
 
@@ -107,7 +125,7 @@ export function changeRelation(
 ): void {
   setRelation(state, by, other, kind);
   removeOffers(state, by, other);
-  addEvent(state, eventText(state, by, other, kind), eventKind(by, other, kind));
+  tellHumans(state, (h) => [eventText(state, h, [by, other], kind), eventKind(h, by, other, kind)]);
   checkVictory(state);
 }
 
@@ -115,9 +133,11 @@ export function changeRelation(
 export function endAlliance(state: GameState, by: SideId, other: SideId): void {
   setRelation(state, by, other, 'peace');
   removeOffers(state, by, other);
-  const name = (id: SideId): string => (id === 'player' ? 'Ihr' : (state.players[id]?.name ?? id));
-  const kind = other === 'player' ? 'bad' : 'info';
-  addEvent(state, `${name(by)} beendet das Bündnis mit ${name(other)}. Jetzt ist Frieden.`, kind);
+  tellHumans(state, (h) => {
+    const name = (id: SideId): string => (id === h ? 'Ihr' : (state.players[id]?.name ?? id));
+    const text = `${name(by)} beendet das Bündnis mit ${name(other)}. Jetzt ist Frieden.`;
+    return [text, other === h ? 'bad' : 'info'];
+  });
 }
 
 /** Offers that waited too long are gone. */

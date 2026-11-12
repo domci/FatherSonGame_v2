@@ -1,3 +1,4 @@
+import { viewerOf } from '../sim/viewer';
 import type { GameState, Mark } from '../sim/state';
 import type { Entity } from '../sim/entity';
 import { factionOf } from '../sim/names';
@@ -12,9 +13,9 @@ const BATTLE_HOLD_MS = 8000;
  * or an own building shoots. Fights between other peoples far away stay quiet.
  */
 function nearFight(state: GameState, e: Entity, zone: string): boolean {
-  if (e.building && e.owner === 'player') return true;
-  if (!hostile(state, 'player', e.owner) || e.owner === 'wild') return false;
-  return e.zone === zone || e.zone === state.players.player?.homeBodyId;
+  if (e.building && e.owner === viewerOf(state)) return true;
+  if (!hostile(state, viewerOf(state), e.owner) || e.owner === 'wild') return false;
+  return e.zone === zone || e.zone === state.players[viewerOf(state)]?.homeBodyId;
 }
 
 const MARK_SOUND: Record<Mark['kind'], { name: SfxName; volume: number }> = {
