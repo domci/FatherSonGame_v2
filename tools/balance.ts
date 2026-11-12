@@ -4,6 +4,7 @@
  * Part 1: a stand-in player (computer at full strength, but thinks 3× slower)
  *         against each difficulty, `games` games each.
  * Part 2: `games` games full strength against full strength (humans vs aliens).
+ * Part 3: `games` games of the stand-in player against three computer peoples (normal).
  * Writes docs/balance.md.
  */
 import { spawn } from 'node:child_process';
@@ -13,7 +14,8 @@ import type { Faction } from '../src/content/factions';
 import { THINK_MS } from '../src/sim/ai/brain';
 import { UNITS } from '../src/content/units';
 import { buildingsOf, isFighter, unitsOf } from '../src/sim/ai/queries';
-import type { PlayerId } from '../src/sim/entity';
+import { AI_IDS, type PlayerId } from '../src/sim/entity';
+import { relationOf } from '../src/sim/relations';
 import { createGame } from '../src/sim/game';
 import type { GameState } from '../src/sim/state';
 import { economyStep, liveStep } from '../src/sim/update';
@@ -36,8 +38,27 @@ function snapshot(s: GameState): Record<'player' | 'ai', Snapshot> {
   return { player: of('player'), ai: of('ai') };
 }
 
+/** Many peoples: who is out, and how the player stands with the others at the end. */
+function peoples(s: GameState): Pick<Result, 'out' | 'peace' | 'allies' | 'aiWaves'> {
+  const ais = AI_IDS.filter((id) => s.players[id]);
+  const rel = (kind: string): number =>
+    ais.filter((id) => !s.players[id]?.defeated && relationOf(s, 'player', id) === kind).length;
+  return {
+    out: ais.filter((id) => s.players[id]?.defeated).length,
+    peace: rel('peace'),
+    allies: rel('alliance'),
+    aiWaves: ais.reduce((n, id) => n + (s.ai[id]?.waves ?? 0), 0),
+  };
+}
+
 function playOne(job: Job): Result {
-  const s = createGame({ seed: job.seed, faction: job.faction, time: 0, difficulty: job.ai });
+  const s = createGame({
+    seed: job.seed,
+    faction: job.faction,
+    time: 0,
+    difficulty: job.ai,
+    opponents: job.opponents,
+  });
   const first = AI_TUNING.normal.firstAttackMs;
   s.ai.player = { nextThinkAt: 0, nextAttackAt: first, waves: 0, difficulty: 'normal', free: true };
   s.ai.player.thinkMs = job.playerThinkMs;
@@ -63,6 +84,7 @@ function playOne(job: Job): Result {
     at60,
     at120,
     atEnd,
+    ...peoples(s),
   };
 }
 
@@ -79,6 +101,7 @@ function jobs(games: number): Job[] {
         ai,
         aiFree: false,
         playerThinkMs: 3 * THINK_MS,
+        opponents: 1,
       });
   for (let i = 0; i < games; i++)
     out.push({
@@ -88,6 +111,17 @@ function jobs(games: number): Job[] {
       ai: 'normal',
       aiFree: true,
       playerThinkMs: THINK_MS,
+      opponents: 1,
+    });
+  for (let i = 0; i < games; i++)
+    out.push({
+      part: 3,
+      seed: 7000 + i,
+      faction: faction(i),
+      ai: 'normal',
+      aiFree: false,
+      playerThinkMs: 3 * THINK_MS,
+      opponents: 3,
     });
   return out;
 }

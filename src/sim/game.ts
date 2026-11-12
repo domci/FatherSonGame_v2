@@ -5,11 +5,12 @@ import type { Entity, PlayerId } from './entity';
 import { generateSolarSystem } from './generation/solar-system';
 import { generateSurface } from './generation/surface';
 import { createRng } from './rng';
-import { ensureOpponent, makePlayer, setupBase, setupNests } from './setup';
+import { ensureOpponents, homeCount, makePlayer, setupBase, setupNests } from './setup';
 import {
   SAVE_VERSION,
   type Faction,
   type GameEvent,
+  type GameSettings,
   type GameState,
   type PlayerState,
 } from './state';
@@ -23,11 +24,19 @@ export interface NewGameOptions {
   offlineAttacks?: boolean;
   /** false = no computer enemy (for economy tests). */
   opponent?: boolean;
+  /** Number of computer sides, 1..3 (default 1). */
+  opponents?: number;
 }
 
 /** Creates the start of a new game: crash site, two drones, spider nests and the enemy. */
 export function createGame(options: NewGameOptions): GameState {
-  const system = generateSolarSystem(options.seed);
+  const settings: GameSettings = {
+    difficulty: options.difficulty ?? 'normal',
+    offlineAttacks: options.offlineAttacks ?? false,
+    opponent: options.opponent !== false,
+    opponents: options.opponent === false ? 0 : (options.opponents ?? 1),
+  };
+  const system = generateSolarSystem(options.seed, homeCount(settings));
   const home = system.homeBodyId;
   const map = generateSurface(options.seed, home);
   const state: GameState = {
@@ -41,17 +50,15 @@ export function createGame(options: NewGameOptions): GameState {
     system,
     surfaces: { [home]: map },
     events: [],
-    settings: {
-      difficulty: options.difficulty ?? 'normal',
-      offlineAttacks: options.offlineAttacks ?? false,
-      opponent: options.opponent !== false,
-    },
+    settings,
     ai: {},
+    relations: {},
+    offers: [],
     marks: [],
   };
   setupBase(state, 'player', map);
   setupNests(state, map);
-  if (state.settings.opponent) ensureOpponent(state);
+  ensureOpponents(state);
   addEvent(state, FACTIONS[options.faction].intro, 'info');
   return state;
 }

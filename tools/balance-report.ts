@@ -12,7 +12,9 @@ export interface Snapshot {
 }
 
 export interface Job {
-  part: 1 | 2;
+  part: 1 | 2 | 3;
+  /** Computer peoples (part 3: three). */
+  opponents: number;
   seed: number;
   /** People of the side on the home planet ('player'). */
   faction: Faction;
@@ -34,6 +36,13 @@ export interface Result extends Job {
   at60: Record<'player' | 'ai', Snapshot>;
   at120: Record<'player' | 'ai', Snapshot>;
   atEnd: Record<'player' | 'ai', Snapshot>;
+  /** Computer peoples that are out at the end. */
+  out: number;
+  /** Computer peoples at peace / allied with the player at the end. */
+  peace: number;
+  allies: number;
+  /** Attack waves of all computer peoples together. */
+  aiWaves: number;
 }
 
 export interface RunInfo {
@@ -106,6 +115,26 @@ function part2(rs: Result[]): string {
 `;
 }
 
+function part3(rs: Result[]): string {
+  const won = rs.filter((r) => r.winner === 'player').length;
+  const lost = rs.filter((r) => r.winner && r.winner !== 'player').length;
+  const n = rs.length;
+  return `## Teil 3: Spieler gegen drei Computer-Völker (${n} Partien, Mittel)
+
+Der „Spieler“ handelt wie in Teil 1 (3× langsamer) und macht Frieden und Bündnisse nach denselben Regeln wie die Computer.
+
+| Wert | Zahl |
+| --- | --- |
+| Siege Spieler (mit Verbündeten) | ${won} (${pct(won, n)}) |
+| Niederlagen | ${lost} (${pct(lost, n)}) |
+| unentschieden | ${n - won - lost} (${pct(n - won - lost, n)}) |
+| Spieldauer Median (mit Sieger) | ${minutes(rs.filter((r) => r.winner).map((r) => r.minutes))} |
+| besiegte Computer-Völker pro Partie | ${avg(rs.map((r) => r.out)).toFixed(1)} |
+| am Ende Frieden / Bündnis mit dem Spieler | ${avg(rs.map((r) => r.peace)).toFixed(1)} / ${avg(rs.map((r) => r.allies)).toFixed(1)} |
+| Angriffe aller Computer pro Partie | ${avg(rs.map((r) => r.aiWaves)).toFixed(1)} |
+`;
+}
+
 /** Markdown report for docs/balance.md. */
 export function report(all: Result[], info: RunInfo): string {
   return `# Balancing: Computer gegen Computer
@@ -115,5 +144,6 @@ Halbe Partien: Menschen auf dem Heimatplaneten (mit Spinnen-Nestern), halbe Part
 Schritt: ${info.stepMs} ms. Höchstens ${info.maxHours} Stunden Spielzeit pro Partie (sonst: unentschieden).
 
 ${part1(all.filter((r) => r.part === 1))}
-${part2(all.filter((r) => r.part === 2))}`;
+${part2(all.filter((r) => r.part === 2))}
+${part3(all.filter((r) => r.part === 3))}`;
 }

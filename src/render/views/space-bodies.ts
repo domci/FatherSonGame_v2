@@ -14,6 +14,9 @@ import { bodyPosition, type Body, type SolarSystem } from '../../sim/generation/
 import { atmosphereMaterial, planetMaterial, REGOLITH } from '../space-materials';
 import { solidMaterial } from '../materials';
 import type { Faction } from '../../content/factions';
+import { aiFaction, SIDE_COLORS } from '../../content/sides';
+import { AI_IDS } from '../../sim/entity';
+import { sideName } from '../../sim/setup';
 import { textLabel } from './labels';
 
 /** Where a base sits on its planet (latitude, longitude in radians, planet frame). */
@@ -23,6 +26,12 @@ interface BaseSpot {
 }
 
 const LIGHTS: Record<Faction, number> = { human: 0xffd36b, alien: 0x6dff7a };
+
+/** Who lives on a planet of another side: name and color (ring and label). */
+export interface HomeOf {
+  name: string;
+  color: string;
+}
 
 /** The base looks at the sun a bit from the side: morning light like on the surface. */
 const SUN_OFFSET = 0.9;
@@ -74,10 +83,14 @@ export class SpaceBody {
   private far: Material;
   private near: Material;
 
+  /** false when the side that lived here is out of the game (no ring). */
+  alive = true;
+
   constructor(
     readonly body: Body,
     kind: 'home' | 'enemy' | 'other',
     private faction: Faction = 'human',
+    owner?: HomeOf,
   ) {
     const r = body.radius;
     const ground = kind === 'other' ? undefined : REGOLITH;
@@ -89,11 +102,17 @@ export class SpaceBody {
       new SphereGeometry(r * 1.12, 48, 32),
       atmosphereMaterial(body.kind === 'gas' ? body.color : 0x88b8ff, 0.8),
     );
-    this.label = textLabel(kind === 'home' ? `${body.name} (Heimat)` : body.name);
+    const title =
+      kind === 'home'
+        ? `${body.name} (Heimat)`
+        : owner
+          ? `${body.name} (${owner.name})`
+          : body.name;
+    this.label = textLabel(title, owner?.color);
     this.label.position.y = r * 1.25;
     this.group.add(this.sphere, glow, this.label);
     if (kind === 'home') this.addHome(r);
-    if (kind === 'enemy') this.addEnemy(r);
+    if (kind === 'enemy') this.addEnemy(r, owner?.color);
   }
 
   /** Has a base that the camera can look at (and a surface below it). */
@@ -102,7 +121,7 @@ export class SpaceBody {
   }
 
   /** Moves along the orbit. The planet always shows the same side to the sun. */
-  update(timeMs: number, showEnemy: boolean, closeUp: boolean, detail = 0): void {
+  update(timeMs: number, showBase: boolean, closeUp: boolean, detail = 0): void {
     this.detail.value = detail;
     this.sphere.material = detail > 0 ? this.near : this.far;
     const p = bodyPosition(this.body, timeMs);
@@ -110,9 +129,9 @@ export class SpaceBody {
     const toSun = Math.atan2(-p.y, -p.x);
     const lon = this.spot?.lon ?? 0;
     this.sphere.rotation.y = lon - toSun - SUN_OFFSET;
-    if (this.enemyLights) this.enemyLights.visible = showEnemy;
+    if (this.enemyLights) this.enemyLights.visible = showBase;
     this.label.visible = !closeUp;
-    if (this.ring) this.ring.visible = !closeUp;
+    if (this.ring) this.ring.visible = !closeUp && this.alive;
   }
 
   /** Unit vector from the planet center to the base (world space). */
@@ -128,30 +147,39 @@ export class SpaceBody {
     this.sphere.add(lights);
   }
 
-  private addHome(r: number): void {
-    this.spot = { lat: 0.35, lon: 0.4 };
-    this.placeLights(baseLights(r, LIGHTS[this.faction]), r);
-    this.ring = new Mesh(
-      new TorusGeometry(r * 1.6, 0.06, 8, 64),
-      solidMaterial(0x7cff6b, { glow: 2 }),
-    );
+  private addRing(r: number, hex: number, thick: number): void {
+    this.ring = new Mesh(new TorusGeometry(r * 1.6, thick, 8, 64), solidMaterial(hex, { glow: 2 }));
     this.ring.rotation.x = Math.PI / 2;
     this.group.add(this.ring);
   }
 
-  private addEnemy(r: number): void {
+  private addHome(r: number): void {
+    this.spot = { lat: 0.35, lon: 0.4 };
+    this.placeLights(baseLights(r, LIGHTS[this.faction]), r);
+    this.addRing(r, 0x7cff6b, 0.06);
+  }
+
+  /** A base of another people (its own faction's lights, shown when known) and a thin ring in its color. */
+  private addEnemy(r: number, ring?: string): void {
     this.spot = { lat: -0.3, lon: 2.2 };
-    this.enemyLights = baseLights(r, LIGHTS[this.faction === 'human' ? 'alien' : 'human']);
+    this.enemyLights = baseLights(r, LIGHTS[this.faction]);
     this.placeLights(this.enemyLights, r);
+    if (ring) this.addRing(r, parseInt(ring.slice(1), 16), 0.035);
   }
 }
 
+/** All planets. Homes of computer sides get the base lights of that side's people. */
 export function spaceBodies(system: SolarSystem, faction: Faction): Map<string, SpaceBody> {
   const out = new Map<string, SpaceBody>();
   for (const b of system.bodies) {
-    const kind =
-      b.id === system.homeBodyId ? 'home' : b.id === system.alienBodyId ? 'enemy' : 'other';
-    out.set(b.id, new SpaceBody(b, kind, faction));
+    const i = system.homes.indexOf(b.id);
+    const id = AI_IDS[i - 1];
+    if (!id) {
+      out.set(b.id, new SpaceBody(b, i === 0 ? 'home' : 'other', faction));
+      continue;
+    }
+    const f = aiFaction(faction, i - 1);
+    out.set(b.id, new SpaceBody(b, 'enemy', f, { name: sideName(id, f), color: SIDE_COLORS[id] }));
   }
   return out;
 }

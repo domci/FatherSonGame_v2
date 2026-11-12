@@ -8,6 +8,7 @@ import { bodyPanel, unitPanel, wildPanel } from './panel-other';
 import { boardButtons } from './panel-transport';
 import { fleetKey } from './panel-fleet';
 import { colonyKey, colonyPanel } from './panel-colony';
+import { peoplesKey, peoplesPanel } from './panel-peoples';
 import { text } from './panel-kit';
 import { nameOfUnit } from '../sim/names';
 import type { UnitId } from '../content/units';
@@ -61,6 +62,7 @@ export class InfoPanel {
   private content(): { key: string; build: () => HTMLElement[] } {
     const s = this.session;
     if (s.ui.panel === 'colony') return { key: colonyKey(s), build: () => colonyPanel(s) };
+    if (s.ui.panel === 'peoples') return { key: peoplesKey(s), build: () => peoplesPanel(s) };
     return this.selected();
   }
 

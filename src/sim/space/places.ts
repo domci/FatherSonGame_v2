@@ -2,7 +2,7 @@ import type { Entity, PlayerId, Vec2 } from '../entity';
 import { BELT_ID, bodyPosition, findBody } from '../generation/solar-system';
 import type { GameState } from '../state';
 import { SECOND } from '../clock';
-import { enemyOf } from '../names';
+import { hostile } from '../relations';
 
 /** Flight time per map unit at speed 1 (like the mining ships). */
 const MS_PER_UNIT = 4 * SECOND;
@@ -52,7 +52,7 @@ export function shipsAt(state: GameState, place: string, owner?: PlayerId): Enti
   );
 }
 
-/** Enemy war ships that wait at a place: they block it. */
+/** War ships of sides at war with `owner` that wait at a place: they block it. */
 export function blockers(state: GameState, owner: PlayerId, place: string): Entity[] {
-  return shipsAt(state, place, enemyOf(owner));
+  return shipsAt(state, place).filter((e) => hostile(state, owner, e.owner));
 }

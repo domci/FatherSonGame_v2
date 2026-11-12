@@ -2,6 +2,15 @@
 
 Short notes when something went wrong or was surprising. Newest on top.
 
+- 2026-11-12: The AI stopped training when its home army had `defenders + waveSize` housing, but the attack picks
+  whole units. With only tanks (3 housing) free, a wave of 5 never filled and the AI waited forever (1 wave in 8 h).
+  When two checks must agree (train enough / attack now), let one call the other's picker.
+- 2026-11-12: Strength rules on tiny numbers flip at random. At the start every side has only its dome, so
+  "the other is at least as strong" was true for everybody and all computers made peace in minute 16.
+  AI diplomacy now starts only at its first attack time, and "danger" means 1.5 × stronger.
+- 2026-11-12: "Not mine = enemy" was in ~20 places (targeting, guard, AI, blockade, space, music, UI).
+  One `hostile(state, a, b)` helper and an explore agent's list of every place made the switch to relations safe.
+
 - 2026-11-11: In CI (software rendering, two workers) a click in the quiz window and the tablet screenshot timed out.
   An endless CSS glow animation and a full-screen `backdrop-filter` blur over the moving 3D picture cost a repaint
   each frame. Use static highlights and no blur behind big windows over the canvas.

@@ -7,7 +7,7 @@ Sonnensystem und kämpfen gegen eine Alien-Zivilisation, bis eine Seite besiegt 
 
 Zielgruppe: Kinder ab 10 Jahren.
 
-Stand: 2026-11-08. Status: **Plan, noch kein Code.**
+Stand: 2026-11-12. Status: **M0 bis M6 gebaut** (siehe [04-arbeitspakete.md](04-arbeitspakete.md)), M7 ist noch Plan.
 
 ## Dokumente
 

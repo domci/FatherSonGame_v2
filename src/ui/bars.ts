@@ -1,6 +1,8 @@
 import { BUILDINGS } from '../content/buildings';
 import { UNITS } from '../content/units';
+import { RELATION_COLORS } from '../content/sides';
 import type { Entity } from '../sim/entity';
+import { relationOf } from '../sim/relations';
 import type { GameState } from '../sim/state';
 import { el } from './dom';
 
@@ -29,6 +31,12 @@ export function barFor(e: Entity, now: number, selected: boolean): BarInfo | nul
   return null;
 }
 
+/** Frame of a bar: the relation color for things of other sides, else the normal frame. */
+function frameColor(state: GameState, e: Entity): string {
+  if (!e.owner || e.owner === 'player') return '';
+  return RELATION_COLORS[relationOf(state, 'player', e.owner)];
+}
+
 function liftOf(e: Entity): number {
   if (e.building) return BUILDINGS[e.building.type].size * 0.9 + 1;
   return e.unit?.type === 'drone' ? 2.6 : 2;
@@ -48,7 +56,9 @@ export class Bars {
       const info = barFor(e, state.time, selectedIds.has(e.id));
       const p = info && this.project(e.position.x, e.position.y, liftOf(e));
       if (!info || !p) continue;
-      this.place(this.bar(used++), info, p, e.building ? 56 : 34);
+      const b = this.bar(used++);
+      this.place(b, info, p, e.building ? 56 : 34);
+      b.style.borderColor = frameColor(state, e);
     }
     this.pool.forEach((b, i) => {
       if (i >= used) b.hidden = true;

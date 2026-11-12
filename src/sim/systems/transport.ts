@@ -5,6 +5,7 @@ import { findBody } from '../generation/solar-system';
 import type { GameState } from '../state';
 import { landingSpot, unloadShip } from '../transport';
 import { isBlocked, runBlockade } from '../space/blockade';
+import { hostile } from '../relations';
 
 export interface FlightOptions {
   /** The game is closed right now (catch-up). */
@@ -13,7 +14,8 @@ export interface FlightOptions {
 
 /** Enemy ships wait in orbit while the player is away (unless offline attacks are on). */
 function mustWait(state: GameState, ship: Entity, zone: string, opts: FlightOptions): boolean {
-  if (!opts.offline || state.settings.offlineAttacks || ship.owner === 'player') return false;
+  if (!opts.offline || state.settings.offlineAttacks || !hostile(state, 'player', ship.owner))
+    return false;
   return zone === state.players.player?.homeBodyId;
 }
 
@@ -32,7 +34,11 @@ function land(state: GameState, ship: Entity, zone: string): void {
       `${nameOfUnit(state, ship.owner, 'transport')} ist auf ${where} gelandet.`,
       'info',
     );
-  } else if (zone === state.players.player?.homeBodyId && count > 0) {
+  } else if (
+    zone === state.players.player?.homeBodyId &&
+    count > 0 &&
+    hostile(state, 'player', ship.owner)
+  ) {
     addEvent(state, 'Alarm! Feindliche Truppen sind gelandet!', 'bad');
   }
 }

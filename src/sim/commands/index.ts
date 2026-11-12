@@ -8,6 +8,7 @@ import { changeSettings, type SettingsCommand } from './settings';
 import { quizAnswer, quizAsk, type QuizAnswerCommand, type QuizAskCommand } from './quiz';
 import { speedUp, type SpeedUpCommand } from './speed-up';
 import { missionOff, type MissionOffCommand } from './mission';
+import { diplomacy, type DiplomacyCommand } from './diplomacy';
 import {
   board,
   fly,
@@ -43,7 +44,8 @@ export type Command =
   | QuizAskCommand
   | QuizAnswerCommand
   | SpeedUpCommand
-  | MissionOffCommand;
+  | MissionOffCommand
+  | DiplomacyCommand;
 
 export type { CommandResult };
 
@@ -69,6 +71,7 @@ const HANDLERS: Handlers = {
   quizAnswer,
   speedUp,
   missionOff,
+  diplomacy,
 };
 
 export function applyCommand(state: GameState, cmd: Command): CommandResult {

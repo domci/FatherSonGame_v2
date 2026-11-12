@@ -25,7 +25,7 @@ function intruders(state: GameState, owner: PlayerId, home: string, own: Entity[
     .entities.filter(
       (e) =>
         e.zone === home &&
-        isEnemy(buildings[0] ?? e, e) &&
+        isEnemy(state, buildings[0] ?? e, e) &&
         buildings.some((b) => b.position && distanceTo(b.position, e) <= ALARM_RANGE + 2),
     );
 }

@@ -11,6 +11,13 @@ import { shipPose } from './ship-path';
 import type { SpaceBody } from './space-bodies';
 
 const LASER = { human: 0xffd84a, alien: 0x6dff7a } as const;
+/** Each side's fleet waits on its own side of a planet (player, ai, ai2, ai3). */
+const SIDE_ANGLE: Record<string, number> = {
+  player: 0,
+  ai: Math.PI,
+  ai2: Math.PI / 2,
+  ai3: -Math.PI / 2,
+};
 const FRESH_MS = 300;
 /** War ships in orbit are drawn small next to their planet; flying ones like mining ships. */
 const ORBIT_SCALE = 0.5;
@@ -91,7 +98,7 @@ export class SpaceFleet {
       obj.rotation.y = Math.atan2(to.x - at.x, to.z - at.z);
       return;
     }
-    const side = e.owner === 'player' ? 0 : Math.PI;
+    const side = SIDE_ANGLE[e.owner ?? 'ai'] ?? Math.PI;
     const a = state.time / 9000 + slot * 0.8 + side;
     const d = r * 1.7 + 0.35 + (slot % 3) * 0.12;
     obj.position.set(at.x + Math.cos(a) * d, at.y + 0.2 * Math.sin(slot), at.z + Math.sin(a) * d);

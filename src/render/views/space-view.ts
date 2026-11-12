@@ -15,7 +15,7 @@ import {
 } from 'three/webgpu';
 import { BELT_ID, type SolarSystem } from '../../sim/generation/solar-system';
 import type { GameState } from '../../sim/state';
-import { radarSees } from '../../sim/visibility';
+import { knowsBase } from '../../sim/visibility';
 import type { Faction } from '../../content/factions';
 import { createStars } from '../stars';
 import {
@@ -97,11 +97,16 @@ export class SpaceView implements View {
   }
 
   update(state: GameState, ui: ViewUi, dtMs: number): void {
-    const enemyHome = state.players.ai?.homeBodyId;
-    const showEnemy = !!enemyHome && radarSees(state, 'player', enemyHome);
+    const gone = new Set(
+      Object.values(state.players)
+        .filter((p) => p?.defeated)
+        .map((p) => p?.homeBodyId),
+    );
     for (const b of this.bodies.values()) {
       const focus = b.body.id === this.focusId;
-      b.update(state.time, showEnemy, focus && this.z < 2.15, focus ? closeDetail(this.z) : 0);
+      const known = knowsBase(state, 'player', b.body.id);
+      b.alive = !gone.has(b.body.id);
+      b.update(state.time, known, focus && this.z < 2.15, focus ? closeDetail(this.z) : 0);
     }
     this.belt.rotation.y = -state.time / 400000;
     this.ships.update(state);

@@ -13,6 +13,8 @@ import type { Session } from '../app/session';
 import type { Entity } from '../sim/entity';
 import { factionOf, nameOfBuilding, nameOfUnit } from '../sim/names';
 import { thumb } from './build-menu';
+import { ownerLabel } from './panel-peoples';
+import { hostile } from '../sim/relations';
 import { colonyStats } from './panel-colony';
 import { speedEntityButton, speedKey, speedResearchButton } from './panel-speed';
 import { action, header, levelPips, progress, section, stat, text } from './panel-kit';
@@ -121,20 +123,26 @@ function fightStats(e: Entity): HTMLElement[] {
   return out;
 }
 
-/** Panel for a building of the other side: look, but no buttons. */
+/** Panel for a building of another side: look, but no buttons. */
 function enemyPanel(session: Session, e: Entity): HTMLElement[] {
   if (!e.building) return [];
+  const s = session.state;
   const def = BUILDINGS[e.building.type];
-  const faction = factionOf(session.state, e.owner);
+  const war = hostile(s, 'player', e.owner);
   return [
     header(
-      nameOfBuilding(session.state, e.owner, def.id),
-      'Feind',
-      thumb(def.id, 'p-thumb', faction),
+      nameOfBuilding(s, e.owner, def.id),
+      ownerLabel(s, e.owner, 'Gebäude'),
+      thumb(def.id, 'p-thumb', factionOf(s, e.owner)),
     ),
     levelPips(e.building.level, def.levels.length),
     ...fightStats(e),
-    text('Wählt Einheiten und tippt hierher, um anzugreifen.', 'p-text muted'),
+    text(
+      war
+        ? 'Wählt Einheiten und tippt hierher, um anzugreifen.'
+        : 'Mit diesem Volk ist kein Krieg. Angreifen geht erst nach einer Kriegserklärung.',
+      'p-text muted',
+    ),
   ];
 }
 

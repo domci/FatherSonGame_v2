@@ -24,8 +24,8 @@ describe('ground and air', () => {
     expect(canHit(flak, fighter)).toBe(true);
     expect(canHit(flak, soldier)).toBe(false);
     expect(canHit(fighter, tank)).toBe(true);
-    expect(nearestEnemy(tank, 10, [fighter, soldier])).toBe(soldier);
-    expect(nearestEnemy(flak, 10, [soldier, fighter])).toBe(fighter);
+    expect(nearestEnemy(s, tank, 10, [fighter, soldier])).toBe(soldier);
+    expect(nearestEnemy(s, flak, 10, [soldier, fighter])).toBe(fighter);
     const r = applyCommand(s, {
       type: 'attack',
       player: 'player',
@@ -61,7 +61,7 @@ describe('ground and air', () => {
       tileY: c + 9,
       level: 1,
     });
-    expect(nearestEnemy(bomber, 8, [drone, lab])).toBe(lab);
+    expect(nearestEnemy(s, bomber, 8, [drone, lab])).toBe(lab);
   });
 
   it('planes fly straight over walls', () => {

@@ -2,7 +2,7 @@ import { BUILDINGS, buildingLevel } from '../../content/buildings';
 import { UNITS } from '../../content/units';
 import { addEvent, nextRandom } from '../game';
 import type { Entity } from '../entity';
-import { enemyOf } from '../names';
+import { hostile } from '../relations';
 import { hasResearch } from '../research-helpers';
 import { blockers, warships } from '../space/places';
 import type { GameState } from '../state';
@@ -35,17 +35,18 @@ function armor(b: Entity): number {
 }
 
 function strike(state: GameState, ship: Entity, place: string, power: number): void {
-  if (!ship.owner) return;
-  const enemy = enemyOf(ship.owner);
+  const owner = ship.owner;
+  if (!owner) return;
   const list = state.world
     .with('building', 'position')
-    .entities.filter((b) => b.owner === enemy && b.zone === place);
+    .entities.filter((b) => b.zone === place && hostile(state, owner, b.owner));
   const target = pickTarget(state, list);
   if (!target?.position) return;
   const { x, y } = target.position;
   state.marks.push({ time: state.time, zone: place, x, y, kind: 'strike', owner: ship.owner });
+  const victim = target.owner;
   dealDamage(state, target, Math.max(1, power - armor(target)), ship);
-  if (enemy === 'player') alarm(state);
+  if (victim === 'player') alarm(state);
 }
 
 /**

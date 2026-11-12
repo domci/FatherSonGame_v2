@@ -1,6 +1,6 @@
 import { BUILDINGS } from '../content/buildings';
 import type { Entity, PlayerId } from './entity';
-import { enemyOf } from './names';
+import { allied, sidesOf } from './relations';
 import { hasResearch } from './research-helpers';
 import type { GameState } from './state';
 
@@ -15,13 +15,21 @@ function sightOf(e: Entity): number {
   return SIGHT.unit;
 }
 
-/** Tiles that `owner` sees right now on one surface (1 = visible). Index: y * size + x. */
+/** The owner and its allies: they share what they see. */
+export function friendsOf(state: GameState, owner: PlayerId): Set<PlayerId> {
+  const out = new Set<PlayerId>([owner]);
+  for (const id of sidesOf(state)) if (allied(state, owner, id)) out.add(id);
+  return out;
+}
+
+/** Tiles that `owner` (and its allies) see right now on one surface. Index: y * size + x. */
 export function visibleTiles(state: GameState, owner: PlayerId, zone: string): Uint8Array {
   const map = state.surfaces[zone];
   const size = map?.size ?? 0;
   const out = new Uint8Array(size * size);
+  const friends = friendsOf(state, owner);
   for (const e of state.world.with('position')) {
-    if (e.owner !== owner || e.zone !== zone || e.aboard) continue;
+    if (!e.owner || !friends.has(e.owner) || e.zone !== zone || e.aboard) continue;
     const r = sightOf(e);
     const { x, y } = e.position;
     const y0 = Math.max(0, Math.floor(y - r));
@@ -70,29 +78,43 @@ export function canSee(visible: Uint8Array, size: number, e: Entity): boolean {
   return visible[ty * size + tx] === 1;
 }
 
-/** Updates the explored map of the human player on all surfaces where they have things. */
+/** Updates the explored map of the human player on all surfaces where they or allies have things. */
 export function visibilitySystem(state: GameState): void {
   if (state.time % 500 >= 100) return;
   const zones = new Set<string>();
+  const friends = friendsOf(state, 'player');
   for (const e of state.world.with('position'))
-    if (e.owner === 'player' && e.zone && state.surfaces[e.zone]) zones.add(e.zone);
+    if (e.owner && friends.has(e.owner) && e.zone && state.surfaces[e.zone]) zones.add(e.zone);
   for (const zone of zones) explore(state, 'player', zone, visibleTiles(state, 'player', zone));
 }
 
-/** The long-range radar shows the enemy home planet (its buildings) from far away. */
+/** Is this the home planet of another side? */
+export function isForeignHome(state: GameState, owner: PlayerId, zone: string): boolean {
+  return sidesOf(state).some((id) => id !== owner && state.players[id]?.homeBodyId === zone);
+}
+
+/** The long-range radar shows the home planets of the other sides (their buildings) from far away. */
 export function radarSees(state: GameState, owner: PlayerId, zone: string): boolean {
-  const enemyHome = state.players[enemyOf(owner)]?.homeBodyId;
-  return zone === enemyHome && hasResearch(state, owner, 'radar');
+  return hasResearch(state, owner, 'radar') && isForeignHome(state, owner, zone);
+}
+
+/** Does `owner` know the base on this planet (another side's home)? With the radar, or as an ally. */
+export function knowsBase(state: GameState, owner: PlayerId, zone: string): boolean {
+  const side = sidesOf(state).find((id) => id !== owner && state.players[id]?.homeBodyId === zone);
+  if (!side || state.players[side]?.defeated) return false;
+  return allied(state, owner, side) || hasResearch(state, owner, 'radar');
 }
 
 /**
- * May the player zoom down to this surface? Their own home always. Another planet only
- * with own units there (they see around them), or the enemy home with the radar.
+ * May the player zoom down to this surface? Their own home and allied homes always. Another
+ * planet only with own or allied units there (they see around them), or a foreign home with the radar.
  */
 export function canViewSurface(state: GameState, owner: PlayerId, zone: string): boolean {
   if (!state.surfaces[zone]) return false;
-  if (state.players[owner]?.homeBodyId === zone || radarSees(state, owner, zone)) return true;
+  if (radarSees(state, owner, zone)) return true;
+  const friends = friendsOf(state, owner);
+  for (const id of friends) if (state.players[id]?.homeBodyId === zone) return true;
   return state.world
     .with('position')
-    .entities.some((e) => e.owner === owner && e.zone === zone && !e.aboard);
+    .entities.some((e) => !!e.owner && friends.has(e.owner) && e.zone === zone && !e.aboard);
 }

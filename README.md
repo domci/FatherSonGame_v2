@@ -5,13 +5,14 @@ Der komplette Plan steht in [docs/plan/](docs/plan/README.md).
 
 ## Stand
 
-Meilensteine **M0 bis M5** sind gebaut: Basis auf dem Planeten, Rohstoffe, Spinnenwesen,
+Meilensteine **M0 bis M6** sind gebaut: Basis auf dem Planeten, Rohstoffe, Spinnenwesen,
 Forschung, Speichern, Sonnensystem mit Zoom und Mining-Schiffen – und jetzt die **Aliens**:
 eine komplette Partie gegen den Computer, mit Truppen, Kampf, Verteidigung, Nebel und Sieg oder Niederlage.
 Man kann als Menschen oder als Aliens spielen. Nach dem ersten Test: Zoom ohne Schnitte, Glaskuppeln mit Tunneln,
 und ein Computer, der auf eurem Stand bleibt. **M4 (Luft und All):** Flugzeuge, Flugabwehr, Kampfschiffe,
 Blockaden und Angriffe aus dem Orbit. **M5 (Leben in der Kuppel):** Bewohner mit Bedürfnissen und Laune,
-Wissens-Quiz, Story und erste Mission.
+Wissens-Quiz, Story und erste Mission. **M6 (Viele Völker):** bis zu drei Computer-Völker, die auch gegeneinander
+kämpfen. Frieden und Bündnisse sind möglich, auch zwischen Menschen und Aliens.
 
 ## Lokal starten (einmalig einrichten)
 
@@ -62,9 +63,16 @@ Neue Version holen: `git pull` und dann wieder `bun run dev`.
   nach einer falschen Antwort 1 Minute Pause. Mit Kristallen kann man Bauen, Ausbauen, Forschung und Training
   **sofort fertig machen** (Knopf im Gebäude-Fenster). Eigene Fragen: `src/content/quiz/` (die erste Antwort ist
   immer die richtige, das Spiel mischt sie).
-- **Volk und Gegner:** Bei „Neues Spiel“ Menschen oder Aliens wählen und wie stark der Computer ist
-  (Leicht / Mittel / Schwer, auch später im Menü ☰). Der Computer bleibt in der Nähe eures Standes und greift
-  erst an, wenn ihr bereit seid (Leicht: frühestens nach 2 Stunden Spielzeit).
+- **Volk und Gegner:** Bei „Neues Spiel“ Menschen oder Aliens wählen, **1 bis 3 Gegner** und wie stark die Computer
+  sind (Leicht / Mittel / Schwer, auch später im Menü ☰). Die Computer bleiben in der Nähe eures Standes und greifen
+  erst an, wenn ihr bereit seid (Leicht: frühestens nach 2 Stunden Spielzeit). Mehr Gegner = größeres Sonnensystem.
+- **Völker 🤝 (Knopf oben rechts):** Am Anfang kämpfen alle gegen alle. Im Völker-Fenster seht ihr jedes Volk mit
+  Farbe, Stärke und Beziehung. **Krieg:** ihr kämpft. **Frieden:** keiner greift an (frühestens 5 Minuten nach
+  Kriegsbeginn). **Bündnis:** ihr seht alles, was der andere sieht, und gewinnt zusammen (erst nach 5 Minuten Frieden
+  und nur gegen einen gemeinsamen Feind). Die Computer machen auch selbst Angebote: Der Knopf leuchtet grün, dann
+  „Annehmen“ oder „Ablehnen“. Wer ein Bündnis bricht oder den Frieden bricht, dem vertraut der Computer nicht mehr.
+  Farben: grün = eigen, blau = verbündet, gelb = Frieden, rot = Feind. Im Sonnensystem hat jede fremde Heimat einen
+  Ring in der Farbe ihres Volkes.
 - **Truppen:** Forschung „Laserwaffen“ → Kaserne (Tab _Militär_) → Raumsoldaten bauen.
   Mit „Panzerung“ und Fahrzeugfabrik gibt es Panzer.
 - **Truppen steuern:** Einheit antippen, dann Boden antippen = hinlaufen (sie kämpfen unterwegs).
@@ -86,8 +94,10 @@ Neue Version holen: `git pull` und dann wieder `bun run dev`.
   zurück. Transportschiffe werden bei der Landung beschossen. Eigene Flotte hinschicken = Blockade brechen.
 - **Angriff aus dem Orbit:** Kreuzer mit der Forschung „Orbitallaser“ schießen von oben auf Gebäude, wenn keine
   feindliche Flotte dort ist. Dagegen helfen: eigene Flotte, **Orbitalkanone** (schießt ins All) und Schilde.
-- **Sieg:** Zerstört die Haupt-Kuppel des Gegners (Brutkern oder Kommando-Kuppel). Verliert ihr eure, ist das Spiel vorbei.
-- **Einstellungen (Menü ☰):** Geräusche, Musik, Stärke des Gegners, „Angriffe, auch wenn keiner spielt“ (Standard: aus).
+- **Sieg:** Zerstört die Haupt-Kuppel (Brutkern oder Kommando-Kuppel) jedes Volkes, das nicht mit euch verbündet ist.
+  Ein besiegtes Volk ist raus, seine Basis zerfällt. Sind nur noch ihr und eure Verbündeten übrig, habt ihr gewonnen.
+  Verliert ihr eure Haupt-Kuppel, ist das Spiel vorbei.
+- **Einstellungen (Menü ☰):** Geräusche, Musik, Stärke der Gegner, „Angriffe, auch wenn keiner spielt“ (Standard: aus).
 - **⏩ x1 / x10 / x100:** Test-Geschwindigkeit, damit man nicht lange warten muss.
 - Das Spiel speichert alle 2 Minuten und läuft weiter, wenn es zu ist.
 

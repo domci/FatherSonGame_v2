@@ -37,7 +37,10 @@ export interface SolarSystem {
   bodies: Body[];
   belt: AsteroidBelt;
   homeBodyId: string;
+  /** Home of the first computer side. */
   alienBodyId: string;
+  /** Home planets by side order: [player, ai, ai2, ai3]. */
+  homes: string[];
 }
 
 export const BELT_ID = 'belt';
@@ -109,11 +112,32 @@ function ensureGasPlanet(bodies: Body[]): void {
   outer.radius = Math.round(outer.radius * 2.4 * 100) / 100;
 }
 
-/** Makes a random solar system. Same seed = same system. */
-export function generateSolarSystem(seed: number): SolarSystem {
+/** Rocky planets inside the belt (the homes) and the planets outside of it. */
+function layout(rng: Rng, sides: number): { count: number; beltIndex: number } {
+  if (sides <= 2) {
+    const count = rng.int(5, 8);
+    return { count, beltIndex: rng.int(2, 3) };
+  }
+  // More sides: one rocky planet more per side (old saves with 2 sides stay the same).
+  return { count: rng.int(5, 8) + sides - 2, beltIndex: sides };
+}
+
+/** Player home = the last rocky planet, the computer sides take the others from the sun out. */
+function homesOf(bodies: Body[], sides: number): string[] {
+  const rocky = bodies.filter((b) => b.kind === 'rocky');
+  const home = rocky[rocky.length - 1] ?? bodies[0];
+  if (!home) throw new Error('Solar system without planets');
+  const others = rocky.filter((b) => b !== home);
+  const fallback = bodies[bodies.length - 1] ?? home;
+  const out = [home.id];
+  for (let i = 0; i < Math.max(1, sides - 1); i++) out.push((others[i] ?? fallback).id);
+  return out;
+}
+
+/** Makes a random solar system. Same seed and sides = same system. */
+export function generateSolarSystem(seed: number, sides = 2): SolarSystem {
   const rng = createRng(seed ^ 0x5eed);
-  const count = rng.int(5, 8);
-  const beltIndex = rng.int(2, 3);
+  const { count, beltIndex } = layout(rng, sides);
   const bodies: Body[] = [];
   const names = new Set<string>();
   let radius = rng.range(9, 12);
@@ -128,11 +152,9 @@ export function generateSolarSystem(seed: number): SolarSystem {
     radius += rng.range(5, 8) + (i > beltIndex ? 3 : 0);
   }
   ensureGasPlanet(bodies);
-  const rocky = bodies.filter((b) => b.kind === 'rocky');
-  const home = rocky[rocky.length - 1] ?? bodies[0];
-  const alien = rocky.find((b) => b !== home) ?? bodies[bodies.length - 1];
-  if (!home || !alien) throw new Error('Solar system without planets');
-  return { seed, sunRadius: 4, bodies, belt, homeBodyId: home.id, alienBodyId: alien.id };
+  const homes = homesOf(bodies, sides);
+  const [homeBodyId = '', alienBodyId = ''] = homes;
+  return { seed, sunRadius: 4, bodies, belt, homeBodyId, alienBodyId, homes };
 }
 
 /** Position of a body at a game time. Sun is at (0, 0). */

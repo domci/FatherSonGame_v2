@@ -148,7 +148,7 @@ export const DIFFICULTY_NAMES: Record<Difficulty, string> = {
 
 /** One line per level for the new game dialog. */
 export const DIFFICULTY_HELP: Record<Difficulty, string> = {
-  easy: 'Der Gegner bleibt hinter euch zurück und greift erst spät und schwach an.',
-  normal: 'Der Gegner wächst etwas langsamer als ihr. Angriffe erst, wenn ihr bereit seid.',
-  hard: 'Der Gegner hält mit euch mit und greift früher an.',
+  easy: 'Die Gegner bleiben hinter euch zurück und greifen erst spät und schwach an.',
+  normal: 'Die Gegner wachsen etwas langsamer als ihr. Angriffe erst, wenn ihr bereit seid.',
+  hard: 'Die Gegner halten mit euch mit und greifen früher an.',
 };

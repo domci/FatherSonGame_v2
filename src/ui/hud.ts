@@ -25,6 +25,7 @@ export interface HudActions {
   openMenu(): void;
   openColony(): void;
   openQuiz(): void;
+  openPeoples(): void;
 }
 
 /** Top bar: resources and status on the left, views and menu on the right. */
@@ -36,12 +37,19 @@ export class Hud {
   private moodIcon = icon('smile', '#5fe08a');
   private moodShown = '';
   private quizButton = el('button', { class: 'seg-btn', title: 'Wissens-Quiz' }, icon('brain'));
+  private peoplesButton = el(
+    'button',
+    { class: 'seg-btn', title: 'Völker: Krieg, Frieden, Bündnis' },
+    icon('handshake'),
+  );
 
   constructor(
     private session: Session,
     actions: HudActions,
   ) {
     this.quizButton.onclick = () => actions.openQuiz();
+    this.peoplesButton.onclick = () => actions.openPeoples();
+    this.peoplesButton.hidden = !session.state.settings.opponent;
     this.root.append(
       this.resBar(actions),
       el('div', { class: 'hud-right' }, this.navBar(actions), this.toolBar(actions)),
@@ -82,6 +90,7 @@ export class Hud {
     return el(
       'div',
       { class: 'panel seg' },
+      this.peoplesButton,
       this.quizButton,
       el(
         'button',
@@ -117,6 +126,9 @@ export class Hud {
     this.set('housing', `${stats.housingUsed}/${stats.housing}`, full ? 'warn' : '');
     this.colony(player.colony, stats);
     this.quizButton.classList.toggle('quiz-ready', quizStatus(player.quiz, s.state.time).ready);
+    const offer = s.state.offers.some((o) => o.to === 'player');
+    this.peoplesButton.classList.toggle('offer-open', offer);
+    this.peoplesButton.classList.toggle('on', s.ui.panel === 'peoples');
     for (const [name, b] of this.viewButtons) b.classList.toggle('on', name === s.ui.view);
     this.speedLabel.textContent = `x${s.speed}`;
   }

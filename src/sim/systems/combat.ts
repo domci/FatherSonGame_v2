@@ -1,6 +1,7 @@
 import { sendTo } from '../commands/units';
 import type { Entity } from '../entity';
 import { canHit, layerOf } from '../layers';
+import { hostile } from '../relations';
 import { findEntity } from '../spawn';
 import type { GameState } from '../state';
 import { dealDamage, hitDamage } from './damage';
@@ -48,7 +49,7 @@ function mayScan(state: GameState, unit: Entity): boolean {
 function autoTarget(state: GameState, unit: Entity, targets: Targets): Entity | undefined {
   if (!unit.attacker || !unit.zone || !mayScan(state, unit)) return undefined;
   const reach = unit.building ? unit.attacker.range : aggroRange(unit);
-  const found = nearestEnemy(unit, reach, targets.get(unit.zone) ?? []);
+  const found = nearestEnemy(state, unit, reach, targets.get(unit.zone) ?? []);
   if (found) {
     unit.attacker.targetId = found.id;
     if (unit.mover) state.world.removeComponent(unit, 'mover');
@@ -56,13 +57,17 @@ function autoTarget(state: GameState, unit: Entity, targets: Targets): Entity | 
   return found;
 }
 
+/** Can the unit still fight this target (same planet, reachable layer, still at war)? */
+function stillValid(state: GameState, unit: Entity, target: Entity | undefined): target is Entity {
+  if (!target?.health || target.zone !== unit.zone || target.aboard) return false;
+  return canHit(unit, target) && hostile(state, unit.owner, target.owner);
+}
+
 function currentTarget(state: GameState, unit: Entity, targets: Targets): Entity | undefined {
   if (!unit.attacker) return undefined;
   const id = unit.attacker.targetId;
   const target = id === undefined ? undefined : findEntity(state, id);
-  const valid =
-    target?.health && target.zone === unit.zone && !target.aboard && canHit(unit, target);
-  if (target && valid) {
+  if (stillValid(state, unit, target)) {
     const tooFar =
       unit.building && unit.position && distanceTo(unit.position, target) > unit.attacker.range;
     if (!tooFar) return target;

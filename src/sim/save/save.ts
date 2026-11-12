@@ -2,14 +2,16 @@ import { World } from 'miniplex';
 import type { Entity, PlayerId } from '../entity';
 import { generateSolarSystem } from '../generation/solar-system';
 import { generateSurface } from '../generation/surface';
-import { ensureOpponent } from '../setup';
+import { ensureOpponents, homeCount } from '../setup';
 import {
   SAVE_VERSION,
   type AiState,
   type GameEvent,
   type GameSettings,
   type GameState,
+  type Offer,
   type PlayerState,
+  type Relation,
 } from '../state';
 import { migrate } from './migrations';
 
@@ -33,6 +35,8 @@ export interface SaveData {
   events: GameEvent[];
   settings: GameSettings;
   ai: Partial<Record<PlayerId, AiState>>;
+  relations: Record<string, Relation>;
+  offers: Offer[];
   winner?: PlayerId;
 }
 
@@ -50,6 +54,8 @@ export function toSaveData(state: GameState, savedAt: number): SaveData {
     events: state.events,
     settings: state.settings,
     ai: state.ai,
+    relations: state.relations,
+    offers: state.offers,
     winner: state.winner,
   });
 }
@@ -65,14 +71,16 @@ export function fromSaveData(raw: unknown): GameState {
     time: data.time,
     world: new World<Entity>(clone(data.entities)),
     players: clone(data.players),
-    system: generateSolarSystem(data.seed),
+    system: generateSolarSystem(data.seed, homeCount(data.settings)),
     surfaces,
     events: clone(data.events),
     settings: clone(data.settings),
     ai: clone(data.ai),
+    relations: clone(data.relations),
+    offers: clone(data.offers),
     winner: data.winner,
     marks: [],
   };
-  if (state.settings.opponent) ensureOpponent(state);
+  ensureOpponents(state);
   return state;
 }

@@ -1,14 +1,15 @@
 import { applyCommand } from '../commands';
 import type { Entity, PlayerId } from '../entity';
 import { weaponHits } from '../layers';
-import { enemyOf } from '../names';
 import { hasResearch } from '../research-helpers';
+import { hostileSides } from '../relations';
 import { blockers, shipsAt, warships } from '../space/places';
 import type { AiState, GameState, PlayerState } from '../state';
-import { tuningOf, type AiOptions } from './attack';
+import { tuningOf } from './attack';
+import { nextTarget, rivalOf, type AiOptions } from './targets';
 import { trainUnit } from './economy';
 import { buildingsOf, unitCount } from './queries';
-import { progressOf, sumPower, unitPower } from './strength';
+import { sumPower, unitPower } from './strength';
 
 /** Never more war ships than this (keeps long games fast). */
 const MAX_SHIPS = 12;
@@ -29,6 +30,11 @@ export function defenseAt(state: GameState, owner: PlayerId, place: string): num
   return sumPower(shipsAt(state, place, owner)) + sumPower(cannons);
 }
 
+/** War ships and cannons of all sides at war with `owner` at a place. */
+function hostileDefenseAt(state: GameState, owner: PlayerId, place: string): number {
+  return hostileSides(state, owner).reduce((s, id) => s + defenseAt(state, id, place), 0);
+}
+
 function lifeShare(ships: Entity[]): number {
   const hp = ships.reduce((s, e) => s + (e.health?.hp ?? 0), 0);
   const max = ships.reduce((s, e) => s + (e.health?.max ?? 0), 0);
@@ -38,7 +44,7 @@ function lifeShare(ships: Entity[]): number {
 /** The fleet may be at most a share of the enemy's fleet and orbital cannons. */
 function fleetLimit(state: GameState, player: PlayerState, ai: AiState): number {
   if (ai.free) return Infinity;
-  const enemy = enemyOf(player.id);
+  const enemy = rivalOf(state, player.id);
   const cannons = buildingsOf(state, enemy).filter((b) => weaponHits(b) === 'space');
   const theirs = sumPower(fleetOf(state, enemy)) + sumPower(cannons);
   return Math.max(2 * unitPower('spaceFighter'), tuningOf(state, ai).armyShare * theirs);
@@ -56,11 +62,15 @@ export function trainFleet(state: GameState, player: PlayerState, ai: AiState): 
     trainUnit(state, player, 'spaceFighter');
 }
 
-/** Same rules as the ground attacks: not too early, only against an enemy at a similar level. */
-function mayRaid(state: GameState, ai: AiState, enemy: PlayerState, opts: AiOptions): boolean {
-  if (opts.offline && !state.settings.offlineAttacks) return false;
-  if (ai.waves === 0 && state.time < ai.nextAttackAt) return false;
-  return !!ai.free || progressOf(state, enemy.id) >= tuningOf(state, ai).minPlayerProgress;
+/** Same rules as the ground attacks: not before the first attack time, same next target. */
+function raidTarget(
+  state: GameState,
+  player: PlayerState,
+  ai: AiState,
+  opts: AiOptions,
+): PlayerState | undefined {
+  if (ai.waves === 0 && state.time < ai.nextAttackAt) return undefined;
+  return nextTarget(state, player, ai, opts);
 }
 
 /** Where the enemy's mining ships work most. */
@@ -85,7 +95,8 @@ function blockedMining(state: GameState, owner: PlayerId): string | undefined {
 /** Attack goal: the enemy home from orbit (with the Orbitallaser), else block its mining. */
 function raidGoal(state: GameState, player: PlayerState, enemy: PlayerState): string | undefined {
   const power = sumPower(fleetOf(state, player.id));
-  const strong = (place: string): boolean => power >= ADVANTAGE * defenseAt(state, enemy.id, place);
+  const strong = (place: string): boolean =>
+    power >= ADVANTAGE * hostileDefenseAt(state, player.id, place);
   if (hasResearch(state, player.id, 'orbitalLaser') && strong(enemy.homeBodyId))
     return enemy.homeBodyId;
   const mining = enemyMining(state, enemy.id);
@@ -95,13 +106,12 @@ function raidGoal(state: GameState, player: PlayerState, enemy: PlayerState): st
 function goal(state: GameState, player: PlayerState, ai: AiState, opts: AiOptions): string {
   const home = player.homeBodyId;
   const ships = fleetOf(state, player.id);
-  const enemy = state.players[enemyOf(player.id)];
-  if (!enemy || lifeShare(ships) < RETREAT_AT || blockers(state, player.id, home).length)
-    return home;
+  if (lifeShare(ships) < RETREAT_AT || blockers(state, player.id, home).length) return home;
   const blocked = blockedMining(state, player.id);
-  if (blocked && sumPower(ships) >= ADVANTAGE * defenseAt(state, enemy.id, blocked)) return blocked;
-  if (ships.length < 2 || !mayRaid(state, ai, enemy, opts)) return home;
-  return raidGoal(state, player, enemy) ?? home;
+  if (blocked && sumPower(ships) >= ADVANTAGE * hostileDefenseAt(state, player.id, blocked))
+    return blocked;
+  const enemy = ships.length < 2 ? undefined : raidTarget(state, player, ai, opts);
+  return (enemy && raidGoal(state, player, enemy)) ?? home;
 }
 
 /** The fleet waits at home, breaks blockades, blocks the enemy's mining or attacks from orbit. */

@@ -12,6 +12,7 @@ import { findEntity } from '../spawn';
 import { playerStats } from '../stats';
 import type { GameState } from '../state';
 import { pay } from '../wallet';
+import { hostile } from '../relations';
 import { fail, OK, type CommandResult } from './result';
 
 export interface MoveCommand {
@@ -106,6 +107,7 @@ export function attack(state: GameState, cmd: AttackCommand): CommandResult {
   const target = findEntity(state, cmd.targetId);
   if (!target?.health || target.owner === cmd.player || target.aboard)
     return fail('Kein gültiges Ziel.');
+  if (!hostile(state, cmd.player, target.owner)) return fail('Mit diesem Volk ist kein Krieg.');
   const fighters = ownUnits(state, cmd.player, cmd.unitIds).filter((u) => u.attacker);
   if (fighters.length === 0) return fail('Diese Einheiten können nicht kämpfen.');
   const able = fighters.filter((u) => canHit(u, target));

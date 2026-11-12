@@ -8,10 +8,9 @@ import { pauseMenu } from '../ui/main-menu';
 import { Bars } from '../ui/bars';
 import { ArmyBar } from '../ui/army-bar';
 import { levelPicker, toggleRow } from '../ui/menu-kit';
-import { endScreen } from '../ui/end-screen';
+import { endScreen, endText } from '../ui/end-screen';
 import { openQuiz } from '../ui/quiz';
 import { MissionCard } from '../ui/mission-card';
-import { otherFaction } from '../content/factions';
 import type { Sound } from '../audio/sound';
 import type { ViewManager } from '../render/view-manager';
 import type { Session } from './session';
@@ -26,7 +25,7 @@ function settingRows(session: Session, sound: Sound): HTMLElement[] {
     ),
     toggleRow(
       'Angriffe, auch wenn keiner spielt',
-      'Aus: Der Feind greift nur an, wenn ihr spielt.',
+      'Aus: Die Gegner greifen nur an, wenn ihr spielt.',
       session.state.settings.offlineAttacks,
       (on) => session.command({ type: 'settings', player: 'player', offlineAttacks: on }),
     ),
@@ -71,8 +70,7 @@ function watchEnd(root: HTMLElement, session: Session, onQuit: () => void): () =
     const winner = session.state.winner;
     if (!winner || shown) return;
     shown = true;
-    const faction = session.ui.faction;
-    const screen = endScreen(winner === 'player', faction, otherFaction(faction), {
+    const screen = endScreen(winner === 'player', endText(session.state), {
       menu: () => void session.save().then(onQuit),
       watch: () => screen.remove(),
     });
@@ -101,6 +99,7 @@ export function buildUi(root: HTMLElement, session: Session, d: UiDeps): GameUi 
     openMenu: () => openMenu(root, session, d.sound, d.onQuit),
     openColony: () => session.openPanel('colony'),
     openQuiz: () => openQuiz(root, session),
+    openPeoples: () => session.openPanel('peoples'),
   });
   const parts = [
     hud,

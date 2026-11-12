@@ -1,4 +1,6 @@
 import { aiSystem } from './ai/brain';
+import { defeatSystem } from './defeat';
+import { diplomacySystem } from './diplomacy';
 import { constructionSystem, trainingSystem } from './systems/construction';
 import { colonySystem } from './systems/colony';
 import { missionSystem } from './systems/mission';
@@ -31,6 +33,8 @@ const LIVE: StepOptions = { offline: false };
 /** Things that follow the clock (timers, production, the computer's plans). Also used offline. */
 export function economyStep(state: GameState, dtMs: number, opts: StepOptions = LIVE): void {
   state.time += dtMs;
+  defeatSystem(state);
+  diplomacySystem(state);
   constructionSystem(state);
   trainingSystem(state);
   researchSystem(state);

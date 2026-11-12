@@ -2,6 +2,7 @@ import { BUILDINGS } from '../../content/buildings';
 import { UNITS } from '../../content/units';
 import type { Entity } from '../entity';
 import { canHit } from '../layers';
+import { hostile } from '../relations';
 import type { GameState } from '../state';
 
 /** Distance from a point to the edge of a target (buildings are big). */
@@ -18,8 +19,9 @@ export function canBeHit(e: Entity): boolean {
   return !e.ship || e.ship.phase === 'docked' || e.ship.phase === 'landed';
 }
 
-export function isEnemy(a: Entity, b: Entity): boolean {
-  return !!a.owner && !!b.owner && a.owner !== b.owner && a.zone === b.zone && canBeHit(b);
+/** Is b an enemy of a that a may shoot at? Only sides at war (and the wild spiders) fight. */
+export function isEnemy(state: GameState, a: Entity, b: Entity): boolean {
+  return a.zone === b.zone && hostile(state, a.owner, b.owner) && canBeHit(b);
 }
 
 /** Units notice enemies a bit further away than they can shoot. */
@@ -48,6 +50,7 @@ export function targetsByZone(state: GameState): Map<string, Entity[]> {
 
 /** Closest enemy worth shooting within maxDist. Eggs and nests only on purpose. */
 export function nearestEnemy(
+  state: GameState,
   unit: Entity,
   maxDist: number,
   candidates: readonly Entity[],
@@ -56,7 +59,7 @@ export function nearestEnemy(
   let best: Entity | undefined;
   let bestScore = Infinity;
   for (const other of candidates) {
-    if (!isEnemy(unit, other) || !canHit(unit, other)) continue;
+    if (!isEnemy(state, unit, other) || !canHit(unit, other)) continue;
     const d = distanceTo(unit.position, other);
     if (d > maxDist) continue;
     const s = score(unit, other, d);

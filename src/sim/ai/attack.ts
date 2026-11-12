@@ -3,17 +3,15 @@ import { UNITS } from '../../content/units';
 import { applyCommand } from '../commands';
 import { addEvent } from '../game';
 import type { Entity, PlayerId } from '../entity';
-import { enemyOf } from '../names';
 import type { AiState, GameState, PlayerState } from '../state';
 import { housingOf, isFighter, unitsOf } from './queries';
 import { homeDefense, powerOf, progressOf, sumPower } from './strength';
+import { nextTarget, type AiOptions } from './targets';
 
 /** Biggest attack wave (housing). One transport carries 10. */
 const MAX_WAVE = 30;
 
-export interface AiOptions {
-  offline: boolean;
-}
+export type { AiOptions } from './targets';
 
 export function tuningOf(state: GameState, ai: AiState): AiTuning {
   return AI_TUNING[ai.difficulty ?? state.settings.difficulty];
@@ -43,7 +41,7 @@ export function wavePowerLimit(state: GameState, ai: AiState, enemy: PlayerState
 }
 
 /** Picks the strongest units that fit the wave. The weakest `defenders` stay home. */
-function pickRiders(army: Entity[], keep: number, housing: number, power: number): Entity[] {
+export function pickRiders(army: Entity[], keep: number, housing: number, power: number): Entity[] {
   const sorted = [...army].sort((a, b) => powerOf(b) - powerOf(a));
   const free = sorted.slice(0, Math.max(0, sorted.length - keep));
   const riders: Entity[] = [];
@@ -79,21 +77,15 @@ export function sendShips(
   return sent;
 }
 
-/** May the computer attack now? Not too early, and only an enemy at a similar level. */
-function mayAttack(state: GameState, ai: AiState, enemy: PlayerState, opts: AiOptions): boolean {
-  if (state.time < ai.nextAttackAt || (opts.offline && !state.settings.offlineAttacks))
-    return false;
-  return ai.free || progressOf(state, enemy.id) >= tuningOf(state, ai).minPlayerProgress;
-}
-
 export function launchAttack(
   state: GameState,
   player: PlayerState,
   ai: AiState,
   opts: AiOptions,
 ): void {
-  const enemy = state.players[enemyOf(player.id)];
-  if (!enemy || !mayAttack(state, ai, enemy, opts)) return;
+  if (state.time < ai.nextAttackAt) return;
+  const enemy = nextTarget(state, player, ai, opts);
+  if (!enemy) return;
   const t = tuningOf(state, ai);
   const size = waveSize(state, ai);
   const limit = wavePowerLimit(state, ai, enemy);

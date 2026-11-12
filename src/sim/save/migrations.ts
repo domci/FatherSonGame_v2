@@ -1,4 +1,7 @@
+import { SIDE_COLORS } from '../../content/sides';
 import { newColony } from '../colony';
+import { AI_IDS, type SideId } from '../entity';
+import { sideName } from '../setup';
 import { newQuiz } from '../quiz';
 import { newMission } from '../systems/mission';
 import { SAVE_VERSION, type MissionState } from '../state';
@@ -17,7 +20,39 @@ const MIGRATIONS: Record<number, (old: Record<string, unknown>) => Record<string
   }),
   // M5: people in the domes, the knowledge quiz and the first mission.
   2: (old) => ({ ...old, players: withM5(old.players) }),
+  // M6: many peoples. Old games have one computer side; everybody is at war.
+  3: (old) => ({
+    ...old,
+    settings: withOpponents(old.settings),
+    players: withNames(old.players),
+    relations: {},
+    offers: [],
+  }),
 };
+
+function withOpponents(settings: unknown): Record<string, unknown> {
+  const s = isRecord(settings) ? settings : {};
+  return { ...s, opponents: s.opponent === false ? 0 : 1 };
+}
+
+function withNames(players: unknown): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (!isRecord(players)) return out;
+  for (const [id, p] of Object.entries(players)) {
+    if (!isRecord(p) || !isSideId(id)) out[id] = p;
+    else
+      out[id] = {
+        name: sideName(id, p.faction === 'human' ? 'human' : 'alien'),
+        color: SIDE_COLORS[id],
+        ...p,
+      };
+  }
+  return out;
+}
+
+function isSideId(id: string): id is SideId {
+  return id === 'player' || (AI_IDS as readonly string[]).includes(id);
+}
 
 function withM5(players: unknown): Record<string, unknown> {
   const out: Record<string, unknown> = {};

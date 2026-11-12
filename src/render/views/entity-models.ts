@@ -85,11 +85,9 @@ export function makeModel(e: Entity, faction: Faction): Object3D {
   return m;
 }
 
-export function selectionRing(enemy = false): Mesh {
-  const ring = new Mesh(
-    new RingGeometry(0.5, 0.6, 40),
-    solidMaterial(enemy ? 0xff5d6c : 0x7cff6b, { glow: 2 }),
-  );
+/** Ring under a selected thing, in the color of its relation to the player. */
+export function selectionRing(color = 0x7cff6b): Mesh {
+  const ring = new Mesh(new RingGeometry(0.5, 0.6, 40), solidMaterial(color, { glow: 2 }));
   ring.rotation.x = -Math.PI / 2;
   ring.position.y = 0.06;
   ring.name = 'selection';

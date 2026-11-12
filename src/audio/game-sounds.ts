@@ -1,9 +1,21 @@
 import type { GameState, Mark } from '../sim/state';
+import type { Entity } from '../sim/entity';
 import { factionOf } from '../sim/names';
+import { hostile } from '../sim/relations';
 import type { Sound, SfxName } from './sound';
 
 const FRESH_MS = 400;
 const BATTLE_HOLD_MS = 8000;
+
+/**
+ * Battle music: an enemy shoots where the player looks or at the player's home,
+ * or an own building shoots. Fights between other peoples far away stay quiet.
+ */
+function nearFight(state: GameState, e: Entity, zone: string): boolean {
+  if (e.building && e.owner === 'player') return true;
+  if (!hostile(state, 'player', e.owner) || e.owner === 'wild') return false;
+  return e.zone === zone || e.zone === state.players.player?.homeBodyId;
+}
 
 const MARK_SOUND: Record<Mark['kind'], { name: SfxName; volume: number }> = {
   unit: { name: 'impact', volume: 0.5 },
@@ -38,7 +50,7 @@ export class GameSounds {
       if (!shot || this.lastShot.get(e.id) === shot.at) continue;
       this.lastShot.set(e.id, shot.at);
       if (state.time - shot.at > FRESH_MS || e.owner === 'wild') continue;
-      if (e.owner === 'ai' || e.building) this.fightUntil = state.time + BATTLE_HOLD_MS;
+      if (nearFight(state, e, zone)) this.fightUntil = state.time + BATTLE_HOLD_MS;
       if (e.zone !== zone) continue;
       const alien = factionOf(state, e.owner) === 'alien';
       this.sound.play('shoot', { volume: 0.25, rate: alien ? 0.72 : 1.1 });

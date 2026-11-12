@@ -4,7 +4,8 @@ import type { Faction } from '../content/factions';
 import type { ResearchId } from '../content/research';
 import type { NeedId } from '../content/colony';
 import type { ResourceAmounts } from '../content/resources';
-import type { Entity, PlayerId } from './entity';
+import type { Entity, PlayerId, SideId } from './entity';
+import type { RelationKind } from '../content/sides';
 import type { SolarSystem } from './generation/solar-system';
 import type { SurfaceMap } from './generation/surface';
 
@@ -55,7 +56,7 @@ export interface MissionState {
 }
 
 export interface PlayerState {
-  id: PlayerId;
+  id: SideId;
   faction: Faction;
   resources: ResourceAmounts;
   research: ResearchState;
@@ -63,6 +64,12 @@ export interface PlayerState {
   colony: ColonyState;
   quiz: QuizState;
   mission: MissionState;
+  /** Shown name ("Ihr", "Schwarm Xar"). */
+  name: string;
+  /** Color of the side (lists, labels), CSS hex. */
+  color: string;
+  /** Lost its main dome: out of the game (M6). */
+  defeated?: boolean;
   /** Fog of war: explored tiles per surface, one char per tile ('1' = seen). */
   explored?: Record<string, string>;
 }
@@ -78,6 +85,25 @@ export interface AiState {
   free?: boolean;
   /** Balancing runs only: time between two thoughts (a slower player). */
   thinkMs?: number;
+  /** Next time it thinks about peace, alliances and war. */
+  nextTalkAt?: number;
+  /** Sides that broke peace or an alliance with it: no alliance with them again. */
+  distrust?: SideId[];
+}
+
+/** Relation between two sides. No entry = war (everybody against everybody at the start). */
+export interface Relation {
+  kind: RelationKind;
+  /** Game time of the last change. */
+  since: number;
+}
+
+/** An offer of a computer side to the player (the player answers in the peoples window). */
+export interface Offer {
+  from: SideId;
+  to: SideId;
+  kind: 'peace' | 'alliance';
+  until: number;
 }
 
 export interface GameSettings {
@@ -86,6 +112,8 @@ export interface GameSettings {
   offlineAttacks: boolean;
   /** Is there a computer enemy? (false only in tests) */
   opponent: boolean;
+  /** Number of computer sides (1..3). */
+  opponents: number;
 }
 
 /** Short-lived marks for effects (explosions). Not saved. */
@@ -120,9 +148,12 @@ export interface GameState {
   events: GameEvent[];
   settings: GameSettings;
   ai: Partial<Record<PlayerId, AiState>>;
-  /** Set when the game is over. */
+  /** Relations by pair key (see sim/relations.ts). Missing = war. */
+  relations: Record<string, Relation>;
+  offers: Offer[];
+  /** Set when the game is over: 'player' = you (and your allies) won, else who beat you. */
   winner?: PlayerId;
   marks: Mark[];
 }
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;

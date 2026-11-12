@@ -3,12 +3,14 @@ import { FACTIONS, type Faction } from '../content/factions';
 import { thumb } from './build-menu';
 import { el } from './dom';
 import { icon } from './icons';
-import { levelPicker, toggleRow } from './menu-kit';
+import { levelPicker, opponentPicker, toggleRow } from './menu-kit';
 
 export interface NewGameChoice {
   faction: Faction;
   difficulty: Difficulty;
   offlineAttacks: boolean;
+  /** Computer peoples, 1..3. */
+  opponents: number;
 }
 
 function factionCard(f: Faction, pick: (f: Faction) => void): HTMLElement {
@@ -34,19 +36,12 @@ function factionPicker(choice: NewGameChoice): HTMLElement {
   return el('div', { class: 'faction-row' }, ...cards);
 }
 
-/** Choose people, difficulty and offline attacks before a new game starts. */
-export function newGameDialog(
+function dialogButtons(
+  choice: NewGameChoice,
   onStart: (c: NewGameChoice) => void,
   onBack: () => void,
 ): HTMLElement {
-  const choice: NewGameChoice = { faction: 'human', difficulty: 'easy', offlineAttacks: false };
-  const offline = toggleRow(
-    'Angriffe, auch wenn keiner spielt',
-    'Aus: Der Feind greift nur an, wenn ihr spielt.',
-    false,
-    (on) => (choice.offlineAttacks = on),
-  );
-  const buttons = el(
+  return el(
     'div',
     { class: 'dlg-buttons' },
     el('button', { class: 'm-item', onclick: () => onBack() }, icon('x'), el('span', {}, 'Zurück')),
@@ -56,6 +51,25 @@ export function newGameDialog(
       icon('rocket'),
       el('span', {}, "Los geht's"),
     ),
+  );
+}
+
+/** Choose people, opponents, difficulty and offline attacks before a new game starts. */
+export function newGameDialog(
+  onStart: (c: NewGameChoice) => void,
+  onBack: () => void,
+): HTMLElement {
+  const choice: NewGameChoice = {
+    faction: 'human',
+    difficulty: 'easy',
+    offlineAttacks: false,
+    opponents: 1,
+  };
+  const offline = toggleRow(
+    'Angriffe, auch wenn keiner spielt',
+    'Aus: Die Gegner greifen nur an, wenn ihr spielt.',
+    false,
+    (on) => (choice.offlineAttacks = on),
   );
   return el(
     'div',
@@ -67,9 +81,10 @@ export function newGameDialog(
       el('h2', {}, 'Wählt euer Volk'),
       factionPicker(choice),
       el('h4', { class: 'dlg-h' }, 'Gegner'),
+      opponentPicker(choice.opponents, (n) => (choice.opponents = n)),
       levelPicker(choice.difficulty, (d) => (choice.difficulty = d)),
       offline,
-      buttons,
+      dialogButtons(choice, onStart, onBack),
     ),
   );
 }

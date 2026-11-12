@@ -1,8 +1,10 @@
 import { RESOURCE_INFO } from '../content/resources';
 import { UNITS } from '../content/units';
 import type { Session } from '../app/session';
-import type { Entity } from '../sim/entity';
+import type { Entity, SideId } from '../sim/entity';
 import { BELT_ID, findBody } from '../sim/generation/solar-system';
+import { homeOwner, relationOf } from '../sim/relations';
+import { ownerLabel, relationLabel } from './panel-peoples';
 import { canViewSurface } from '../sim/visibility';
 import { el } from './dom';
 import { resourceIcon } from './icons';
@@ -51,15 +53,15 @@ const HINTS: Partial<Record<keyof typeof UNITS, string>> = {
   bomber: 'Wirft Bomben auf Gebäude und Bodentruppen. Verbraucht Gas. Flak ist gefährlich!',
 };
 
-function ownerLabel(e: Entity): string {
-  if (e.owner === 'wild') return 'Wildes Tier';
-  return e.owner === 'player' ? 'Einheit' : 'Feind';
-}
-
 export function unitPanel(session: Session, e: Entity): HTMLElement[] {
   if (!e.unit) return [];
   const def = UNITS[e.unit.type];
-  const out = [header(nameOfUnit(session.state, e.owner, def.id), ownerLabel(e))];
+  const out = [
+    header(
+      nameOfUnit(session.state, e.owner, def.id),
+      ownerLabel(session.state, e.owner, 'Einheit'),
+    ),
+  ];
   if (e.health)
     out.push(stat('heart', 'Leben', `${Math.ceil(e.health.hp)} / ${e.health.max}`, '#ff6b81'));
   if (e.attacker) out.push(stat('crosshair', 'Schaden', String(e.attacker.damage), '#ffb35a'));
@@ -106,20 +108,37 @@ export function bodyPanel(session: Session, bodyId: string): HTMLElement[] {
     out.push(stat('sun', 'Sonnenlicht', `${Math.round(body.solarFactor * 100)} %`, '#ffd25a'));
   out.push(...lookButton(session, bodyId), ...fleetRows(session, bodyId));
   if (bodyId === s.system.homeBodyId) return [...out, text('Euer Heimatplanet', 'p-text good')];
-  if (bodyId === s.players.ai?.homeBodyId)
-    out.push(text('Hier lebt der Feind!', 'p-text bad'), ...transportButtons(session, bodyId));
+  const owner = homeOwner(s, bodyId);
+  if (owner) out.push(...homeRows(session, owner, bodyId));
   return [...out, ...shipButtons(session, bodyId)];
 }
 
-/** "Look at the surface": home, a planet with own troops, or the enemy home with the radar. */
+/** Who lives on this planet, how you stand, and the transport buttons against enemies. */
+function homeRows(session: Session, owner: SideId, bodyId: string): HTMLElement[] {
+  const s = session.state;
+  const p = s.players[owner];
+  if (!p) return [];
+  const rel = relationLabel(s, owner);
+  const line = stat('flag', p.name, rel.name, rel.color);
+  if (p.defeated) return [line, text('Dieses Volk ist besiegt.', 'p-text muted')];
+  const war = relationOf(s, 'player', owner) === 'war';
+  return [
+    line,
+    text(
+      war ? 'Hier lebt ein Feind!' : 'Mit diesem Volk ist kein Krieg.',
+      war ? 'p-text bad' : 'p-text muted',
+    ),
+    ...(war ? transportButtons(session, bodyId) : []),
+  ];
+}
+
+/** "Look at the surface": home, a planet with own troops, or a foreign home with the radar. */
 function lookButton(session: Session, bodyId: string): HTMLElement[] {
   const s = session.state;
   if (canViewSurface(s, 'player', bodyId))
     return [action('eye', 'Oberfläche ansehen', { onclick: () => session.goZone(bodyId) })];
-  if (bodyId === s.players.ai?.homeBodyId)
-    return [
-      text('Die feindliche Basis seht ihr erst mit dem Fernradar (Forschung).', 'p-text muted'),
-    ];
+  if (homeOwner(s, bodyId))
+    return [text('Fremde Basen seht ihr erst mit dem Fernradar (Forschung).', 'p-text muted')];
   return [];
 }
 

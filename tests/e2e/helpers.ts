@@ -17,6 +17,7 @@ export interface Debug {
 export async function startNewGame(
   page: Page,
   faction: 'human' | 'alien' = 'human',
+  opponents = 1,
 ): Promise<string[]> {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -26,6 +27,7 @@ export async function startNewGame(
   await page.goto('/');
   await page.getByRole('button', { name: /Neues Spiel/ }).click();
   await page.locator(`[data-faction=${faction}]`).click();
+  if (opponents !== 1) await page.locator(`.seg-btn[data-value="${opponents}"]`).click();
   await page.getByRole('button', { name: /Los geht/ }).click();
   // The HUD appears after the loading screen (renderer + 3D models).
   await expect(page.locator('.hud')).toBeVisible({ timeout: 60_000 });

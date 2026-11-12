@@ -118,7 +118,7 @@ export const RESEARCH_LIST: readonly ResearchDef[] = [
   {
     id: 'radar',
     name: 'Fernradar',
-    description: 'Zeigt die Gebäude des Feindes. Ihr könnt auf seinen Planeten zoomen.',
+    description: 'Zeigt die Gebäude der anderen Völker. Ihr könnt auf ihre Heimatplaneten zoomen.',
     cost: { regolith: 1000, diamonds: 50, metal: 60 },
     stage: 4,
     labLevel: 3,

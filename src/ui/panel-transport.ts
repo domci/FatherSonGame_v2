@@ -2,6 +2,7 @@ import { UNITS } from '../content/units';
 import type { Session } from '../app/session';
 import type { Entity } from '../sim/entity';
 import { findBody } from '../sim/generation/solar-system';
+import { hostileSides } from '../sim/relations';
 import { passengers } from '../sim/transport';
 import { action, progress, stat, text } from './panel-kit';
 
@@ -19,21 +20,21 @@ function used(session: Session, ship: Entity): number {
 /** Where the transport can fly from where it is now. */
 function flyButtons(session: Session, ship: Entity, loaded: boolean): HTMLElement[] {
   const s = session.state;
-  const enemyHome = s.players.ai?.homeBodyId;
   const fly = (targetId: string): void =>
     void session.command({ type: 'fly', player: 'player', shipId: ship.id, targetId });
   if (ship.zone !== s.system.homeBodyId)
     return [
       action('plane-takeoff', 'Nach Hause fliegen', { onclick: () => fly(s.system.homeBodyId) }),
     ];
-  if (!enemyHome) return [];
-  return [
-    action('plane-takeoff', `Angriff: zu ${planetName(session, enemyHome)} fliegen`, {
+  return hostileSides(s, 'player').map((id) => {
+    const home = s.players[id]?.homeBodyId ?? '';
+    const who = s.players[id]?.name ?? 'Feind';
+    return action('plane-takeoff', `Angriff: zu ${planetName(session, home)} fliegen`, {
       disabled: !loaded,
-      title: loaded ? 'Die Truppen landen beim Feind.' : 'Erst Truppen einsteigen lassen.',
-      onclick: () => fly(enemyHome),
-    }),
-  ];
+      title: loaded ? `Die Truppen landen bei ${who}.` : 'Erst Truppen einsteigen lassen.',
+      onclick: () => fly(home),
+    });
+  });
 }
 
 /** Passengers, unload and fly buttons of a transport ship. */

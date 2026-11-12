@@ -24,28 +24,56 @@ export function toggleRow(
   );
 }
 
-/** Leicht / Mittel / Schwer with one help line for the chosen level. */
-export function levelPicker(current: Difficulty, onPick: (d: Difficulty) => void): HTMLElement {
-  const help = el('span', { class: 'tr-help' }, DIFFICULTY_HELP[current]);
-  const levels = (Object.keys(DIFFICULTY_NAMES) as Difficulty[]).map((d) =>
+/** A row of buttons; one is on. Shows the help line of the chosen one. */
+function segRow<T extends string | number>(
+  label: string,
+  options: readonly { value: T; text: string; help: string }[],
+  current: T,
+  onPick: (v: T) => void,
+): HTMLElement {
+  const helpOf = (v: T): string => options.find((o) => o.value === v)?.help ?? '';
+  const help = el('span', { class: 'tr-help' }, helpOf(current));
+  const buttons = options.map((o) =>
     el(
       'button',
       {
-        class: d === current ? 'seg-btn on' : 'seg-btn',
-        'data-level': d,
+        class: o.value === current ? 'seg-btn on' : 'seg-btn',
+        'data-value': String(o.value),
         onclick: () => {
-          levels.forEach((b) => b.classList.toggle('on', b.dataset.level === d));
-          help.textContent = DIFFICULTY_HELP[d];
-          onPick(d);
+          buttons.forEach((b) => b.classList.toggle('on', b.dataset.value === String(o.value)));
+          help.textContent = o.help;
+          onPick(o.value);
         },
       },
-      DIFFICULTY_NAMES[d],
+      o.text,
     ),
   );
   return el(
     'div',
     { class: 'toggle-row level-row' },
-    el('span', { class: 'tr-text' }, el('span', { class: 'tr-label' }, 'Stärke des Gegners'), help),
-    el('div', { class: 'panel seg' }, ...levels),
+    el('span', { class: 'tr-text' }, el('span', { class: 'tr-label' }, label), help),
+    el('div', { class: 'panel seg' }, ...buttons),
   );
+}
+
+const OPPONENT_HELP = [
+  'Ihr gegen ein anderes Volk.',
+  'Drei Völker: Frieden und Bündnisse werden wichtig.',
+  'Vier Völker in einem großen Sonnensystem.',
+];
+
+/** How many computer peoples: 1, 2 or 3. */
+export function opponentPicker(current: number, onPick: (n: number) => void): HTMLElement {
+  const options = OPPONENT_HELP.map((help, i) => ({ value: i + 1, text: String(i + 1), help }));
+  return segRow('Anzahl der Gegner', options, current, onPick);
+}
+
+/** Leicht / Mittel / Schwer with one help line for the chosen level. */
+export function levelPicker(current: Difficulty, onPick: (d: Difficulty) => void): HTMLElement {
+  const options = (Object.keys(DIFFICULTY_NAMES) as Difficulty[]).map((d) => ({
+    value: d,
+    text: DIFFICULTY_NAMES[d],
+    help: DIFFICULTY_HELP[d],
+  }));
+  return segRow('Stärke der Gegner', options, current, onPick);
 }

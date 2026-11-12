@@ -20,8 +20,3 @@ export function nameOfBuilding(
 export function nameOfUnit(state: GameState, owner: PlayerId | undefined, id: UnitId): string {
   return unitName(id, factionOf(state, owner));
 }
-
-/** The other side (player <-> ai). */
-export function enemyOf(owner: PlayerId): PlayerId {
-  return owner === 'player' ? 'ai' : 'player';
-}

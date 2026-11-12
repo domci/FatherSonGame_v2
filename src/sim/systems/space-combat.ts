@@ -1,7 +1,8 @@
 import { addEvent } from '../game';
 import type { Entity, PlayerId } from '../entity';
 import { weaponHits } from '../layers';
-import { enemyOf, nameOfUnit } from '../names';
+import { nameOfUnit } from '../names';
+import { hostile } from '../relations';
 import { warships } from '../space/places';
 import type { GameState } from '../state';
 import { dealDamage, hitDamage } from './damage';
@@ -42,11 +43,11 @@ function gather(state: GameState): Map<string, Place> {
 }
 
 /** War ships first, then the weakest. */
-function pick(targets: Entity[], enemy: PlayerId): Entity | undefined {
+function pick(state: GameState, targets: Entity[], shooter: PlayerId): Entity | undefined {
   let best: Entity | undefined;
   let bestScore = Infinity;
   for (const t of targets) {
-    if (t.owner !== enemy || !t.health) continue;
+    if (!t.health || !state.world.has(t) || !hostile(state, shooter, t.owner)) continue;
     const score = (t.orbit ? 0 : 1e6) + t.health.hp;
     if (score < bestScore) [best, bestScore] = [t, score];
   }
@@ -58,7 +59,8 @@ function report(state: GameState, dead: Entity, place: string): void {
   const name = nameOfUnit(state, dead.owner, dead.unit.type);
   const where = placeName(state, place);
   if (dead.owner === 'player') addEvent(state, `${name} bei ${where} zerstört!`, 'bad');
-  else addEvent(state, `Feind-${name} bei ${where} zerstört.`, 'good');
+  else if (hostile(state, 'player', dead.owner))
+    addEvent(state, `Feind-${name} bei ${where} zerstört.`, 'good');
 }
 
 function shoot(state: GameState, shooter: Entity, target: Entity, place: string): void {
@@ -76,10 +78,7 @@ export function spaceCombatSystem(state: GameState): void {
     for (const shooter of p.shooters) {
       const a = shooter.attacker;
       if (!a || !shooter.owner || a.readyAt > state.time || !state.world.has(shooter)) continue;
-      const target = pick(
-        p.targets.filter((t) => state.world.has(t)),
-        enemyOf(shooter.owner),
-      );
+      const target = pick(state, p.targets, shooter.owner);
       if (target) shoot(state, shooter, target, place);
       else delete a.targetId;
     }

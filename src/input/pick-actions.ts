@@ -1,6 +1,7 @@
 import { BUILDINGS } from '../content/buildings';
 import type { Session } from '../app/session';
 import { placementProblem } from '../sim/occupancy';
+import { hostile } from '../sim/relations';
 import { findEntity } from '../sim/spawn';
 import type { Pick } from '../render/views/view';
 
@@ -42,7 +43,7 @@ function onEntity(session: Session, id: number, additive: boolean): void {
   const target = findEntity(session.state, id);
   if (!target) return;
   const units = selectedUnits(session).filter((u) => u !== id);
-  if (target.owner !== 'player' && units.length > 0) {
+  if (hostile(session.state, 'player', target.owner) && units.length > 0) {
     session.command({ type: 'attack', player: 'player', unitIds: units, targetId: id });
     return;
   }

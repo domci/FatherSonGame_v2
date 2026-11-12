@@ -22,8 +22,11 @@ export interface UiState {
   /** Touch: the next drag draws a selection box. */
   boxMode?: boolean;
   /** A window that is not about a selected thing. */
-  panel?: 'colony';
+  panel?: PanelName;
 }
+
+/** Windows that are not about a selected thing. */
+export type PanelName = 'colony' | 'peoples';
 
 /** One running game in the browser: state + UI selection + saving. */
 export class Session {
@@ -56,7 +59,7 @@ export class Session {
   }
 
   /** Opens a window like the colony window (and clears the selection). */
-  openPanel(panel: 'colony'): void {
+  openPanel(panel: PanelName): void {
     this.select([]);
     this.ui.panel = panel;
   }

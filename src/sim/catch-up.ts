@@ -1,4 +1,5 @@
 import type { ResourceAmounts } from '../content/resources';
+import { hostile, isSide } from './relations';
 import type { GameState } from './state';
 import { economyStep, tick, TICK_MS, type StepOptions } from './update';
 
@@ -26,7 +27,9 @@ function invaders(state: GameState): number[] {
   const home = state.players.player?.homeBodyId;
   return state.world
     .with('unit')
-    .entities.filter((u) => u.owner === 'ai' && u.zone === home && u.attacker)
+    .entities.filter(
+      (u) => isSide(u.owner) && hostile(state, 'player', u.owner) && u.zone === home && u.attacker,
+    )
     .map((u) => u.id);
 }
 

@@ -8,6 +8,9 @@ export function textLabel(text: string, color = '#e8eef8'): Sprite {
   canvas.height = 96;
   if (ctx) {
     ctx.font = '600 44px system-ui, sans-serif';
+    // Long names ("Ganvos (Kolonie Nova)") get a smaller font so they fit.
+    const wide = ctx.measureText(text).width;
+    if (wide > 496) ctx.font = `600 ${Math.floor((44 * 496) / wide)}px system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'rgba(0,0,0,0.9)';

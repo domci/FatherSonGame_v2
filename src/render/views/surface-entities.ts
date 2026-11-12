@@ -6,6 +6,8 @@ import { BUILDINGS } from '../../content/buildings';
 import { factionOf } from '../../sim/names';
 import { visualHeight } from '../terrain-shape';
 import { makeModel, modelKey, selectionRing } from './entity-models';
+import { RELATION_COLORS } from '../../content/sides';
+import { relationOf } from '../../sim/relations';
 import { Animator, type Pose } from '../models/animator';
 import { kitAnimations } from '../models/kit';
 import { lookOf } from '../models/unit-models';
@@ -39,6 +41,12 @@ function tileOf(map: SurfaceMap, e: Entity): number {
   return Math.floor(p.y) * map.size + Math.floor(p.x);
 }
 
+/** Green for own things, red for enemies, yellow for peace, blue for allies. */
+function ringColor(state: GameState, owner: PlayerId | undefined): number {
+  const r = owner ? relationOf(state, 'player', owner) : 'peace';
+  return parseInt(RELATION_COLORS[r].slice(1), 16);
+}
+
 /** Own things always; other buildings once explored; other units only when in sight. */
 function isShown(map: SurfaceMap, e: Entity, sight: Sight | undefined): boolean {
   if (!sight || e.owner === 'player') return true;
@@ -68,6 +76,7 @@ export class SurfaceEntities {
       const shown = this.ensure(state, e);
       shown.obj.visible = isShown(this.map, e, sight);
       if (!shown.obj.visible) continue;
+      if (selected.has(e.id)) shown.obj.userData.ringColor = ringColor(state, e.owner);
       this.place(e, shown.obj, selected.has(e.id), state.time, sight);
       shown.animator?.set(poseOf(e));
       shown.animator?.update(dtMs / 1000);
@@ -169,7 +178,7 @@ export class SurfaceEntities {
   private toggleSelection(obj: Object3D, selected: boolean, e: Entity): void {
     const ring = obj.getObjectByName('selection');
     if (selected && !ring) {
-      const r = selectionRing(e.owner !== 'player');
+      const r = selectionRing(obj.userData.ringColor as number | undefined);
       r.scale.setScalar(e.building ? BUILDINGS[e.building.type].size * 0.7 : 0.9);
       if (e.unit?.type === 'drone') r.position.y = -1.3;
       if (flies(e)) r.position.y = -AIR_HEIGHT;

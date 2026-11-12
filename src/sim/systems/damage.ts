@@ -1,9 +1,10 @@
 import { BUILDINGS, buildingLevel } from '../../content/buildings';
-import { FACTIONS } from '../../content/factions';
 import { EGG_FOOD, SPIDER_FOOD, UNITS } from '../../content/units';
 import { addEvent } from '../game';
 import type { Entity, PlayerId } from '../entity';
-import { enemyOf, factionOf, nameOfBuilding } from '../names';
+import { defeat } from '../defeat';
+import { nameOfBuilding } from '../names';
+import { hostile, isSide } from '../relations';
 import { hasResearch } from '../research-helpers';
 import { findEntity } from '../spawn';
 import { playerStats } from '../stats';
@@ -71,19 +72,13 @@ function addMark(state: GameState, dead: Entity): void {
   });
 }
 
-function lostBuilding(state: GameState, dead: Entity, owner: PlayerId): void {
-  if (!dead.building) return;
+function lostBuilding(state: GameState, dead: Entity, owner: PlayerId, killer?: Entity): void {
+  if (!dead.building || !isSide(owner)) return;
   const type = dead.building.type;
-  if (type === 'commandDome') {
-    const winner = enemyOf(owner);
-    state.winner ??= winner;
-    const lost = FACTIONS[factionOf(state, owner)].core;
-    addEvent(state, `${lost} zerstört!`, owner === 'player' ? 'bad' : 'good');
-    return;
-  }
+  if (type === 'commandDome') return defeat(state, owner, killer?.owner);
   if (owner === 'player')
     addEvent(state, `${nameOfBuilding(state, owner, type)} wurde zerstört!`, 'bad');
-  else if (type !== 'wall' && type !== 'forceField')
+  else if (type !== 'wall' && type !== 'forceField' && hostile(state, 'player', owner))
     addEvent(state, `Feind: ${nameOfBuilding(state, owner, type)} zerstört.`, 'good');
 }
 
@@ -98,7 +93,7 @@ export function killed(state: GameState, dead: Entity, killer?: Entity): void {
     for (const p of state.world.with('aboard'))
       if (p.aboard.shipId === dead.id) state.world.remove(p);
   }
-  if (dead.owner && dead.owner !== 'wild') lostBuilding(state, dead, dead.owner);
+  if (dead.owner) lostBuilding(state, dead, dead.owner, killer);
   addMark(state, dead);
   state.world.remove(dead);
 }

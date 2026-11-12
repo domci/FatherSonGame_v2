@@ -3,7 +3,7 @@
 Jedes Arbeitspaket (AP) = **ein Pull Request**, ca. 1–3 Stunden Arbeit für Claude Code.
 Ein AP ist fertig, wenn alle Abnahmekriterien erfüllt sind und CI grün ist (siehe [05-arbeitsweise.md](05-arbeitsweise.md)).
 
-## Status (2026-11-11)
+## Status (2026-11-12)
 
 - **M0, M1, M2, M3: gebaut.** Erster Test von Dom und Sohn am 2026-11-09, Änderungen danach siehe
   [ADR 0005](../adr/0005-playtest-m3.md): Zoom ohne Schnitte über alle Planeten, Fernradar für die Feind-Basis,
@@ -11,7 +11,9 @@ Ein AP ist fertig, wenn alle Abnahmekriterien erfüllt sind und CI grün ist (si
 - **M4 (Luft und All): gebaut** am 2026-11-11, alle Pakete M4-1 bis M4-14. Entscheidungen:
   [ADR 0006](../adr/0006-m4-luft-und-all.md).
 - **M5 (Leben in der Kuppel): gebaut** am 2026-11-11, alle Pakete M5-1 bis M5-13. Entscheidungen:
-  [ADR 0007](../adr/0007-m5-leben-in-der-kuppel.md). Nächster Schritt: Testspiel von Dom und Sohn, dann Planung M6.
+  [ADR 0007](../adr/0007-m5-leben-in-der-kuppel.md).
+- **M6 (Viele Völker): gebaut** am 2026-11-12, alle Pakete M6-1 bis M6-12. Entscheidungen:
+  [ADR 0008](../adr/0008-m6-viele-voelker.md). Nächster Schritt: Testspiel von Dom und Sohn, dann Planung M7.
 - Abweichungen M3: „Wiederholung“ von Offline-Kämpfen ist ein **Kampf-Bericht** im „Während du weg warst“-Fenster
   (kein Video). Die KI sieht durch den Nebel (sie schummelt, wie in vielen Strategiespielen).
   Spinnen-Nester gibt es nur auf dem Heimatplaneten. Die Kommando-Kuppel hat einen kleinen Laser (gegen frühe Überfälle).
@@ -150,11 +152,26 @@ Dazu: Wissens-Quiz, Story mit erster Mission, mehr Leben im Bild. Details: [ADR 
 | M5-12 | Grafik | Bewohner laufen sichtbar durch die Tunnel (mehr Bewohner = mehr Leute), Dampf aus Anlagen, Bau-Bilder | Screenshots |
 | M5-13 | Spielstände | Alte Spielstände bekommen Bewohner, Quiz und Mission (Migration) | Test |
 
-## M6 – Viele Völker (grob)
+## M6 – Viele Völker
 
-- Mehrere KI-Gegner gleichzeitig, auch untereinander im Krieg.
-- Allianzen und Diplomatie (auch Menschen + Aliens).
-- Größere Sonnensysteme.
+Ziel: Bis zu drei Computer-Völker gleichzeitig. Sie kämpfen auch gegeneinander. Frieden und Bündnisse sind möglich,
+auch zwischen Menschen und Aliens. Mehr Völker = größeres Sonnensystem.
+Details: [ADR 0008](../adr/0008-m6-viele-voelker.md).
+
+| AP | Titel | Inhalt | Abnahme |
+|---|---|---|---|
+| M6-1 | Völker | Spieler + 1 bis 3 Computer-Völker (`ai`, `ai2`, `ai3`), je mit Name, Farbe, Volk (Menschen/Aliens gemischt) und eigenem Heimatplaneten | Tests |
+| M6-2 | Beziehungen | Krieg, Frieden oder Bündnis für jedes Paar. Am Anfang: alle gegen alle. Kampf, Wachen, Blockade, Orbit-Angriff nur gegen Völker im Krieg | Tests |
+| M6-3 | Bündnis | Verbündete sehen, was der andere sieht, und gewinnen zusammen | Tests |
+| M6-4 | Besiegt | Wer seine Haupt-Kuppel verliert, ist raus (seine Basis zerfällt). Sieg, wenn nur noch ihr und eure Verbündeten übrig seid | Tests |
+| M6-5 | Diplomatie | Befehle: Frieden anbieten, Bündnis anbieten, Bündnis beenden, Krieg erklären. Angebote der Computer annehmen oder ablehnen | Tests |
+| M6-6 | KI-Diplomatie | Computer antworten nach Regeln (Stärke, gemeinsamer Feind, Vertrauen) und machen selbst Angebote. Sie brechen nie ein Bündnis | Tests |
+| M6-7 | KI-Ziele | Angriffe und Flotten gehen an ein Volk im Krieg. Computer kämpfen auch gegeneinander. Der Druck auf euch wird geteilt, nicht verdreifacht | Simulations-Tests, Balancing |
+| M6-8 | Größere Systeme | 2 oder 3 Gegner = mehr Planeten, genug Heimatplaneten. Alte Spielstände bleiben gleich | Tests |
+| M6-9 | Neues Spiel | Anzahl der Gegner wählen (1 bis 3) | e2e |
+| M6-10 | Völker-Fenster | Alle Völker mit Farbe, Beziehung, Stärke und Knöpfen. Farben nach Beziehung (eigen, verbündet, Frieden, Feind) | e2e, Bilder |
+| M6-11 | Spielstände | Alte Spielstände bekommen Namen, Farben und Beziehungen (Migration) | Test |
+| M6-12 | Balancing | Läufe mit 3 Computer-Völkern: wie lange, wer gewinnt, wie oft trifft es den Spieler | Bericht |
 
 ## M7 – Online (grob)
 
