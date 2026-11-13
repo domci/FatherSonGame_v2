@@ -3,7 +3,7 @@
 Jedes Arbeitspaket (AP) = **ein Pull Request**, ca. 1–3 Stunden Arbeit für Claude Code.
 Ein AP ist fertig, wenn alle Abnahmekriterien erfüllt sind und CI grün ist (siehe [05-arbeitsweise.md](05-arbeitsweise.md)).
 
-## Status (2026-11-12)
+## Status (2026-11-13)
 
 - **M0, M1, M2, M3: gebaut.** Erster Test von Dom und Sohn am 2026-11-09, Änderungen danach siehe
   [ADR 0005](../adr/0005-playtest-m3.md): Zoom ohne Schnitte über alle Planeten, Fernradar für die Feind-Basis,
@@ -13,7 +13,10 @@ Ein AP ist fertig, wenn alle Abnahmekriterien erfüllt sind und CI grün ist (si
 - **M5 (Leben in der Kuppel): gebaut** am 2026-11-11, alle Pakete M5-1 bis M5-13. Entscheidungen:
   [ADR 0007](../adr/0007-m5-leben-in-der-kuppel.md).
 - **M6 (Viele Völker): gebaut** am 2026-11-12, alle Pakete M6-1 bis M6-12. Entscheidungen:
-  [ADR 0008](../adr/0008-m6-viele-voelker.md). Nächster Schritt: Testspiel von Dom und Sohn, dann Planung M7.
+  [ADR 0008](../adr/0008-m6-viele-voelker.md).
+- **M7 (Online): gebaut** am 2026-11-13 (läuft lokal mit 2 Browsern, e2e-Test). Hosting: Cloudflare statt Colyseus
+  (Dom hat entschieden). Entscheidungen: [ADR 0009](../adr/0009-m7-online.md). Nächster Schritt: online stellen
+  (`bun run deploy` mit den Cloudflare-Schlüsseln), dann Testspiel von Dom und Sohn auf zwei Geräten.
 - Abweichungen M3: „Wiederholung“ von Offline-Kämpfen ist ein **Kampf-Bericht** im „Während du weg warst“-Fenster
   (kein Video). Die KI sieht durch den Nebel (sie schummelt, wie in vielen Strategiespielen).
   Spinnen-Nester gibt es nur auf dem Heimatplaneten. Die Kommando-Kuppel hat einen kleinen Laser (gegen frühe Überfälle).
@@ -173,10 +176,10 @@ Details: [ADR 0008](../adr/0008-m6-viele-voelker.md).
 | M6-11 | Spielstände | Alte Spielstände bekommen Namen, Farben und Beziehungen (Migration) | Test |
 | M6-12 | Balancing | Läufe mit 3 Computer-Völkern: wie lange, wer gewinnt, wie oft trifft es den Spieler | Bericht |
 
-## M7 – Online (grob)
+## M7 – Online (grob; gebaut, siehe ADR 0009)
 
 - Dauerhafte Welt (läuft weiter, wenn man offline ist).
-- Server mit Colyseus, Login, Lobby.
+- Server ~~mit Colyseus~~ auf Cloudflare (Workers + Durable Objects), Konto ohne echte Daten, Lobby.
 - Simulation läuft auf dem Server, Clients schicken Befehle.
 - Schutz für neue Spieler, Stärke-Bereich für Angriffe.
 - Allianzen: gründen, Anfragen, Einladungen, gemeinsame Angriffe.

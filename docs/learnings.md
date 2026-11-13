@@ -72,3 +72,15 @@ Short notes when something went wrong or was surprising. Newest on top.
 - Vite lädt bei neuen Abhängigkeiten die Seite neu: in Playwright erst `networkidle` abwarten, dann auswerten.
 - Playwright `mouse.wheel` wartet auf ein Bild. Mit Software-Rendering wenige große Schritte nutzen, nicht viele
   kleine. Nach einem Klick auf einen Knopf die Maus wieder über die Zeichenfläche bewegen, sonst geht das Rad an den Knopf.
+
+## 2026-11-13 – M7 Online (Cloudflare)
+
+- `wrangler dev` (workerd) kennt keine Jurisdiction für Durable Objects: lokal `EU: "off"` (`wrangler.local.jsonc`).
+- Ein Workers-AI-Binding braucht auch in `wrangler dev` eine Cloudflare-Anmeldung. Lokal und in CI darum ohne AI
+  (`MODERATION: "rules"`).
+- Lockstep: Der Server muss nach jedem Snapshot seinen eigenen Stand auch aus dem Snapshot laden. Sonst ist die
+  innere Reihenfolge (Archetypen) anders als im Browser, und die Fingerabdrücke passen nicht.
+- Zwei Spiele im selben Headless-Chromium mit Software-Grafik sind langsam: Die Browser fallen Sekunden hinter den
+  Server zurück. Darum springt der Browser bei Rückstand weit vor (nicht nur ein Viertel pro Schritt). Im e2e kleine
+  Fenster nutzen.
+- Eine Sitzung sieht neue Variablen einer Cloud-Umgebung erst, wenn sie neu startet (neuer Thread).

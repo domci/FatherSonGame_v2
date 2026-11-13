@@ -12,7 +12,8 @@ Man kann als Menschen oder als Aliens spielen. Nach dem ersten Test: Zoom ohne S
 und ein Computer, der auf eurem Stand bleibt. **M4 (Luft und All):** Flugzeuge, Flugabwehr, Kampfschiffe,
 Blockaden und Angriffe aus dem Orbit. **M5 (Leben in der Kuppel):** Bewohner mit Bedürfnissen und Laune,
 Wissens-Quiz, Story und erste Mission. **M6 (Viele Völker):** bis zu drei Computer-Völker, die auch gegeneinander
-kämpfen. Frieden und Bündnisse sind möglich, auch zwischen Menschen und Aliens.
+kämpfen. Frieden und Bündnisse sind möglich, auch zwischen Menschen und Aliens. **M7 (Online):** eine Welt mit
+Freunden, die weiterläuft, auch wenn keiner spielt. Beitreten mit Welt-Code, Chat mit Prüfung, Melden, Eltern-Seite.
 
 ## Lokal starten (einmalig einrichten)
 
@@ -100,6 +101,20 @@ Neue Version holen: `git pull` und dann wieder `bun run dev`.
 - **Einstellungen (Menü ☰):** Geräusche, Musik, Stärke der Gegner, „Angriffe, auch wenn keiner spielt“ (Standard: aus).
 - **⏩ x1 / x10 / x100:** Test-Geschwindigkeit, damit man nicht lange warten muss.
 - Das Spiel speichert alle 2 Minuten und läuft weiter, wenn es zu ist.
+
+## Online spielen
+
+Im Startmenü: **„Online spielen“**. Einen Spielnamen aussuchen (keine E-Mail, kein Passwort), dann **„Neue Welt“**.
+Den **Welt-Code** (6 Zeichen, steht in der Lobby) dem Freund geben: Er tippt ihn bei „Mit Code beitreten“ ein.
+
+- **Konto auf anderem Gerät:** In der Lobby „Anderes Gerät“ zeigt einen Code. Auf dem anderen Gerät bei
+  „Online spielen“ → „Anmelden“ eintippen.
+- **Datenschutz:** Seite mit `#datenschutz` am Ende der Adresse. **Eltern-Seite** (gemeldete Nachrichten):
+  `#eltern`, Passwort = Server-Geheimnis `ADMIN_KEY`.
+- **Lokal testen:** `bun run server` startet Spiel und Welt-Server auf <http://localhost:8787>
+  (Chat nur mit den einfachen Regeln, Eltern-Passwort `test-admin`).
+- **Online stellen:** `bun run deploy` (braucht `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID`, optional
+  `ADMIN_KEY`). Mit diesen Secrets im GitHub-Repo macht CI das bei jedem Push auf `main`.
 
 ## Für Entwickler
 

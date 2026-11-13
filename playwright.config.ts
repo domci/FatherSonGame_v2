@@ -5,12 +5,23 @@ export default defineConfig({
   timeout: 120_000,
   retries: process.env.CI ? 1 : 0,
   use: { baseURL: 'http://localhost:4173', trace: 'off' },
-  webServer: {
-    command: 'bun run build && bun run preview -- --port 4173 --strictPort',
-    port: 4173,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  // CI builds dist in its own step; locally the first server builds it.
+  webServer: [
+    {
+      command: `${process.env.CI ? '' : 'bun run build && '}bun run preview -- --port 4173 --strictPort`,
+      port: 4173,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+    {
+      // The world server (M7) with the same dist: online.spec.ts.
+      command: 'bunx wrangler dev -c wrangler.local.jsonc --port 8788',
+      port: 8788,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: { WRANGLER_SEND_METRICS: 'false' },
+    },
+  ],
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
     // Tablet: only the smoke test, because software rendering of a big retina screen is slow in CI.

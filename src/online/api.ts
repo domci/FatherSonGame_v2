@@ -61,6 +61,12 @@ async function call<T>(
   } catch {
     throw new ApiError('Keine Verbindung zum Server.');
   }
+  // No JSON: the page runs without the world server (for example on GitHub Pages).
+  if (!res.headers.get('content-type')?.includes('json'))
+    throw new ApiError(
+      'Hier gibt es keinen Online-Server. Online geht nur auf der Online-Seite.',
+      res.status,
+    );
   const data = (await res.json().catch(() => ({}))) as T & { error?: string };
   if (!res.ok) throw new ApiError(data.error ?? `Fehler ${res.status}`, res.status);
   return data;
