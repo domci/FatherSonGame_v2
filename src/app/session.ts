@@ -30,6 +30,11 @@ export interface UiState {
 /** Windows that are not about a selected thing. */
 export type PanelName = 'colony' | 'peoples';
 
+/** Online: commands go to the world server, which runs the game (M7). */
+export interface CommandLink {
+  send(cmd: Command): void;
+}
+
 /** One running game in the browser: state + UI selection + saving. */
 export class Session {
   ui: UiState;
@@ -39,7 +44,11 @@ export class Session {
   /** Shows a planet's surface (set by the game app). */
   goZone: (zone: string) => void = () => undefined;
 
-  constructor(public state: GameState) {
+  constructor(
+    public state: GameState,
+    /** Set in online worlds. */
+    readonly net?: CommandLink,
+  ) {
     this.ui = {
       selectedIds: new Set(),
       view: 'surface',
@@ -53,7 +62,12 @@ export class Session {
     return viewerOf(this.state);
   }
 
+  /** Online the server checks the command; a problem comes back later as a message. */
   command(cmd: Command): boolean {
+    if (this.net) {
+      this.net.send(cmd);
+      return true;
+    }
     const result = applyCommand(this.state, cmd);
     if (!result.ok) this.onMessage(result.reason, 'bad');
     return result.ok;
@@ -77,7 +91,9 @@ export class Session {
     this.select([]);
   }
 
+  /** Online worlds are saved by the server. */
   async save(): Promise<void> {
+    if (this.net) return;
     await writeSave(toSaveData(this.state, Date.now()));
   }
 }

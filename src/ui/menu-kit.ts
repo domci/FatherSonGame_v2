@@ -25,7 +25,7 @@ export function toggleRow(
 }
 
 /** A row of buttons; one is on. Shows the help line of the chosen one. */
-function segRow<T extends string | number>(
+export function segRow<T extends string | number>(
   label: string,
   options: readonly { value: T; text: string; help: string }[],
   current: T,

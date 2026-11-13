@@ -25,7 +25,7 @@ function factionCard(f: Faction, pick: (f: Faction) => void): HTMLElement {
 }
 
 /** Two big cards: humans or aliens. */
-function factionPicker(choice: NewGameChoice): HTMLElement {
+export function factionPicker(choice: { faction: Faction }): HTMLElement {
   const cards = (['human', 'alien'] as const).map((f) =>
     factionCard(f, (x) => {
       choice.faction = x;

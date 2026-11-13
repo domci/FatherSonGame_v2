@@ -16,11 +16,19 @@ import type { Sound } from '../audio/sound';
 import type { ViewManager } from '../render/view-manager';
 import type { Session } from './session';
 import type { Projector } from './screen-pos';
+import type { OnlineGame } from '../online/online-game';
+import { ChatPanel } from '../ui/chat-panel';
+import { onlineDefeatScreen } from '../ui/end-screen';
 
+/** Sound for everybody; game options only for the maker of the world ('player'). */
 function settingRows(session: Session, sound: Sound): HTMLElement[] {
-  return [
+  const rows = [
     toggleRow('Geräusche', 'Laser, Explosionen, Klicks', sound.sfxOn, () => sound.toggleSfx()),
     toggleRow('Musik', 'Ruhige Klänge, Kampfmusik', sound.musicOn, () => sound.toggleMusic()),
+  ];
+  if (session.me !== 'player') return rows;
+  return [
+    ...rows,
     levelPicker(session.state.settings.difficulty, (difficulty) =>
       session.command({ type: 'settings', player: session.me, difficulty }),
     ),
@@ -34,13 +42,16 @@ function settingRows(session: Session, sound: Sound): HTMLElement[] {
 }
 
 function openMenu(root: HTMLElement, session: Session, sound: Sound, onQuit: () => void): void {
-  const menu = pauseMenu({
-    resume: () => menu.remove(),
-    save: () => void session.save().then(() => session.onMessage('Gespeichert.', 'good')),
-    exportFile: () => exportSave(toSaveData(session.state, Date.now())),
-    quit: () => void session.save().then(onQuit),
-    settings: settingRows(session, sound),
-  });
+  const settings = settingRows(session, sound);
+  const menu = session.net
+    ? pauseMenu({ resume: () => menu.remove(), quit: onQuit, quitLabel: 'Zur Lobby', settings })
+    : pauseMenu({
+        resume: () => menu.remove(),
+        save: () => void session.save().then(() => session.onMessage('Gespeichert.', 'good')),
+        exportFile: () => exportSave(toSaveData(session.state, Date.now())),
+        quit: () => void session.save().then(onQuit),
+        settings,
+      });
   root.append(menu);
 }
 
@@ -64,8 +75,27 @@ export function wireSound(root: HTMLElement, sound: Sound): () => void {
   };
 }
 
+/** Online: "beaten" with "start again"; it goes away after the new start. */
+function watchDefeat(root: HTMLElement, session: Session, onQuit: () => void): () => void {
+  let screen: HTMLElement | undefined;
+  return () => {
+    const beaten = session.state.players[session.me]?.defeated === true;
+    if (beaten && !screen) {
+      screen = onlineDefeatScreen(session.state, {
+        restart: () => session.command({ type: 'restart', player: session.me }),
+        lobby: onQuit,
+      });
+      root.append(screen);
+    } else if (!beaten && screen) {
+      screen.remove();
+      screen = undefined;
+    }
+  };
+}
+
 /** Shows "victory" or "defeat" once, when the game has a winner. */
 function watchEnd(root: HTMLElement, session: Session, onQuit: () => void): () => void {
+  if (session.net) return watchDefeat(root, session, onQuit);
   let shown = false;
   return () => {
     const winner = session.state.winner;
@@ -84,6 +114,7 @@ export interface UiDeps {
   sound: Sound;
   project: Projector;
   onQuit: () => void;
+  online?: OnlineGame;
 }
 
 export interface GameUi {
@@ -95,7 +126,9 @@ export interface GameUi {
 
 /** All HTML parts over the 3D view: HUD, build bar, army bar, info panel, toasts, bars. */
 export function buildUi(root: HTMLElement, session: Session, d: UiDeps): GameUi {
+  const chat = d.online && new ChatPanel(d.online);
   const hud = new Hud(session, {
+    extraButtons: chat ? [chat.button] : [],
     goView: (n) => d.views.go(n),
     openMenu: () => openMenu(root, session, d.sound, d.onQuit),
     openColony: () => session.openPanel('colony'),
@@ -109,6 +142,7 @@ export function buildUi(root: HTMLElement, session: Session, d: UiDeps): GameUi 
     new InfoPanel(session),
     new MissionCard(session),
     new Toasts(session),
+    ...(chat ? [chat] : []),
   ];
   const bars = new Bars(d.project);
   root.append(bars.root, ...parts.map((p) => p.root));

@@ -13,7 +13,8 @@ import { makeProjector } from './screen-pos';
 import { Sound } from '../audio/sound';
 import { GameSounds } from '../audio/game-sounds';
 import { focusPoint } from './focus';
-import { buildUi, wireSound } from './game-ui';
+import { buildUi, wireSound, type GameUi } from './game-ui';
+import type { OnlineGame } from '../online/online-game';
 
 const AUTOSAVE_MS = 2 * 60 * 1000;
 
@@ -56,35 +57,35 @@ function linkViews(session: Session, views: ViewManager): void {
   session.goZone = (zone) => views.flyTo(zone, focusPoint(session.state, zone));
 }
 
-/** Starts one game: canvas, 3D views, HUD, input, loop and autosave. */
-export async function startGame(
-  root: HTMLElement,
-  state: GameState,
-  onQuit: () => void,
-): Promise<Session> {
-  const session = new Session(state);
-  const sound = new Sound();
-  const sounds = new GameSounds(sound);
-  const canvas = el('canvas', { class: 'game-canvas' });
-  const views = await createViews(root, canvas, state);
-  linkViews(session, views);
-  const project = makeProjector(session, views, canvas);
-  const stops: (() => void)[] = [];
-  /** Leaving the game: stop the loop, autosave, sound and listeners of this game. */
-  const quit = (): void => {
-    stops.forEach((stop) => stop());
-    onQuit();
-  };
-  const ui = buildUi(root, session, { views, sound, project, onQuit: quit });
-  wireInput(canvas, session, views, project);
-  const resize = (): void => views.resize(root.clientWidth, root.clientHeight);
-  window.addEventListener('resize', resize);
-  resize();
-  stops.push(wireSound(root, sound), () => window.removeEventListener('resize', resize));
-  const stopLoop = startLoop({
+export interface GameOptions {
+  /** Back to the menu (online: to the lobby, with the reason if the server said no). */
+  onQuit: (problem?: Error) => void;
+  /** An online world (M7): the server runs the game, this browser replays it. */
+  online?: OnlineGame;
+}
+
+/** Online: fresh states, server messages and problems reach the game screen. */
+function linkOnline(session: Session, online: OnlineGame, quit: (e?: Error) => void): void {
+  online.onState = (state) => (session.state = state);
+  online.onNotice = (text, kind) => session.onMessage(text, kind);
+  online.onError = (e) => quit(e);
+}
+
+interface LoopParts {
+  session: Session;
+  views: ViewManager;
+  ui: GameUi;
+  sounds: GameSounds;
+  online?: OnlineGame;
+}
+
+/** Game steps (local, or replayed from the server) and drawing. Returns a stop function. */
+function runLoop(p: LoopParts): () => void {
+  const { session, views, ui, sounds, online } = p;
+  return startLoop({
     tickMs: TICK_MS,
-    speed: () => session.speed,
-    tick: () => tick(session.state),
+    speed: () => (online ? 1 : session.speed),
+    tick: online ? () => online.step() : () => tick(session.state),
     frame: (dt) => {
       views.frame(session.state, session.ui, dt);
       ui.frame();
@@ -92,7 +93,38 @@ export async function startGame(
     },
     slow: () => ui.update(),
   });
-  stops.push(stopLoop, startAutosave(session));
+}
+
+/** Starts one game: canvas, 3D views, HUD, input, loop and autosave. */
+export async function startGame(
+  root: HTMLElement,
+  state: GameState,
+  opts: GameOptions,
+): Promise<Session> {
+  const online = opts.online;
+  const session = new Session(state, online);
+  const sound = new Sound();
+  const sounds = new GameSounds(sound);
+  const canvas = el('canvas', { class: 'game-canvas' });
+  const views = await createViews(root, canvas, state);
+  linkViews(session, views);
+  const project = makeProjector(session, views, canvas);
+  const stops: (() => void)[] = [];
+  /** Leaving the game: stop the loop, autosave, sound, connection and listeners. */
+  const quit = (problem?: Error): void => {
+    online?.leave();
+    stops.forEach((stop) => stop());
+    opts.onQuit(problem);
+  };
+  const ui = buildUi(root, session, { views, sound, project, onQuit: quit, online });
+  if (online) linkOnline(session, online, quit);
+  wireInput(canvas, session, views, project);
+  const resize = (): void => views.resize(root.clientWidth, root.clientHeight);
+  window.addEventListener('resize', resize);
+  resize();
+  stops.push(wireSound(root, sound), () => window.removeEventListener('resize', resize));
+  stops.push(runLoop({ session, views, ui, sounds, online }));
+  if (!online) stops.push(startAutosave(session));
   exposeDebug(session, project, views);
   return session;
 }

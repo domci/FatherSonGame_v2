@@ -18,7 +18,8 @@ function busyWorld(): GameState {
   });
   applyCommand(s, { type: 'join', player: 'ai3', faction: 'alien', name: 'Blauer Komet 2' });
   // Computer brains play both people, so that a lot happens.
-  for (const id of ['player', 'ai3'] as const) s.ai[id] = { nextThinkAt: 0, nextAttackAt: 0, waves: 0 };
+  for (const id of ['player', 'ai3'] as const)
+    s.ai[id] = { nextThinkAt: 0, nextAttackAt: 0, waves: 0 };
   return s;
 }
 

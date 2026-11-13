@@ -1,4 +1,5 @@
 import type { Session } from '../app/session';
+import type { SideId } from '../sim/entity';
 import type { GameEvent } from '../sim/state';
 import { el } from './dom';
 import { icon, type IconName } from './icons';
@@ -9,21 +10,38 @@ const ICON: Record<GameEvent['kind'], IconName> = {
   bad: 'triangle-alert',
 };
 
+/**
+ * News for one side that came after the last seen one. Found by time and text, not by
+ * object, because online the whole game state can be replaced by a fresh copy.
+ */
+export function freshEvents(
+  events: readonly GameEvent[],
+  me: SideId,
+  seen: { time: number; texts: Set<string> },
+): GameEvent[] {
+  const fresh = events.filter(
+    (e) => e.time > seen.time || (e.time === seen.time && !seen.texts.has(e.text)),
+  );
+  const last = events.at(-1);
+  if (last && last.time !== seen.time) seen.texts.clear();
+  if (last) seen.time = last.time;
+  for (const e of events) if (e.time === seen.time) seen.texts.add(e.text);
+  return fresh.filter((e) => !e.to || e.to === me);
+}
+
 /** Short messages that appear and fade away. */
 export class Toasts {
   readonly root = el('div', { class: 'toasts' });
-  private last: GameEvent | undefined;
+  private seen = { time: -Infinity, texts: new Set<string>() };
 
   constructor(private session: Session) {
-    this.last = session.state.events.at(-1);
+    freshEvents(session.state.events, session.me, this.seen);
     session.onMessage = (text, kind) => this.show(text, kind);
   }
 
   update(): void {
-    const events = this.session.state.events;
-    const fresh = this.last ? events.slice(events.lastIndexOf(this.last) + 1) : events;
+    const fresh = freshEvents(this.session.state.events, this.session.me, this.seen);
     for (const e of fresh.slice(-4)) this.show(e.text, e.kind);
-    this.last = events.at(-1);
   }
 
   show(text: string, kind: GameEvent['kind']): void {

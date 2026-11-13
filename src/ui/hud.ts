@@ -27,6 +27,8 @@ export interface HudActions {
   openColony(): void;
   openQuiz(): void;
   openPeoples(): void;
+  /** More buttons in front of the tool bar (online: chat). */
+  extraButtons?: HTMLElement[];
 }
 
 /** Top bar: resources and status on the left, views and menu on the right. */
@@ -50,7 +52,7 @@ export class Hud {
   ) {
     this.quizButton.onclick = () => actions.openQuiz();
     this.peoplesButton.onclick = () => actions.openPeoples();
-    this.peoplesButton.hidden = !session.state.settings.opponent;
+    this.peoplesButton.hidden = !session.state.settings.opponent && !session.net;
     this.root.append(
       this.resBar(actions),
       el('div', { class: 'hud-right' }, this.navBar(actions), this.toolBar(actions)),
@@ -88,17 +90,21 @@ export class Hud {
   }
 
   private toolBar(actions: HudActions): HTMLElement {
+    const speed = el(
+      'button',
+      { class: 'seg-btn', title: 'Spiel-Geschwindigkeit', onclick: () => this.cycleSpeed() },
+      icon('fast-forward'),
+      this.speedLabel,
+    );
+    // Online the server sets the pace for everybody.
+    speed.hidden = !!this.session.net;
     return el(
       'div',
       { class: 'panel seg' },
+      ...(actions.extraButtons ?? []),
       this.peoplesButton,
       this.quizButton,
-      el(
-        'button',
-        { class: 'seg-btn', title: 'Spiel-Geschwindigkeit', onclick: () => this.cycleSpeed() },
-        icon('fast-forward'),
-        this.speedLabel,
-      ),
+      speed,
       el(
         'button',
         { class: 'seg-btn', title: 'Menü', onclick: () => actions.openMenu() },

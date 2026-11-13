@@ -9,6 +9,7 @@ import './ui/hud.css';
 import './ui/menu.css';
 import './ui/colony.css';
 import './ui/peoples.css';
+import './ui/online.css';
 import { createGame } from './sim/game';
 import { randomSeed } from './sim/rng';
 import { fromSaveData, type SaveData } from './sim/save/save';
@@ -21,6 +22,7 @@ import { newGameDialog, type NewGameChoice } from './ui/new-game';
 import { awayReport } from './ui/away-report';
 import { el } from './ui/dom';
 import { storyIntro } from './ui/story';
+import { OnlineFlow } from './app/online-flow';
 
 const MIN_AWAY_MS = 60_000;
 
@@ -31,7 +33,7 @@ function root(): HTMLElement {
 }
 
 async function play(state: GameState): Promise<void> {
-  await startGame(root(), state, () => void showMenu());
+  await startGame(root(), state, { onQuit: () => void showMenu() });
 }
 
 async function resume(raw: unknown): Promise<void> {
@@ -65,6 +67,7 @@ async function showMenu(): Promise<void> {
       },
       continueGame: saved ? () => void resume(saved).catch(showError) : undefined,
       importGame: () => void importSaveFile().then(resume).catch(showError),
+      online: () => new OnlineFlow(root(), () => void showMenu()).start(),
     }),
   );
 }

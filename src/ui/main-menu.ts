@@ -5,6 +5,8 @@ export interface MenuActions {
   newGame(): void;
   continueGame?: () => void;
   importGame(): void;
+  /** Play with other people over the internet (M7). */
+  online(): void;
 }
 
 function menuItem(ico: IconName, label: string, onclick: () => void, primary = false): HTMLElement {
@@ -22,6 +24,7 @@ export function mainMenu(actions: MenuActions): HTMLElement {
   const items = [
     actions.continueGame && menuItem('play', 'Weiterspielen', actions.continueGame, true),
     menuItem('rocket', 'Neues Spiel', actions.newGame, !actions.continueGame),
+    menuItem('globe', 'Online spielen', actions.online),
     menuItem('upload', 'Spielstand laden', actions.importGame),
   ];
   return el(
@@ -51,9 +54,12 @@ export function mainMenu(actions: MenuActions): HTMLElement {
 
 export interface PauseActions {
   resume(): void;
-  save(): void;
-  exportFile(): void;
+  /** Missing online (the server saves). */
+  save?: () => void;
+  exportFile?: () => void;
   quit(): void;
+  /** Online: "Zur Lobby". */
+  quitLabel?: string;
   /** Switches (sound, music, offline attacks). */
   settings: HTMLElement[];
 }
@@ -71,13 +77,19 @@ export function pauseMenu(actions: PauseActions): HTMLElement {
         'nav',
         { class: 'm-list' },
         menuItem('play', 'Weiter', actions.resume, true),
-        menuItem('save', 'Jetzt speichern', actions.save),
-        menuItem('download', 'Spielstand als Datei', actions.exportFile),
-        menuItem('log-out', 'Zum Hauptmenü', actions.quit),
+        actions.save && menuItem('save', 'Jetzt speichern', actions.save),
+        actions.exportFile && menuItem('download', 'Spielstand als Datei', actions.exportFile),
+        menuItem('log-out', actions.quitLabel ?? 'Zum Hauptmenü', actions.quit),
       ),
       el('h4', { class: 'dlg-h' }, 'Einstellungen'),
       ...actions.settings,
-      el('p', { class: 'p-text muted' }, 'Das Spiel speichert alle 2 Minuten von selbst.'),
+      el(
+        'p',
+        { class: 'p-text muted' },
+        actions.save
+          ? 'Das Spiel speichert alle 2 Minuten von selbst.'
+          : 'Die Welt läuft weiter, auch wenn du weg bist. Der Server speichert sie.',
+      ),
     ),
   );
 }
