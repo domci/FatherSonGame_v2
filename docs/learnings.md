@@ -84,3 +84,5 @@ Short notes when something went wrong or was surprising. Newest on top.
   Server zurück. Darum springt der Browser bei Rückstand weit vor (nicht nur ein Viertel pro Schritt). Im e2e kleine
   Fenster nutzen.
 - Eine Sitzung sieht neue Variablen einer Cloud-Umgebung erst, wenn sie neu startet (neuer Thread).
+- Eine lokale Ausnahme in `.git/info/exclude` (`viewer.ts`) hat `src/sim/viewer.ts` aus dem Commit gehalten. Lokal war
+  alles grün, CI rot. Vor dem Push: `git status --ignored` ansehen, oder in einem frischen `git worktree` prüfen.
