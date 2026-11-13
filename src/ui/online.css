@@ -219,3 +219,30 @@
   display: flex;
   gap: 6px;
 }
+
+/* Privacy page and parents' page: over everything, also over the game. */
+.screen.info-page {
+  position: fixed;
+  z-index: 50;
+}
+.info-page .log li {
+  margin-bottom: 4px;
+}
+.report-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  background: rgba(12, 17, 27, 0.7);
+}
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.report-actions .m-item {
+  width: auto;
+  padding: 0 12px;
+}

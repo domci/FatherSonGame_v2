@@ -23,6 +23,7 @@ import { awayReport } from './ui/away-report';
 import { el } from './ui/dom';
 import { storyIntro } from './ui/story';
 import { OnlineFlow } from './app/online-flow';
+import { watchPages } from './app/pages';
 
 const MIN_AWAY_MS = 60_000;
 
@@ -73,3 +74,4 @@ async function showMenu(): Promise<void> {
 }
 
 void showMenu();
+watchPages();

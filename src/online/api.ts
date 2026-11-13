@@ -1,4 +1,4 @@
-import type { AccountInfo, NewWorld, WorldInfo } from '../net/protocol';
+import type { AccountInfo, NewWorld, ReportAction, ReportInfo, WorldInfo } from '../net/protocol';
 
 /** Your online account on this device. The key is the only "password" (no e-mail, no real name). */
 export interface StoredAccount {
@@ -47,9 +47,14 @@ export class ApiError extends Error {
   }
 }
 
-async function call<T>(path: string, init: RequestInit, a?: StoredAccount): Promise<T> {
+async function call<T>(
+  path: string,
+  init: RequestInit,
+  a?: StoredAccount | { admin: string },
+): Promise<T> {
   const headers: Record<string, string> = { 'content-type': 'application/json' };
-  if (a) Object.assign(headers, { 'x-account': a.id, 'x-key': a.key });
+  if (a && 'admin' in a) headers['x-admin-key'] = a.admin;
+  else if (a) Object.assign(headers, { 'x-account': a.id, 'x-key': a.key });
   let res: Response;
   try {
     res = await fetch(path, { ...init, headers });
@@ -80,5 +85,14 @@ export const api = {
       `/api/worlds/${encodeURIComponent(code.trim().toUpperCase())}`,
       { method: 'GET' },
       a,
+    ),
+  /** Parents' page (password = ADMIN_KEY of the server). */
+  reports: (admin: string) =>
+    call<ReportInfo[]>('/api/admin/reports', { method: 'GET' }, { admin }),
+  resolve: (admin: string, id: string, action: ReportAction) =>
+    call<{ ok: true }>(
+      '/api/admin/reports',
+      { method: 'POST', body: JSON.stringify({ id, action }) },
+      { admin },
     ),
 };

@@ -79,6 +79,22 @@ export interface AccountInfo {
   strikes: number;
 }
 
+/** A reported chat line (parents' page). */
+export interface ReportInfo {
+  id: string;
+  time: number;
+  world: string;
+  /** Account ids. */
+  reporter: string;
+  offender: string;
+  /** Name and text of the reported line. */
+  name: string;
+  text: string;
+}
+
+/** What parents can do with a report: close it, warn the writer, or ban the writer. */
+export type ReportAction = 'dismiss' | 'strike' | 'ban';
+
 /** Steps between two fingerprints (5 seconds). */
 export const HASH_EVERY = 50;
 /** Steps the server sends together (0.2 seconds). */

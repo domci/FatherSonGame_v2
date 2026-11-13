@@ -1,6 +1,12 @@
 import { STRIKES } from '../src/content/chat';
 import { isGoodName } from '../src/net/names';
-import type { AccountInfo, NewWorld, WorldInfo } from '../src/net/protocol';
+import type {
+  AccountInfo,
+  NewWorld,
+  ReportAction,
+  ReportInfo,
+  WorldInfo,
+} from '../src/net/protocol';
 import type { SideId } from '../src/sim/entity';
 import { randomCode, sha256 } from './ids';
 
@@ -27,15 +33,7 @@ export interface WorldRecord extends Omit<WorldInfo, 'side'> {
   lastActive: number;
 }
 
-export interface Report {
-  id: string;
-  time: number;
-  world: string;
-  reporter: string;
-  offender: string;
-  name: string;
-  text: string;
-}
+export type Report = ReportInfo;
 
 /** A world as the lobby shows it (without owner and times). */
 export function publicInfo(w: WorldRecord, side?: SideId): WorldInfo {
@@ -173,7 +171,7 @@ export class LobbyCore {
   }
 
   /** Parents/admin: close a report, and maybe punish the writer. */
-  async resolve(id: string, action: 'dismiss' | 'strike' | 'ban'): Promise<void> {
+  async resolve(id: string, action: ReportAction): Promise<void> {
     const r = await this.kv.get<Report>(`report:${id}`);
     if (!r) return;
     if (action === 'strike') await this.strike(r.offender);
