@@ -6,7 +6,7 @@ interface Game {
     session: {
       state: {
         time: number;
-        events: { text: string }[];
+        events: { text: { de: string } }[];
         players: Record<string, { name: string } | undefined>;
         system: { homes: string[] };
       };
@@ -41,7 +41,7 @@ test('three computer peoples and the peoples window: peace', async ({ page }) =>
     .poll(() =>
       page.evaluate(() =>
         (window as unknown as Game).gameDebug.session.state.events.some((e) =>
-          e.text.startsWith('Frieden mit'),
+          e.text.de.startsWith('Frieden mit'),
         ),
       ),
     )
