@@ -9,7 +9,7 @@ import { LobbyCore, type AccountRecord, type Report, type WorldRecord } from './
 export class LobbyDO extends DurableObject<Env> {
   private core = new LobbyCore(this.ctx.storage, () => Date.now());
 
-  createAccount(name: string): Promise<{ id: string; key: string } | undefined> {
+  createAccount(name: string): Promise<{ id: string; key: string } | 'busy' | undefined> {
     return this.core.createAccount(name);
   }
   verify(id: string, key: string): Promise<AccountRecord | undefined> {
@@ -21,7 +21,7 @@ export class LobbyDO extends DurableObject<Env> {
   deleteAccount(a: AccountRecord): Promise<string[]> {
     return this.core.deleteAccount(a);
   }
-  createWorld(a: AccountRecord, w: NewWorld): Promise<WorldRecord> {
+  createWorld(a: AccountRecord, w: NewWorld): Promise<WorldRecord | 'tooMany' | 'busy'> {
     return this.core.createWorld(a, w);
   }
   world(id: string): Promise<WorldRecord | undefined> {

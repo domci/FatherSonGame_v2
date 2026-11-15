@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { checkRules } from './chat-rules';
-import { readGuard, aiModerator, rulesOnly, type Moderator } from './moderation';
+import { readGuard, aiModerator, limitedModerator, rulesOnly, type Moderator } from './moderation';
+import { LIMITS } from '../src/content/online';
 import { canRead, RoomChat } from './room-chat';
 import { createOnlineWorld } from '../src/sim/online';
 import { setRelation } from '../src/sim/relations';
@@ -85,5 +86,32 @@ describe('chat checks (M7)', () => {
     now = 8 * 24 * 3_600_000;
     chat.trim();
     expect(chat.lines).toEqual([]);
+  });
+
+  it('allows only ready-made messages in open worlds', async () => {
+    const chat = new RoomChat(rulesOnly, () => 1);
+    chat.quickOnly = true;
+    const own = await chat.post(me, { kind: 'world' }, { text: 'Hallo zusammen' });
+    expect(own.ok).toBe(false);
+    expect(!own.ok && own.text.de).toContain('Schnell-Nachrichten');
+    expect((await chat.post(me, { kind: 'world' }, { quick: 0 })).ok).toBe(true);
+  });
+
+  it('limits own texts per person (each one costs an AI check)', async () => {
+    let checks = 0;
+    const counting: Moderator = { check: () => Promise.resolve((checks++, 'ok')) };
+    const chat = new RoomChat(counting, () => 1);
+    for (let i = 0; i < LIMITS.textsPerWindow; i++)
+      expect((await chat.post(me, { kind: 'world' }, { text: 'Hallo zusammen' })).ok).toBe(true);
+    const over = await chat.post(me, { kind: 'world' }, { text: 'Hallo zusammen' });
+    expect(!over.ok && over.strike).toBe(false);
+    expect(checks).toBe(LIMITS.textsPerWindow);
+  });
+
+  it('says unavailable when the AI limit of the whole game is reached', async () => {
+    const fine: Moderator = { check: () => Promise.resolve('ok') };
+    const full = { limit: () => Promise.resolve({ success: false }) };
+    expect(await limitedModerator(fine, full).check('hi')).toBe('unavailable');
+    expect(await limitedModerator(fine, undefined).check('hi')).toBe('ok');
   });
 });

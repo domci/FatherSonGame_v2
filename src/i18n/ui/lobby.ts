@@ -60,8 +60,8 @@ export const LOBBY = {
   shDone: { de: 'Fertig', en: 'Done' },
   openAll: { de: 'Offen für alle', en: 'Open for everyone' },
   openHelp: {
-    de: 'An: Jeder sieht die Welt in der Liste. Aus: Nur wer den Link oder Code hat.',
-    en: 'On: everyone sees the world in the list. Off: only who has the link or code.',
+    de: 'An: Jeder sieht die Welt in der Liste, Chat nur mit Schnell-Nachrichten. Aus: Nur wer den Link oder Code hat.',
+    en: 'On: everyone sees the world in the list, chat only with ready-made messages. Off: only who has the link or code.',
   },
   buildWorld: { de: 'Welt bauen', en: 'Build world' },
   joinTitle: { de: 'Beitreten: {n}', en: 'Join: {n}' },

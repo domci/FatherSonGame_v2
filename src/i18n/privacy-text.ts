@@ -1,5 +1,6 @@
 import { CHAT_KEEP } from '../content/chat';
 import { fmt, L, type Loc } from '../content/text';
+import { PRIVACY_LEGAL } from './privacy-legal';
 
 type Part = [title: Loc, lines: Loc[]];
 
@@ -34,8 +35,8 @@ export const PRIVACY_PARTS: Part[] = [
         'Warnings and chat pauses, when someone breaks the rules.',
       ),
       L(
-        'Meldungen, bis deine Eltern sie angesehen haben.',
-        'Reports, until your parents have looked at them.',
+        'Meldungen, bis der Betreiber sie geprüft hat.',
+        'Reports, until the operator has checked them.',
       ),
     ],
   ],
@@ -93,21 +94,5 @@ export const PRIVACY_PARTS: Part[] = [
       ),
     ],
   ],
-  [
-    L('Für Eltern', 'For parents'),
-    [
-      L(
-        'Dieses Spiel betreibt eine Familie für Familie und Freunde. Fragen? Sprecht die Person an, die euch den Link gegeben hat.',
-        'A family runs this game for family and friends. Questions? Talk to the person who gave you the link.',
-      ),
-      L(
-        'Bitte lest diese Seite zusammen mit eurem Kind. Wer unter 16 ist, braucht für das Online-Spiel euer Einverständnis.',
-        'Please read this page together with your child. Anyone under 16 needs your consent for the online game.',
-      ),
-      L(
-        'Gemeldete Nachrichten seht ihr auf der Eltern-Seite (Adresse mit #eltern am Ende, mit Passwort).',
-        'You see reported messages on the parents page (address with #eltern at the end, with password).',
-      ),
-    ],
-  ],
+  ...PRIVACY_LEGAL,
 ];

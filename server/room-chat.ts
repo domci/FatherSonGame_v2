@@ -7,6 +7,8 @@ import { checkRules } from './chat-rules';
 import type { Moderator } from './moderation';
 import { L, fmt, type Loc } from '../src/content/text';
 import { SERVER_TEXT } from './texts';
+import { LIMITS } from '../src/content/online';
+import { RateWindow } from './rate';
 
 export interface Sender {
   side: SideId;
@@ -34,12 +36,17 @@ function minutes(ms: number): Loc {
 /** The chat of one world: checks each message, keeps the last lines for a week. */
 export class RoomChat {
   lines: ChatLine[] = [];
+  /** Open worlds (strangers): only ready-made messages, no own text. */
+  quickOnly = false;
   private nextId = 1;
+  private texts: RateWindow;
 
   constructor(
     private mod: Moderator,
     private now: () => number,
-  ) {}
+  ) {
+    this.texts = new RateWindow(LIMITS.textsPerWindow, LIMITS.textWindowMs, now);
+  }
 
   /** Ready-made message (number) or free text (checked by rules, then by the AI). */
   async post(
@@ -51,15 +58,12 @@ export class RoomChat {
     if (quick && msg.quick !== undefined)
       return { ok: true, line: this.add(from, to, quick.de, msg.quick) };
     const text = (msg.text ?? '').trim();
-    const pause = from.chatBanUntil - this.now();
-    if (pause > 0)
-      return {
-        ok: false,
-        strike: false,
-        text: fmt(SERVER_TEXT.chatPause, { t: minutes(pause) }),
-      };
+    const stop = this.blocked(from);
+    if (stop) return { ok: false, strike: false, text: stop };
     const rule = checkRules(text);
     if (rule) return { ok: false, ...rule };
+    if (!this.texts.take(from.side))
+      return { ok: false, strike: false, text: SERVER_TEXT.textBudget };
     const verdict = await this.mod.check(text);
     if (verdict === 'blocked')
       return {
@@ -74,6 +78,13 @@ export class RoomChat {
         text: SERVER_TEXT.noCheck,
       };
     return { ok: true, line: this.add(from, to, text) };
+  }
+
+  /** Why this person may not write own text now (or nothing). */
+  private blocked(from: Sender): Loc | undefined {
+    if (this.quickOnly) return SERVER_TEXT.quickOnly;
+    const pause = from.chatBanUntil - this.now();
+    return pause > 0 ? fmt(SERVER_TEXT.chatPause, { t: minutes(pause) }) : undefined;
   }
 
   private add(from: Sender, to: ChatTo, text: string, quick?: number): ChatLine {

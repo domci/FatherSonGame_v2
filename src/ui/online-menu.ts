@@ -1,3 +1,4 @@
+import { LEGAL } from '../content/legal';
 import { makeName } from '../net/names';
 import { el } from './dom';
 import { icon, type IconName } from './icons';
@@ -37,7 +38,13 @@ export function problemLine(text?: string): HTMLElement | false {
 }
 
 export function privacyLink(): HTMLElement {
-  return el('a', { class: 'privacy-link', href: '#datenschutz' }, t('privacyLink'));
+  return el(
+    'div',
+    { class: 'privacy-link' },
+    el('a', { href: '#datenschutz' }, t('privacyLink')),
+    el('span', {}, ' · '),
+    el('a', { href: LEGAL.imprint, target: '_blank', rel: 'noopener' }, t('imprint')),
+  );
 }
 
 export interface NamePickActions {

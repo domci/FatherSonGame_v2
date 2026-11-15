@@ -1,6 +1,7 @@
 import { PRIVACY_PARTS } from '../i18n/privacy-text';
 import { el } from './dom';
 import { icon } from './icons';
+import { operatorLinks } from './legal';
 import { t, tx } from '../i18n';
 
 /** "Datenschutz": what the online game keeps, and what it never keeps. */
@@ -17,6 +18,7 @@ export function privacyPage(onClose: () => void): HTMLElement {
         el('h4', { class: 'dlg-h' }, tx(title)),
         el('ul', { class: 'log' }, ...lines.map((l) => el('li', {}, tx(l)))),
       ]),
+      operatorLinks(),
       el(
         'button',
         { class: 'm-item primary', onclick: () => onClose() },

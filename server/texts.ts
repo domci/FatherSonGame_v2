@@ -21,4 +21,20 @@ export const SERVER_TEXT = {
     'Chat-Pause noch {t}. Schnell-Nachrichten gehen.',
     'Chat pause for {t} more. Ready-made messages work.',
   ),
+  busy: L(
+    'Gerade sind sehr viele da. Bitte versuch es später noch einmal.',
+    'Very many people are here right now. Please try again later.',
+  ),
+  tooManyWorlds: L(
+    'Du hast schon genug eigene Welten. Spiel in einer davon weiter.',
+    'You already have enough own worlds. Keep playing in one of them.',
+  ),
+  quickOnly: L(
+    'In offenen Welten gibt es nur Schnell-Nachrichten. Eigenen Text gibt es in Welten mit Link.',
+    'Open worlds have only ready-made messages. Own text works in worlds with a link.',
+  ),
+  textBudget: L(
+    'Du hast gerade viel geschrieben. Warte ein paar Minuten. Schnell-Nachrichten gehen.',
+    'You wrote a lot just now. Wait a few minutes. Ready-made messages work.',
+  ),
 } as const;

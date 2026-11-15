@@ -219,6 +219,14 @@
   display: flex;
   gap: 6px;
 }
+.chat-send[hidden] {
+  display: none;
+}
+.chat-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
 
 /* Privacy page and parents' page: over everything, also over the game. */
 .screen.info-page {

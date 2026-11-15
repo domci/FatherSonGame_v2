@@ -1,6 +1,7 @@
 import { el } from './dom';
 import { icon, type IconName } from './icons';
 import { langSwitch } from './lang-switch';
+import { legalLinks } from './legal';
 import { t } from '../i18n';
 
 export interface MenuActions {
@@ -43,6 +44,7 @@ export function mainMenu(actions: MenuActions): HTMLElement {
       el('p', { class: 'lead' }, t('mLead')),
       el('nav', { class: 'm-list' }, ...items),
       el('div', { class: 'start-foot' }, t('mFoot')),
+      legalLinks(),
     ),
   );
 }

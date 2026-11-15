@@ -9,3 +9,18 @@ export const ONLINE = {
   /** A world grows when more people come (one new planet each), up to this many sides. */
   maxGrownSides: 12,
 } as const;
+
+/** Limits against bots and costs (server side, ADR 0012). */
+export const LIMITS = {
+  /** Worlds one account may make (own worlds). */
+  worldsPerAccount: 5,
+  /** New accounts in the whole game per hour. */
+  accountsPerHour: 300,
+  /** New worlds in the whole game per hour. */
+  worldsPerHour: 200,
+  /** Own chat texts one person may send per window (each costs an AI check). */
+  textsPerWindow: 15,
+  textWindowMs: 10 * 60_000,
+  /** Open worlds in the lobby list (most recently played first). */
+  openListed: 30,
+} as const;

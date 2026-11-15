@@ -1,5 +1,5 @@
 import { STRIKES } from '../src/content/chat';
-import { ONLINE } from '../src/content/online';
+import { LIMITS, ONLINE } from '../src/content/online';
 import { isGoodName } from '../src/net/names';
 import type {
   AccountInfo,
@@ -10,6 +10,8 @@ import type {
 } from '../src/net/protocol';
 import type { SideId } from '../src/sim/entity';
 import { randomCode, sha256 } from './ids';
+import { RateWindow } from './rate';
+import { WorldIndex } from './world-index';
 import type { Loc } from '../src/content/text';
 
 /** The part of Durable Object storage we use (a Map in tests). */
@@ -55,13 +57,23 @@ export function publicInfo(w: WorldRecord, side?: SideId): WorldInfo {
 
 /** Accounts, worlds and reports: one place for the whole game (a Durable Object). */
 export class LobbyCore {
+  private newAccounts: RateWindow;
+  private newWorlds: RateWindow;
+  private index: WorldIndex;
+
   constructor(
     private kv: Kv,
     private now: () => number,
-  ) {}
+  ) {
+    this.newAccounts = new RateWindow(LIMITS.accountsPerHour, 3_600_000, now);
+    this.newWorlds = new RateWindow(LIMITS.worldsPerHour, 3_600_000, now);
+    this.index = new WorldIndex(kv);
+  }
 
-  async createAccount(name: string): Promise<{ id: string; key: string } | undefined> {
+  /** A new account, undefined for a bad name, 'busy' when too many came in the last hour. */
+  async createAccount(name: string): Promise<{ id: string; key: string } | 'busy' | undefined> {
     if (!isGoodName(name)) return undefined;
+    if (!this.newAccounts.take('all')) return 'busy';
     const id = randomCode(8);
     const key = randomCode(16);
     const record: AccountRecord = {
@@ -97,7 +109,15 @@ export class LobbyCore {
     return Object.keys(a.worlds);
   }
 
-  async createWorld(a: AccountRecord, w: NewWorld): Promise<WorldRecord> {
+  /** Worlds this account made itself (its seat there is the maker's seat). */
+  ownWorlds(a: AccountRecord): number {
+    return Object.values(a.worlds).filter((side) => side === 'player').length;
+  }
+
+  /** A new world, or why not: the account has enough worlds, or the game is busy. */
+  async createWorld(a: AccountRecord, w: NewWorld): Promise<WorldRecord | 'tooMany' | 'busy'> {
+    if (this.ownWorlds(a) >= LIMITS.worldsPerAccount) return 'tooMany';
+    if (!this.newWorlds.take('all')) return 'busy';
     let code = randomCode(6);
     while (await this.kv.get(`code:${code}`)) code = randomCode(6);
     const record: WorldRecord = {
@@ -113,14 +133,14 @@ export class LobbyCore {
       created: this.now(),
       lastActive: this.now(),
     };
-    await this.kv.put(`world:${record.id}`, record);
+    await this.index.put(record);
     await this.kv.put(`code:${code}`, record.id);
     await this.setSeat(a.id, record.id, 'player');
     return record;
   }
 
   async world(id: string): Promise<WorldRecord | undefined> {
-    return this.kv.get<WorldRecord>(`world:${id}`);
+    return this.index.get(id);
   }
 
   async byCode(code: string): Promise<WorldRecord | undefined> {
@@ -128,13 +148,17 @@ export class LobbyCore {
     return id ? this.world(id) : undefined;
   }
 
-  /** Your worlds, and open worlds with room (worlds grow, up to the most sides). */
+  /** Your worlds, and the most recently played open worlds with room (worlds grow). */
   async listWorlds(a: AccountRecord): Promise<{ mine: WorldInfo[]; open: WorldInfo[] }> {
-    const all = [...(await this.kv.list<WorldRecord>({ prefix: 'world:' })).values()];
+    const all = await this.index.all();
     const info = (w: WorldRecord): WorldInfo => publicInfo(w, a.worlds[w.id]);
     const mine = all.filter((w) => a.worlds[w.id]).map(info);
     const room = (w: WorldRecord): boolean => w.taken + w.computers < ONLINE.maxGrownSides;
-    const open = all.filter((w) => !a.worlds[w.id] && w.open && room(w)).map(info);
+    const open = all
+      .filter((w) => !a.worlds[w.id] && w.open && room(w))
+      .sort((x, y) => y.lastActive - x.lastActive)
+      .slice(0, LIMITS.openListed)
+      .map(info);
     return { mine, open };
   }
 
@@ -149,7 +173,7 @@ export class LobbyCore {
 
   async touchWorld(id: string, taken: number): Promise<void> {
     const w = await this.world(id);
-    if (w) await this.kv.put(`world:${id}`, { ...w, taken, lastActive: this.now() });
+    if (w) await this.index.put({ ...w, taken, lastActive: this.now() });
   }
 
   /** One more bad message: warning, chat pause, then out. Returns the text for the person. */

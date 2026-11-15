@@ -11,6 +11,12 @@ export const ONLINE = {
   report: { de: 'Melden', en: 'Report' },
   send: { de: 'Senden', en: 'Send' },
   privacyLink: { de: 'Datenschutz: was wir speichern', en: 'Privacy: what we store' },
+  imprint: { de: 'Impressum', en: 'Legal notice' },
+  privacyShort: { de: 'Datenschutz', en: 'Privacy' },
+  quickOnly: {
+    de: 'Offene Welt: Hier gibt es nur Schnell-Nachrichten. Eigenen Text gibt es in Welten mit Link.',
+    en: 'Open world: only ready-made messages here. Own text works in worlds with a link.',
+  },
   playOnline: { de: 'Online spielen', en: 'Play online' },
   pickName: { de: 'Wähle deinen Namen', en: 'Choose your name' },
   nameHelp: {

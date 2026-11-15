@@ -8,7 +8,7 @@ import type { Faction } from '../src/sim/state';
 import { lobbyOf, type Env } from './env';
 import type { LobbyDO } from './lobby';
 import type { AccountRecord, WorldRecord } from './lobby-core';
-import { aiModerator, rulesOnly } from './moderation';
+import { aiModerator, limitedModerator, rulesOnly } from './moderation';
 import { RoomChat } from './room-chat';
 import { RoomCore, type Peer } from './room-core';
 import { handleMessage, type RoomContext } from './room-messages';
@@ -48,7 +48,8 @@ export class WorldRoom extends DurableObject<Env> implements RoomContext {
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
-    const mod = env.MODERATION === 'rules' ? rulesOnly : aiModerator(env.AI);
+    const mod =
+      env.MODERATION === 'rules' ? rulesOnly : limitedModerator(aiModerator(env.AI), env.RL_AI);
     this.chat = new RoomChat(mod, () => Date.now());
     void ctx.blockConcurrencyWhile(() => this.load());
   }
@@ -58,6 +59,7 @@ export class WorldRoom extends DurableObject<Env> implements RoomContext {
     if (!data) return;
     this.info = data.info;
     this.chat.lines = data.chat;
+    this.chat.quickOnly = data.info.open;
     this.core = RoomCore.load(data.save, data.seats, () => Date.now());
   }
 
@@ -81,6 +83,7 @@ export class WorldRoom extends DurableObject<Env> implements RoomContext {
   ): Promise<void> {
     if (this.core) return;
     this.info = info;
+    this.chat.quickOnly = info.open;
     const state = createOnlineWorld({
       seed: randomSeed(),
       time: Date.now(),

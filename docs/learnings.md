@@ -2,6 +2,11 @@
 
 Short notes when something went wrong or was surprising. Newest on top.
 
+- 2026-11-15: A CSS rule with `display: flex` beats the `hidden` attribute. Every element that we hide with
+  `hidden` and that has its own `display` needs a `[hidden] { display: none }` rule.
+- 2026-11-15: Cloudflare rate limit bindings are counted per location and only allow periods of 10 or 60 s.
+  Hour limits (new accounts, new worlds) live in the lobby object's memory instead.
+
 - 2026-11-12: The AI stopped training when its home army had `defenders + waveSize` housing, but the attack picks
   whole units. With only tanks (3 housing) free, a wave of 5 never filled and the AI waited forever (1 wave in 8 h).
   When two checks must agree (train enough / attack now), let one call the other's picker.

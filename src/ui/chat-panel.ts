@@ -11,6 +11,8 @@ export interface ChatSource {
   readonly chat: readonly ChatLine[];
   readonly me: SideId;
   readonly status: LinkStatus;
+  /** Open worlds (strangers) have only ready-made messages. */
+  readonly world?: { readonly open: boolean };
   say(to: ChatTo, text: string | number): void;
   report(lineId: string): void;
 }
@@ -39,6 +41,8 @@ export class ChatPanel {
   private list = el('div', { class: 'chat-list' });
   private input = el('input', { class: 'chat-input', maxlength: String(CHAT_MAX) });
   private rules = el('ul', { class: 'chat-rules', hidden: true });
+  private sendRow = this.inputRow();
+  private quickNote = el('p', { class: 'chat-note', hidden: true }, t('quickOnly'));
   private to: ChatTo = { kind: 'world' };
   private shownKey = '';
   private seenTime = 0;
@@ -50,7 +54,14 @@ export class ChatPanel {
     this.input.placeholder = t('msgPh');
     this.input.onkeydown = (e) => e.key === 'Enter' && this.sendText();
     for (const rule of CHAT_RULES) this.rules.append(el('li', {}, tx(rule)));
-    this.root.append(this.head(), this.rules, this.list, this.quickRow(), this.inputRow());
+    this.root.append(
+      this.head(),
+      this.rules,
+      this.list,
+      this.quickRow(),
+      this.quickNote,
+      this.sendRow,
+    );
   }
 
   toggle(): void {
@@ -66,6 +77,9 @@ export class ChatPanel {
     const unread = unreadCount(lines, this.src.me, this.seenTime);
     this.button.classList.toggle('unread', unread > 0);
     this.button.classList.toggle('lost', this.src.status !== 'online');
+    const quickOnly = this.src.world?.open === true;
+    this.sendRow.hidden = quickOnly;
+    this.quickNote.hidden = !quickOnly;
     const key = `${lines.length}:${last?.id ?? ''}`;
     if (this.root.hidden || key === this.shownKey) return;
     this.shownKey = key;

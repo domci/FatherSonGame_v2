@@ -2,6 +2,7 @@ import type { NewWorld } from '../src/net/protocol';
 import { lobbyOf, roomOf, type Env } from './env';
 import { publicInfo, type AccountRecord } from './lobby-core';
 import { L } from '../src/content/text';
+import { SERVER_TEXT } from './texts';
 
 const DIFFICULTIES = ['easy', 'normal', 'hard'];
 
@@ -45,6 +46,8 @@ async function createWorld(req: Request, env: Env, a: AccountRecord): Promise<Re
       400,
     );
   const record = await lobbyOf(env).createWorld(a, w);
+  if (record === 'tooMany') return json({ error: SERVER_TEXT.tooManyWorlds }, 429);
+  if (record === 'busy') return json({ error: SERVER_TEXT.busy }, 429);
   const faction = w.faction === 'alien' ? 'alien' : 'human';
   await roomOf(env, record.id).init(record, { account: a.id, name: a.name, faction });
   return json(publicInfo(record, 'player'));
@@ -103,6 +106,7 @@ export async function handleApi(req: Request, env: Env, path: string): Promise<R
   if (path === '/api/account' && req.method === 'POST') {
     const b = await body<{ name?: string }>(req);
     const made = await lobbyOf(env).createAccount(String(b?.name));
+    if (made === 'busy') return json({ error: SERVER_TEXT.busy }, 429);
     return made
       ? json(made)
       : json({ error: L('Name geht nicht.', 'This name does not work.') }, 400);

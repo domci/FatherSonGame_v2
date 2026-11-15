@@ -152,6 +152,15 @@
   z-index: 2;
 }
 
+.legal-links {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.legal-links a,
+.privacy-link a {
+  color: var(--tech);
+}
 .start-foot {
   font-size: 12px;
   color: var(--muted);

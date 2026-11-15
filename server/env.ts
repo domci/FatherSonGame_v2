@@ -1,5 +1,6 @@
 import type { LobbyDO } from './lobby';
 import type { AiRunner } from './moderation';
+import type { RateLimiter } from './rate';
 import type { WorldRoom } from './room';
 
 /** Bindings of the Worker (see wrangler.jsonc). */
@@ -15,6 +16,13 @@ export interface Env {
   ADMIN_KEY?: string;
   /** Version of the game files (browsers with another version must reload). */
   BUILD?: string;
+  /** Rate limits (wrangler.jsonc "ratelimits"). Missing locally = no limit. */
+  /** All API calls and world connections, per internet address. */
+  RL_IP?: RateLimiter;
+  /** New accounts and new worlds, per internet address. */
+  RL_NEW?: RateLimiter;
+  /** AI chat checks of the whole game. */
+  RL_AI?: RateLimiter;
   /** 'off' only locally: workerd has no EU jurisdiction. */
   EU?: string;
 }

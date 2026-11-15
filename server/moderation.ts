@@ -1,3 +1,5 @@
+import { allowed, type RateLimiter } from './rate';
+
 /** Answer of the chat check: fine, not allowed, or the check does not work right now. */
 export type Verdict = 'ok' | 'blocked' | 'unavailable';
 
@@ -44,3 +46,12 @@ export function aiModerator(ai: AiRunner | undefined): Moderator {
 
 /** Only for local tests (MODERATION=rules): the simple rules decide alone. */
 export const rulesOnly: Moderator = { check: () => Promise.resolve('ok') };
+
+/** Fewer AI checks for the whole game: over the limit, the check says 'unavailable' (fails closed). */
+export function limitedModerator(mod: Moderator, rl: RateLimiter | undefined): Moderator {
+  return {
+    async check(text) {
+      return (await allowed(rl, 'all')) ? mod.check(text) : 'unavailable';
+    },
+  };
+}
