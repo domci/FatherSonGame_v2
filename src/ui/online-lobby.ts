@@ -7,19 +7,22 @@ import { icon } from './icons';
 import { levelPicker, segRow, toggleRow } from './menu-kit';
 import { factionPicker } from './new-game';
 import { button, onlineDialog, privacyLink, problemLine } from './online-menu';
+import { shareBox } from './share-world';
 
 export interface LobbyActions {
   /** Play in a world (own seat, or a new seat in an open world). */
   enter(w: WorldInfo): void;
   joinCode(code: string): void;
+  /** Show the link of one of your worlds, to send it to friends. */
+  share(w: WorldInfo): void;
   newWorld(): void;
   deviceCode(): void;
   deleteAccount(): void;
   back(): void;
 }
 
-function worldRow(w: WorldInfo, label: string, go: () => void): HTMLElement {
-  const sides = w.people + w.computers;
+function worldRow(w: WorldInfo, label: string, go: () => void, share?: () => void): HTMLElement {
+  const computers = w.computers > 0 ? ` · ${w.computers} Computer` : '';
   return el(
     'div',
     { class: 'world-row' },
@@ -30,9 +33,10 @@ function worldRow(w: WorldInfo, label: string, go: () => void): HTMLElement {
       el(
         'span',
         { class: 'wr-info' },
-        `${DIFFICULTY_NAMES[w.difficulty]} · ${w.taken}/${w.people} Menschen · ${sides} Völker · Code ${w.code}`,
+        `${DIFFICULTY_NAMES[w.difficulty]} · ${w.taken} Menschen${computers} · Code ${w.code}`,
       ),
     ),
+    share && button('send', 'Einladen', share, 'small'),
     el(
       'button',
       { class: 'm-item primary small', onclick: go },
@@ -42,9 +46,20 @@ function worldRow(w: WorldInfo, label: string, go: () => void): HTMLElement {
   );
 }
 
-function worldList(list: WorldInfo[], label: string, go: (w: WorldInfo) => void, empty: string) {
-  if (list.length === 0) return el('p', { class: 'p-text muted' }, empty);
-  return el('div', { class: 'world-list' }, ...list.map((w) => worldRow(w, label, () => go(w))));
+interface ListParts {
+  label: string;
+  go: (w: WorldInfo) => void;
+  empty: string;
+  share?: (w: WorldInfo) => void;
+}
+
+function worldList(list: WorldInfo[], p: ListParts): HTMLElement {
+  if (list.length === 0) return el('p', { class: 'p-text muted' }, p.empty);
+  const row = (w: WorldInfo): HTMLElement => {
+    const share = p.share;
+    return worldRow(w, p.label, () => p.go(w), share && (() => share(w)));
+  };
+  return el('div', { class: 'world-list' }, ...list.map(row));
 }
 
 /** Your worlds, open worlds, a new world, join by code, and your account. */
@@ -60,20 +75,19 @@ export function lobbyScreen(
     `Hallo, ${name}!`,
     problemLine(problem),
     el('h4', { class: 'dlg-h' }, 'Deine Welten'),
-    worldList(
-      worlds.mine,
-      'Spielen',
-      a.enter,
-      'Noch keine. Mach eine neue Welt oder tritt einer bei.',
-    ),
+    worldList(worlds.mine, {
+      label: 'Spielen',
+      go: a.enter,
+      empty: 'Noch keine. Mach eine neue Welt oder tritt einer bei.',
+      share: a.share,
+    }),
     button('plus', 'Neue Welt', () => a.newWorld(), 'primary'),
-    el('h4', { class: 'dlg-h' }, 'Offene Welten mit freiem Platz'),
-    worldList(
-      worlds.open,
-      'Beitreten',
-      a.enter,
-      'Gerade keine. Frag Freunde nach ihrem Welt-Code.',
-    ),
+    el('h4', { class: 'dlg-h' }, 'Offene Welten'),
+    worldList(worlds.open, {
+      label: 'Beitreten',
+      go: a.enter,
+      empty: 'Gerade keine. Frag Freunde nach dem Link zu ihrer Welt.',
+    }),
     el(
       'div',
       { class: 'code-row' },
@@ -98,18 +112,16 @@ function accountPart(a: LobbyActions): HTMLElement[] {
   ];
 }
 
-const PEOPLE = [
-  { value: 2, text: '2', help: 'Du und ein Freund oder eine Freundin.' },
-  { value: 3, text: '3', help: 'Drei Menschen in einem Sonnensystem.' },
-  { value: 4, text: '4', help: 'Vier Menschen: ein großes Sonnensystem.' },
-];
 const COMPUTERS = [
   { value: 0, text: '0', help: 'Nur Menschen.' },
   { value: 1, text: '1', help: 'Dazu ein Computer-Volk.' },
   { value: 2, text: '2', help: 'Dazu zwei Computer-Völker.' },
 ];
 
-/** Choose people, computers, level and who may join. The world gets a name from you. */
+/**
+ * Choose computers, level and who may join. The world gets a name from you.
+ * Places for people: all the others at the start; the world grows when more people come.
+ */
 export function newWorldDialog(
   owner: string,
   onCreate: (w: NewWorld) => void,
@@ -119,23 +131,25 @@ export function newWorldDialog(
     name: `Welt von ${owner}`,
     difficulty: 'easy',
     computers: 0,
-    people: 2,
+    people: ONLINE.maxSides,
     open: false,
     faction: 'human',
   };
-  const create = (): void =>
-    onCreate({ ...w, computers: Math.min(w.computers, ONLINE.maxSides - w.people) });
+  const create = (): void => onCreate({ ...w, people: ONLINE.maxSides - w.computers });
   return onlineDialog(
     'Neue Welt',
     'Wählt euer Volk',
     factionPicker(w),
-    segRow('Menschen', PEOPLE, w.people, (n) => (w.people = n)),
     segRow('Computer', COMPUTERS, w.computers, (n) => (w.computers = n)),
-    el('p', { class: 'p-text muted' }, `Höchstens ${ONLINE.maxSides} Völker zusammen.`),
+    el(
+      'p',
+      { class: 'p-text muted' },
+      `Freunde kommen mit dem Link zur Welt. Für jeden neuen Spieler kommt ein Planet dazu (bis ${ONLINE.maxGrownSides} Völker).`,
+    ),
     levelPicker(w.difficulty, (d) => (w.difficulty = d)),
     toggleRow(
       'Offen für alle',
-      'An: Jeder kann beitreten. Aus: Nur wer den Welt-Code kennt.',
+      'An: Jeder sieht die Welt in der Liste. Aus: Nur wer den Link oder Code hat.',
       w.open,
       (on) => (w.open = on),
     ),
@@ -170,5 +184,15 @@ export function joinDialog(
       button('x', 'Zurück', onBack),
       button('rocket', 'Beitreten', () => onJoin(choice.faction), 'primary'),
     ),
+  );
+}
+
+/** The link to one of your worlds, to send to friends. */
+export function shareScreen(w: WorldInfo, onBack: () => void): HTMLElement {
+  return onlineDialog(
+    'Freunde einladen',
+    w.name,
+    ...shareBox(w),
+    el('div', { class: 'dlg-buttons' }, button('x', 'Zurück', onBack)),
   );
 }

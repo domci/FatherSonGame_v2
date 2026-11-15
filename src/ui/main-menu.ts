@@ -58,6 +58,8 @@ export interface PauseActions {
   save?: () => void;
   exportFile?: () => void;
   quit(): void;
+  /** Online: show the link to the world ("Freunde einladen"). */
+  share?: () => void;
   /** Online: "Zur Lobby". */
   quitLabel?: string;
   /** Switches (sound, music, offline attacks). */
@@ -77,6 +79,7 @@ export function pauseMenu(actions: PauseActions): HTMLElement {
         'nav',
         { class: 'm-list' },
         menuItem('play', 'Weiter', actions.resume, true),
+        actions.share && menuItem('send', 'Freunde einladen', actions.share),
         actions.save && menuItem('save', 'Jetzt speichern', actions.save),
         actions.exportFile && menuItem('download', 'Spielstand als Datei', actions.exportFile),
         menuItem('log-out', actions.quitLabel ?? 'Zum Hauptmenü', actions.quit),

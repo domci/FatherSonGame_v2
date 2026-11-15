@@ -18,6 +18,8 @@ import type { Session } from './session';
 import type { Projector } from './screen-pos';
 import type { OnlineGame } from '../online/online-game';
 import { ChatPanel } from '../ui/chat-panel';
+import { shareModal } from '../ui/share-world';
+import type { WorldInfo } from '../net/protocol';
 import { onlineDefeatScreen } from '../ui/end-screen';
 
 /** Sound for everybody; game options only for the maker of the world ('player'). */
@@ -41,10 +43,27 @@ function settingRows(session: Session, sound: Sound): HTMLElement[] {
   ];
 }
 
-function openMenu(root: HTMLElement, session: Session, sound: Sound, onQuit: () => void): void {
+/** Online: the link to the world, over the game. */
+function invite(root: HTMLElement, world: WorldInfo | undefined): (() => void) | undefined {
+  if (!world) return undefined;
+  return () => {
+    const box = shareModal(world, () => box.remove());
+    root.append(box);
+  };
+}
+
+function openMenu(root: HTMLElement, session: Session, d: UiDeps): void {
+  const { sound, onQuit } = d;
   const settings = settingRows(session, sound);
+  const share = invite(root, d.online?.world);
   const menu = session.net
-    ? pauseMenu({ resume: () => menu.remove(), quit: onQuit, quitLabel: 'Zur Lobby', settings })
+    ? pauseMenu({
+        resume: () => menu.remove(),
+        quit: onQuit,
+        quitLabel: 'Zur Lobby',
+        settings,
+        share,
+      })
     : pauseMenu({
         resume: () => menu.remove(),
         save: () => void session.save().then(() => session.onMessage('Gespeichert.', 'good')),
@@ -130,7 +149,7 @@ export function buildUi(root: HTMLElement, session: Session, d: UiDeps): GameUi 
   const hud = new Hud(session, {
     extraButtons: chat ? [chat.button] : [],
     goView: (n) => d.views.go(n),
-    openMenu: () => openMenu(root, session, d.sound, d.onQuit),
+    openMenu: () => openMenu(root, session, d),
     openColony: () => session.openPanel('colony'),
     openQuiz: () => openQuiz(root, session),
     openPeoples: () => session.openPanel('peoples'),

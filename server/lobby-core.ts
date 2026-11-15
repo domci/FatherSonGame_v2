@@ -1,4 +1,5 @@
 import { STRIKES } from '../src/content/chat';
+import { ONLINE } from '../src/content/online';
 import { isGoodName } from '../src/net/names';
 import type {
   AccountInfo,
@@ -126,12 +127,13 @@ export class LobbyCore {
     return id ? this.world(id) : undefined;
   }
 
-  /** Your worlds, and open worlds with a free place. */
+  /** Your worlds, and open worlds with room (worlds grow, up to the most sides). */
   async listWorlds(a: AccountRecord): Promise<{ mine: WorldInfo[]; open: WorldInfo[] }> {
     const all = [...(await this.kv.list<WorldRecord>({ prefix: 'world:' })).values()];
     const info = (w: WorldRecord): WorldInfo => publicInfo(w, a.worlds[w.id]);
     const mine = all.filter((w) => a.worlds[w.id]).map(info);
-    const open = all.filter((w) => !a.worlds[w.id] && w.open && w.taken < w.people).map(info);
+    const room = (w: WorldRecord): boolean => w.taken + w.computers < ONLINE.maxGrownSides;
+    const open = all.filter((w) => !a.worlds[w.id] && w.open && room(w)).map(info);
     return { mine, open };
   }
 

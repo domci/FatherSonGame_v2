@@ -52,6 +52,19 @@ describe('lobby: accounts, worlds, reports (M7)', () => {
     expect((await lobby.verify(b!.id, b!.key))?.worlds).toEqual({ [w.id]: 'ai2' });
   });
 
+  it('lists open worlds while they can still grow, also when the start places are taken', async () => {
+    const lobby = new LobbyCore(memoryKv(), () => 1000);
+    const a = await lobby.createAccount('Roter Falke 7');
+    const b = await lobby.createAccount('Blauer Komet 3');
+    const ra = (await lobby.verify(a!.id, a!.key))!;
+    const w = await lobby.createWorld(ra, { ...NEW_WORLD, open: true });
+    const rb = async () => (await lobby.listWorlds((await lobby.verify(b!.id, b!.key))!)).open;
+    await lobby.touchWorld(w.id, 5);
+    expect((await rb()).map((x) => x.id)).toEqual([w.id]);
+    await lobby.touchWorld(w.id, 11);
+    expect(await rb()).toEqual([]);
+  });
+
   it('punishes in steps: warning, chat pauses, then out', async () => {
     let now = 0;
     const lobby = new LobbyCore(memoryKv(), () => now);

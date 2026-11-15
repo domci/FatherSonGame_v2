@@ -11,7 +11,7 @@ import type { StoredAccount } from '../online/api';
 import { Connection } from '../online/connection';
 import { OnlineError, OnlineGame } from '../online/online-game';
 import type { Faction } from '../sim/state';
-import { joinDialog, lobbyScreen, newWorldDialog } from '../ui/online-lobby';
+import { joinDialog, lobbyScreen, newWorldDialog, shareScreen } from '../ui/online-lobby';
 import { confirmDialog, deviceCodeDialog, namePicker, waitScreen } from '../ui/online-menu';
 import { startGame } from './game-app';
 
@@ -25,6 +25,8 @@ export class OnlineFlow {
   constructor(
     private root: HTMLElement,
     private toMenu: () => void,
+    /** World code from a shared link (`#welt=…`): join it as soon as there is an account. */
+    private pending?: string,
   ) {}
 
   start(): void {
@@ -83,6 +85,9 @@ export class OnlineFlow {
   }
 
   private async lobby(a: StoredAccount, problem?: string): Promise<void> {
+    const linked = this.pending;
+    this.pending = undefined;
+    if (linked) return this.joinCode(a, linked);
     this.show(waitScreen('Verbinde …'));
     try {
       const worlds = await api.worlds(a);
@@ -93,6 +98,7 @@ export class OnlineFlow {
           {
             enter: (w) => this.enter(a, w),
             joinCode: (code) => void this.joinCode(a, code),
+            share: (w) => this.show(shareScreen(w, () => void this.lobby(a))),
             newWorld: () => this.newWorld(a),
             deviceCode: () => this.show(deviceCodeDialog(deviceCode(a), () => void this.lobby(a))),
             deleteAccount: () => this.deleteAccount(a),

@@ -24,6 +24,7 @@ import { el } from './ui/dom';
 import { storyIntro } from './ui/story';
 import { OnlineFlow } from './app/online-flow';
 import { watchPages } from './app/pages';
+import { codeInHash } from './ui/share-world';
 
 const MIN_AWAY_MS = 60_000;
 
@@ -73,5 +74,13 @@ async function showMenu(): Promise<void> {
   );
 }
 
-void showMenu();
+/** Opened with a shared world link (`#welt=ABC123`): straight to that world. */
+function start(): void {
+  const linked = codeInHash(location.hash);
+  if (!linked) return void showMenu();
+  history.replaceState(null, '', location.pathname + location.search);
+  new OnlineFlow(root(), () => void showMenu(), linked).start();
+}
+
+start();
 watchPages();
