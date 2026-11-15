@@ -1,3 +1,4 @@
+import { track } from '../platform/stats';
 import { viewerOf } from '../sim/viewer';
 import { toSaveData } from '../sim/save/save';
 import { exportSave } from '../platform/storage';
@@ -45,6 +46,7 @@ function settingRows(session: Session, sound: Sound): HTMLElement[] {
 function invite(root: HTMLElement, world: WorldInfo | undefined): (() => void) | undefined {
   if (!world) return undefined;
   return () => {
+    track('Invite shown');
     const box = shareModal(world, () => box.remove());
     root.append(box);
   };
@@ -118,7 +120,9 @@ function watchEnd(root: HTMLElement, session: Session, onQuit: () => void): () =
     const winner = session.state.winner;
     if (!winner || shown) return;
     shown = true;
-    const screen = endScreen(winner === viewerOf(session.state), endText(session.state), {
+    const won = winner === viewerOf(session.state);
+    track(won ? 'Victory' : 'Defeat', { minutes: Math.round(session.state.time / 60_000) });
+    const screen = endScreen(won, endText(session.state), {
       menu: () => void session.save().then(onQuit),
       watch: () => screen.remove(),
     });

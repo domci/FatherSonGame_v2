@@ -1,3 +1,4 @@
+import { track } from '../platform/stats';
 import type { WorldInfo } from '../net/protocol';
 import {
   api,
@@ -58,6 +59,7 @@ export class OnlineFlow {
       const made = await api.createAccount(name);
       const a = { ...made, name };
       storeAccount(a);
+      track('Account created');
       await this.lobby(a);
     } catch (e) {
       this.pickName(text(e));
@@ -126,7 +128,7 @@ export class OnlineFlow {
     this.show(
       joinDialog(
         w,
-        (f) => void this.play(a, w, f),
+        (f) => (track('World joined', { open: w.open }), void this.play(a, w, f)),
         () => void this.lobby(a),
       ),
     );
@@ -144,7 +146,9 @@ export class OnlineFlow {
     const create = async (w: Parameters<typeof api.createWorld>[1]): Promise<void> => {
       this.show(waitScreen(t('buildingWorld')));
       try {
-        await this.play(a, await api.createWorld(a, w));
+        const made = await api.createWorld(a, w);
+        track('World created', { computers: w.computers, open: w.open });
+        await this.play(a, made);
       } catch (e) {
         await this.lobby(a, text(e));
       }

@@ -41,3 +41,11 @@ Dom wants to share crashlanded.dom-builds.com on x.com. Strangers and kids (10+)
 ## Link preview
 
 - Open Graph + Twitter card in `index.html`, image `public/og.jpg` (1200×630, start screen without buttons).
+
+## Visitor statistics (Dom, 2026-11-15)
+
+- onedollarstats (`src/platform/stats.ts`): the script is added only on crashlanded.dom-builds.com, so local runs
+  and tests send nothing. No hash routing (world codes in `#welt=` stay out of the stats).
+- Events: Game start/continue, Online open, World link opened, Account created, World created/joined,
+  Invite shown, First action (once per command type and page load), Victory/Defeat, Language, Privacy page.
+  Props are fixed words and small numbers only: never names, chat text, codes or ids.

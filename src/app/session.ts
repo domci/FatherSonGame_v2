@@ -1,3 +1,4 @@
+import { trackOnce } from '../platform/stats';
 import type { SideId } from '../sim/entity';
 import { viewerHome, viewerOf } from '../sim/viewer';
 import type { BuildingId } from '../content/buildings';
@@ -65,6 +66,7 @@ export class Session {
 
   /** Online the server checks the command; a problem comes back later as a message. */
   command(cmd: Command): boolean {
+    trackOnce('First action', { type: cmd.type, online: !!this.net }, `cmd:${cmd.type}`);
     if (this.net) {
       this.net.send(cmd);
       return true;

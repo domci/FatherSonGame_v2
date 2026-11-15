@@ -26,6 +26,7 @@ import { OnlineFlow } from './app/online-flow';
 import { watchPages } from './app/pages';
 import { codeInHash } from './ui/share-world';
 import { lang, errorText } from './i18n';
+import { startStats, track } from './platform/stats';
 
 const MIN_AWAY_MS = 60_000;
 
@@ -55,6 +56,7 @@ function showError(e: unknown): void {
 
 function startNew(c: NewGameChoice): void {
   const state = createGame({ seed: randomSeed(), time: 0, ...c });
+  track('Game start', { faction: c.faction, difficulty: c.difficulty, computers: c.opponents });
   void play(state)
     .then(() => root().append(storyIntro(c.faction, () => undefined)))
     .catch(showError);
@@ -68,9 +70,11 @@ async function showMenu(): Promise<void> {
         const dialog = newGameDialog(startNew, () => dialog.remove());
         root().append(dialog);
       },
-      continueGame: saved ? () => void resume(saved).catch(showError) : undefined,
+      continueGame: saved
+        ? () => (track('Game continue'), void resume(saved).catch(showError))
+        : undefined,
       importGame: () => void importSaveFile().then(resume).catch(showError),
-      online: () => new OnlineFlow(root(), () => void showMenu()).start(),
+      online: () => (track('Online open'), new OnlineFlow(root(), () => void showMenu()).start()),
     }),
   );
 }
@@ -80,9 +84,11 @@ function start(): void {
   const linked = codeInHash(location.hash);
   if (!linked) return void showMenu();
   history.replaceState(null, '', location.pathname);
+  track('World link opened');
   new OnlineFlow(root(), () => void showMenu(), linked).start();
 }
 
 document.documentElement.lang = lang();
+startStats();
 start();
 watchPages();

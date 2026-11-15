@@ -41,8 +41,12 @@ export const PRIVACY_LEGAL: Part[] = [
         'For the request limits your IP address is counted for a short time, but not stored.',
       ),
       L(
-        'Der Browser-Speicher (Konto, Spielstand, Sprache) ist für das Spiel nötig (§ 25 Abs. 2 TDDDG). Keine Cookies, keine Reichweitenmessung.',
-        'The browser storage (account, save game, language) is needed for the game (§ 25(2) TDDDG). No cookies, no analytics.',
+        'Der Browser-Speicher (Konto, Spielstand, Sprache) ist für das Spiel nötig (§ 25 Abs. 2 TDDDG). Keine Cookies.',
+        'The browser storage (account, save game, language) is needed for the game (§ 25(2) TDDDG). No cookies.',
+      ),
+      L(
+        'Besucher-Statistik mit OneDollarStats (Server in Finnland, EU): ohne Cookies, ohne Profil, nur zusammengezählt. Gezählt werden Seitenaufrufe, Herkunft (Land, verweisende Seite, Browser-Typ) und Spiel-Schritte wie „Spiel gestartet“ oder „Welt gebaut“, nie Namen oder Chat-Text. Zweck: das Spiel verbessern (Art. 6 Abs. 1 lit. f DSGVO).',
+        'Visitor statistics with OneDollarStats (servers in Finland, EU): no cookies, no profile, only totals. It counts page views, origin (country, referring site, browser type) and game steps like “game started” or “world built”, never names or chat text. Purpose: to make the game better (Art. 6(1)(f) GDPR).',
       ),
       L(
         'Dienstleister: Cloudflare, Inc. (Hosting, Spiel-Server, KI-Chat-Prüfung) als Auftragsverarbeiter. Spiel-Daten liegen in der EU. Die KI-Prüfung kann auch außerhalb der EU laufen, sie bekommt nur den Text der Nachricht. Cloudflare ist unter dem EU-US Data Privacy Framework zertifiziert.',

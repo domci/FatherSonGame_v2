@@ -1,3 +1,4 @@
+import { track } from '../platform/stats';
 import { LANGS } from '../content/text';
 import { el } from './dom';
 import { t, lang, setLang } from '../i18n';
@@ -13,6 +14,7 @@ export function langSwitch(): HTMLElement {
         title: t('language'),
         onclick: () => {
           if (l === lang()) return;
+          track('Language', { lang: l });
           setLang(l);
           location.reload();
         },
