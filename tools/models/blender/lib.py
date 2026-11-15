@@ -33,6 +33,15 @@ PREVIEW = {
     'glowPink': (1.0, 0.25, 0.71, 3),
     'glowViolet': (0.75, 0.42, 1.0, 3),
     'rock': (0.4, 0.37, 0.34, 0),
+    'crystal': (0.56, 0.89, 1.0, 1),
+    'glow': (0.36, 1.0, 0.62, 3),
+    'glowBlue': (0.31, 0.76, 1.0, 3),
+    'glowYellow': (1.0, 0.83, 0.42, 3),
+    'glowCyan': (0.28, 0.91, 1.0, 3),
+    'glass': (0.75, 0.9, 1.0, 0),
+    'solar': (0.16, 0.35, 0.66, 0),
+    'metal': (0.79, 0.81, 0.84, 0),
+    'red': (0.85, 0.25, 0.18, 0),
 }
 
 
@@ -219,3 +228,84 @@ def export(path):
         export_animations=False,
         export_extras=False,
     )
+
+
+def box(name, size, pos, mat, bevel_width=0.0, parent=None):
+    """A box in game coordinates: size = (x width, y height, z depth)."""
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1)
+    sx, sy, sz = size
+    bmesh.ops.transform(bm, matrix=Matrix.Translation(g(*pos)) @ Matrix.Diagonal((sx, sz, sy, 1)), verts=bm.verts)
+    ob = obj_from_bmesh(name, bm, mat, smooth=False, parent=parent)
+    if bevel_width:
+        bevel(ob, bevel_width, segments=2)
+    return ob
+
+
+def slab(name, points, thickness, y, mat, parent=None):
+    """A flat plate (wing, fin) from game (x, z) points, `thickness` high, centered at height y."""
+    bm = bmesh.new()
+    low = [bm.verts.new(g(x, y - thickness / 2, z)) for x, z in points]
+    high = [bm.verts.new(g(x, y + thickness / 2, z)) for x, z in points]
+    n = len(points)
+    bm.faces.new(low)
+    bm.faces.new(list(reversed(high)))
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((low[i], high[i], high[j], low[j]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return obj_from_bmesh(name, bm, mat, smooth=False, parent=parent)
+
+
+def fin(name, points, thickness, x, mat, parent=None):
+    """An upright plate (tail fin) from game (z, y) points at side position x."""
+    bm = bmesh.new()
+    a = [bm.verts.new(g(x - thickness / 2, y, z)) for z, y in points]
+    b = [bm.verts.new(g(x + thickness / 2, y, z)) for z, y in points]
+    n = len(points)
+    bm.faces.new(a)
+    bm.faces.new(list(reversed(b)))
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((a[i], b[i], b[j], a[j]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return obj_from_bmesh(name, bm, mat, smooth=False, parent=parent)
+
+
+def loft(name, sections, mat, segs=16, power=2.6, smooth=True, parent=None):
+    """A hull through cross sections along z (game coordinates).
+
+    sections: list of (z, half_width, half_height, y_center). The cross section is a
+    superellipse (power 2 = ellipse, higher = boxier). Ends are closed.
+    """
+    bm = bmesh.new()
+    rings = []
+    for z, w, h, yc in sections:
+        ring = []
+        for k in range(segs):
+            t = k / segs * math.tau
+            c, s = math.cos(t), math.sin(t)
+            x = math.copysign(abs(c) ** (2 / power), c) * w
+            y = math.copysign(abs(s) ** (2 / power), s) * h
+            ring.append(bm.verts.new(g(x, yc + y, z)))
+        rings.append(ring)
+    for r0, r1 in zip(rings, rings[1:]):
+        for k in range(segs):
+            bm.faces.new((r0[k], r0[(k + 1) % segs], r1[(k + 1) % segs], r1[k]))
+    bm.faces.new(list(reversed(rings[0])))
+    bm.faces.new(rings[-1])
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    ob = obj_from_bmesh(name, bm, mat, smooth=smooth, parent=parent)
+    if smooth:
+        ob.data.set_sharp_from_angle(angle=math.radians(50))
+    return ob
+
+
+def engine(name, pos, radius, length, glow='glowBlue', segs=12):
+    """An engine nozzle pointing back (-z) with a glowing core."""
+    x, y, z = pos
+    shell = tube(f'{name}Shell', (x, y, z), (x, y, z - length), radius, radius * 1.15, 'steel', segs=segs)
+    ring = tube(f'{name}Ring', (x, y, z - length * 0.7), (x, y, z - length * 0.85), radius * 1.22, radius * 1.22, 'orange', segs=segs)
+    core = sphere(f'{name}Core', radius * 0.85, (x, y, z - length), (1, 1, 0.4), glow, segs=segs, rings=6)
+    return [shell, ring], core

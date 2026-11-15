@@ -56,7 +56,7 @@ export const ADVANCED_SPECS: Record<Advanced, readonly ModelPart[]> = {
   huntingLodge: [
     pad(2),
     { kit: 'hangar_smallB', pos: [-0.15, Y, -0.2], scale: 0.72 },
-    { kit: 'turret_single', pos: [0.6, Y, 0.6], scale: 0.85, rot: [0, 0.6, 0] },
+    { kit: 'h_turret', pos: [0.6, Y, 0.6], scale: 0.85, rot: [0, 0.6, 0] },
     { kit: 'barrels', pos: [-0.6, Y, 0.7], scale: 0.7 },
   ],
   lab: [

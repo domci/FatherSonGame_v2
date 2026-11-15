@@ -6,6 +6,7 @@ import {
   kitModel,
   kitModelWithHeight,
   kitModelWithLength,
+  isBlender,
   remapMaterials,
   type BlenderName,
 } from './kit';
@@ -46,6 +47,7 @@ export function unitModel(type: UnitId, faction: Faction = 'human'): Object3D {
   const model = look.length
     ? kitModelWithLength(look.kit, look.length)
     : kitModelWithHeight(look.kit, look.height);
+  if (isBlender(look.kit)) blenderMaterials(model);
   paint(model, look);
   g.add(model);
   return g;

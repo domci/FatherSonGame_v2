@@ -91,16 +91,64 @@ else a `blender` app on the PATH (`blender -b -P ...`).
 - Many copies on screen (domes, pods): watch the frame rate on the tablet; lower the LOD distances in
   `lod.ts` if needed.
 
+## Best practices (learned while building the models)
+
+**Modeling (Blender scripts)**
+- Build in game coordinates with the `lib.py` helpers; `g()` does the axis swap. Ships and units face **+z**,
+  turret heads aim along +z, legs/horns bend along **+x** (the code turns them).
+- Author pieces at the size the game expects (pad 2 x 2, dome radius 1, tunnel 1 tile long) and the pivot where
+  the game puts it (bottom center). Blender models are not re-centered at load.
+- Silhouette first: a few strong shapes (`loft` hulls, `sweep` tubes) read better from the game camera than
+  many tiny parts. Small detail only where the camera is close (cockpits, eyes, lamps, stripes).
+- Use `sweep` (one tube through points) instead of `chain` (tubes + joint spheres): about 5x fewer triangles.
+- `displace` (noise) gives organic things (chitin, flesh, rock) life for free. Keep strength small (0.01-0.03).
+- Glow parts (`glow*`, `window`) are what makes a model look alive in the dark: give every model a few.
+- Name parts the game moves: `leg0..leg5` (spider), `head` (turrets), `core`, `ring`, `field` (building-anim.ts).
+
+**Materials and draw calls**
+- Name Blender materials like game materials (`MaterialName`), or a slot name the code maps (`shell`, `glow`,
+  `rock`, `crystal`). Never rely on Blender colors: the game swaps every material.
+- `join()` parts per material group at the end (hull, paint, metal, canopy, glow). Each material in a mesh is
+  one draw call; 4-6 per model is fine.
+- Repeated pieces (tunnels) share one material per name (`tunnel-net.ts`, `mat()`), not a new one per copy.
+- Glass (`domeGlass`, `glass`) does not cast shadows (`blenderMaterials` and the tunnel code turn it off).
+
+**Optimizing**
+- Apply modifiers before joining (`join()` does it): else the first object's modifier runs on the whole mesh.
+- Watch the triangle count after each change (`build_all.py` prints it, `optimize.ts` prints all LOD levels).
+  Typical: ship 600-2.3k, building part 400-2.3k, creature 6.5k, dome 6k.
+- Sphere segments by size: lamps/bolts 5-8, eyes 10-14, bodies 16-28. Cylinders: thin 4-6, medium 8-12.
+- Flat-shaded parts (frames, plates) split every vertex and simplify badly; prefer smooth shading with
+  `set_sharp_from_angle` (the `loft` helper does it).
+- LOD distances (`lod.ts`): 26 / 44 tiles. The surface camera is 6-42 tiles away, so far views use lod1/lod2.
+- `meshopt` level `high` quantizes positions/normals: ~60 % smaller files, no visible loss at game size.
+- Check the model in the gallery from the game's camera angle, not only from the side.
+
+**Workflow**
+- One model per file with `build()`; reuse helpers, do not copy code.
+- Before/after: start the old version in a git worktree on port 5174, copy `tools/gallery.*` into it, and take the
+  same gallery picture there (`shots-gallery.mjs`, with the port changed).
+- Commit the script and the GLB together; rebuild thumbnails (`make-thumbs.mjs`) when buildings change.
+
 ## Current models (2026-11-15)
 
-| Model | Used for | Triangles (lod0 / lod1 / lod2) | Size |
-|---|---|---|---|
-| `dome` | glass dome over all human living/working buildings (`glassDome()`) | 6008 / 3616 / 2752 | 145 KB |
-| `pod` | every alien pod (`pod()` in `alien-helpers.ts`) | 3738 / 1546 / 440 | 40 KB |
-| `spider` | spider creature, legs `leg0..leg5` swing in code | 6578 / 3004 / 820 | 80 KB |
-| `spore_ship` | alien transport, cruiser (1.6×) | 3424 / 1402 / 420 | 42 KB |
-| `egg` | spider eggs | 2556 / 1860 / 342 | 36 KB |
-| `nest` | spider nest | 3286 / 1390 / 382 | 41 KB |
+| Model | Used for |
+|---|---|
+| `dome` | glass dome over human living/working buildings (`glassDome()`) |
+| `pad` | landing pad under every human building (`pad()`) |
+| `h_turret` | turning gun head of human defense buildings |
+| `tunnel` | glass tunnel piece (repeated, `tunnel-net.ts`) |
+| `h_fighter`, `h_bomber`, `h_space_fighter`, `h_transport`, `h_miner`, `h_cruiser` | human ships |
+| `pod` | every alien pod (`pod()`) |
+| `mound` | living ground under every alien building (`mound()`) |
+| `horn`, `mushroom` | alien horns and glowing mushrooms (`horns()`, `mushroom()`) |
+| `vein` | alien living vein between buildings (repeated) |
+| `spore_ship`, `a_miner`, `a_space_fighter` | alien ships (cruiser = spore ship 1.6x) |
+| `spider`, `egg`, `nest` | spider creatures |
+| `crystals` | diamond deposits on the ground |
 
-Good next candidates: human ships (now Kenney speeders), glass tunnels (`tunnel-net.ts`), alien horns and
-mushrooms, the human command building.
+Triangles and sizes: run `bun run models` (it prints them). All 26 models together: about 0.9 MB (gzip ~half).
+
+Still from kits (good next candidates): animated units (Quaternius: drone, hunter, infantry, tank, flak mech,
+alien creatures; they need rigs and animations in Blender), Kenney building parts (hangars, dishes, rockets,
+structures), turret_double, terrain rocks, alien special buildings made of code shapes (solar leaves, hangar).

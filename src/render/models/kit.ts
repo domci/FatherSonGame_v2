@@ -76,7 +76,30 @@ export const QUATERNIUS = [
 ] as const;
 
 /** Own models, built with Blender scripts (tools/models/, see docs/models.md). */
-export const BLENDER = ['dome', 'pod', 'spider', 'spore_ship', 'egg', 'nest'] as const;
+export const BLENDER = [
+  'dome',
+  'pod',
+  'spider',
+  'spore_ship',
+  'egg',
+  'nest',
+  'h_fighter',
+  'h_bomber',
+  'h_space_fighter',
+  'h_transport',
+  'h_miner',
+  'h_cruiser',
+  'a_miner',
+  'a_space_fighter',
+  'tunnel',
+  'vein',
+  'pad',
+  'mound',
+  'mushroom',
+  'horn',
+  'h_turret',
+  'crystals',
+] as const;
 
 export type BlenderName = (typeof BLENDER)[number];
 export type KitName = (typeof KENNEY)[number] | (typeof QUATERNIUS)[number] | BlenderName;

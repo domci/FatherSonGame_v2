@@ -1,47 +1,27 @@
 import type { KitPart, MaterialName, ModelPart, Part } from './parts';
 
-/** Flat living ground under an alien building, with small glowing bumps. */
-export function mound(size: number, glow: MaterialName = 'glowGreen'): Part[] {
+/** Living ground under an alien building: roots, chitin rim, glowing bumps (Blender model 'mound'). */
+export function mound(size: number, glow: MaterialName = 'glowGreen'): KitPart[] {
   const r = size * 0.52;
-  const bumps: Part[] = Array.from({ length: Math.round(size * 3) }, (_, i) => {
-    const a = (i / (size * 3)) * Math.PI * 2 + 0.4;
-    const d = r * (0.72 + ((i * 37) % 10) / 50);
-    return {
-      shape: 'sphere',
-      size: [0.05 + (i % 3) * 0.015],
-      pos: [Math.cos(a) * d, 0.06, Math.sin(a) * d],
-      mat: glow,
-    };
-  });
-  return [
-    { shape: 'sphere', size: [r], scale: [1, 0.14, 1], pos: [0, 0, 0], mat: 'fleshDark' },
-    {
-      shape: 'torus',
-      size: [r * 0.92, 0.05],
-      pos: [0, 0.03, 0],
-      rot: [Math.PI / 2, 0, 0],
-      mat: 'chitin',
-    },
-    ...bumps,
-  ];
+  return [{ kit: 'mound', scale: [r, r, r], mats: { glow } }];
 }
 
-/** Horns around a center, bending outward. */
+/** Ridged bone horns around a center, bending outward (Blender model 'horn'). */
 export function horns(
   n: number,
   r: number,
   h: number,
   mat: MaterialName = 'bone',
   y = 0.05,
-): Part[] {
+): KitPart[] {
   return Array.from({ length: n }, (_, i) => {
     const a = (i / n) * Math.PI * 2;
     return {
-      shape: 'tendril',
-      size: [0.06, h, h * 0.35],
+      kit: 'horn',
+      scale: h,
       pos: [Math.cos(a) * r, y, Math.sin(a) * r],
       rot: [0, -a, 0],
-      mat,
+      mats: { bone: mat },
     };
   });
 }
@@ -88,12 +68,9 @@ export function ribs(
   }));
 }
 
-/** A glowing mushroom. */
-export function mushroom(x: number, z: number, h: number, r: number): Part[] {
-  return [
-    { shape: 'cyl', size: [r * 0.22, h], pos: [x, h / 2, z], mat: 'bone' },
-    { shape: 'dome', size: [r], scale: [1, 0.55, 1], pos: [x, h, z], mat: 'glowViolet' },
-  ];
+/** A glowing mushroom with gills and spots (Blender model 'mushroom'). */
+export function mushroom(x: number, z: number, h: number, r: number): KitPart[] {
+  return [{ kit: 'mushroom', scale: [r, h, r], pos: [x, 0, z] }];
 }
 
 export type { ModelPart };

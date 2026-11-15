@@ -4,7 +4,7 @@ import { chromium } from '@playwright/test';
 const [base, out] = process.argv.slice(2);
 const browser = await chromium.launch();
 async function shot(faction) {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, locale: 'de-DE' });
   page.on('pageerror', (e) => console.error('ERR', e.message));
   await page.goto(base);
   await page.getByRole('button', { name: /Neues Spiel/ }).click();

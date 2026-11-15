@@ -17,7 +17,12 @@ sys.path.insert(0, HERE)
 
 import lib  # noqa: E402
 
-MODELS = ['dome', 'pod', 'spider', 'spore_ship', 'egg', 'nest']
+MODELS = [
+    'dome', 'pod', 'spider', 'spore_ship', 'egg', 'nest',
+    'h_fighter', 'h_bomber', 'h_space_fighter', 'h_transport', 'h_miner', 'h_cruiser',
+    'a_miner', 'a_space_fighter', 'tunnel', 'vein',
+    'pad', 'mound', 'mushroom', 'horn', 'h_turret', 'crystals',
+]
 OUT = os.path.join(HERE, '..', 'out')
 
 

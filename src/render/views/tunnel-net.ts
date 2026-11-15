@@ -1,20 +1,12 @@
-import {
-  BoxGeometry,
-  CylinderGeometry,
-  Group,
-  Mesh,
-  SphereGeometry,
-  TorusGeometry,
-  Vector3,
-  type Material,
-} from 'three/webgpu';
+import { Group, Mesh, Vector3, type Material } from 'three/webgpu';
 import { BUILDINGS } from '../../content/buildings';
 import type { Faction } from '../../content/factions';
 import type { Entity, PlayerId } from '../../sim/entity';
 import type { SurfaceMap } from '../../sim/generation/surface';
 import type { GameState } from '../../sim/state';
 import { boxOf, gapBetween, networkBuildings, TUNNEL_REACH } from '../../sim/tunnels';
-import { partMaterial } from '../models/parts';
+import { kitModel } from '../models/kit';
+import { partMaterial, type MaterialName } from '../models/parts';
 import type { Sight } from './surface-entities';
 import { TunnelWalkers, type TunnelPath } from './tunnel-walkers';
 
@@ -45,16 +37,10 @@ export function tunnelLinks(list: Entity[]): Link[] {
   }
 }
 
-const shared = {
-  tube: new CylinderGeometry(0.2, 0.2, 1, 16, 1, true),
-  rib: new TorusGeometry(0.21, 0.028, 6, 20),
-  floor: new BoxGeometry(0.3, 0.04, 1),
-  vein: new CylinderGeometry(0.13, 0.13, 1, 10),
-  bulb: new SphereGeometry(0.18, 12, 8),
-};
-
+type TunnelMat = MaterialName;
 const materials: Partial<Record<string, Material>> = {};
-function mat(name: 'domeGlass' | 'steel' | 'dark' | 'fleshDark' | 'glowGreen'): Material {
+/** One material per name for all tunnels (a base has many pieces). */
+function mat(name: TunnelMat): Material {
   return (materials[name] ??= partMaterial(name));
 }
 
@@ -120,43 +106,30 @@ export class TunnelNet {
   }
 }
 
-/** A glass tube on the ground with steel rings and a dark floor. Runs along z. */
-function glassTube(length: number): Group {
+/** Copies of a 1-tile Blender piece along z, stretched to fill `length`. Materials are shared. */
+function pieces(name: 'tunnel' | 'vein', length: number, perTile: number): Group {
   const g = new Group();
-  const tube = new Mesh(shared.tube, mat('domeGlass'));
-  tube.rotation.x = Math.PI / 2;
-  tube.scale.y = length;
-  tube.position.y = 0.2;
-  const floor = new Mesh(shared.floor, mat('dark'));
-  floor.scale.z = length;
-  floor.position.y = 0.04;
-  floor.receiveShadow = true;
-  g.add(tube, floor);
-  const rings = Math.max(2, Math.round(length / 0.7));
-  for (let i = 0; i < rings; i++) {
-    const ring = new Mesh(shared.rib, mat('steel'));
-    ring.position.set(0, 0.2, -length / 2 + (length * (i + 0.5)) / rings);
-    ring.castShadow = true;
-    g.add(ring);
+  const n = Math.max(1, Math.round(length / perTile));
+  for (let i = 0; i < n; i++) {
+    const piece = kitModel(name);
+    piece.traverse((o) => {
+      if (!(o instanceof Mesh)) return;
+      o.material = mat(o.userData.kitMat as TunnelMat);
+      o.castShadow = o.userData.kitMat !== 'domeGlass';
+    });
+    piece.scale.z = length / n;
+    piece.position.z = -length / 2 + (length * (i + 0.5)) / n;
+    g.add(piece);
   }
   return g;
 }
 
-/** A living vein with glowing bulbs (aliens). Runs along z. */
+/** A glass tube with a steel frame, floor grating and lamps (Blender model 'tunnel'). Runs along z. */
+function glassTube(length: number): Group {
+  return pieces('tunnel', length, 0.8);
+}
+
+/** A living vein with sinews and glowing nodes (Blender model 'vein'). Runs along z. */
 function vein(length: number): Group {
-  const g = new Group();
-  const tube = new Mesh(shared.vein, mat('fleshDark'));
-  tube.rotation.x = Math.PI / 2;
-  tube.scale.y = length;
-  tube.position.y = 0.11;
-  tube.castShadow = true;
-  g.add(tube);
-  const bulbs = Math.max(1, Math.round(length / 1.4));
-  for (let i = 0; i < bulbs; i++) {
-    const bulb = new Mesh(shared.bulb, mat(i % 2 ? 'glowGreen' : 'fleshDark'));
-    bulb.position.set(0, 0.12, -length / 2 + (length * (i + 0.5)) / bulbs);
-    bulb.scale.set(1, 0.7, 1.3);
-    g.add(bulb);
-  }
-  return g;
+  return pieces('vein', length, 1);
 }

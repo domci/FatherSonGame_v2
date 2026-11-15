@@ -50,7 +50,7 @@ export const MILITARY_SPECS: Record<MilitaryId, readonly ModelPart[]> = {
       rot: [Math.PI / 2, 0, 0],
       mat: 'orange',
     },
-    { kit: 'turret_single', pos: [0, 0.38, 0], scale: 1.35, name: 'head' },
+    { kit: 'h_turret', pos: [0, 0.38, 0], scale: 1.35, name: 'head' },
     ...ringOfLights(6, 0.82, 0.14, 'window', 0.04),
   ],
   shieldReactor: [

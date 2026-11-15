@@ -32,10 +32,10 @@ export function row(
   }));
 }
 
-/** Landing pad that fills a building of `size` tiles. */
+/** Landing pad that fills a building of `size` tiles (Blender model 'pad', 2 x 2 tiles). */
 export function pad(size: number): KitPart {
   const s = (size / 2) * 0.96;
-  return { kit: 'platform_large', scale: [s, 1, s] };
+  return { kit: 'pad', scale: [s, 1, s] };
 }
 
 /** Small warm lights on the four corners of a pad. */

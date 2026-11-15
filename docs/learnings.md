@@ -109,3 +109,7 @@ Short notes when something went wrong or was surprising. Newest on top.
 - Ein E2E-Test, der `e.text.startsWith` nutzt, bricht leise, wenn `text` ein Objekt wird: Typen im Test mitpflegen.
 - Live-Tests gegen crashlanded.dom-builds.com: `bunx playwright test -c tests/live/live.config.ts`
   (`LIVE_URL` für eine andere Adresse).
+- Runde 2 (Schiffe, Tunnel, Gebäude-Teile): `sweep` (ein Rohr durch Punkte) statt Rohre + Gelenk-Kugeln spart
+  ~80 % Dreiecke. Nach einem `join()` sind die alten Python-Objekte tot (ReferenceError): Listen vorher bilden.
+- Die Spiel-Sprache folgt jetzt der Browser-Sprache: Playwright-Skripte brauchen `locale: 'de-DE'`, sonst gibt es
+  den Knopf "Neues Spiel" nicht.

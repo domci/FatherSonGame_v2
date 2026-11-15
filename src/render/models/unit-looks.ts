@@ -39,18 +39,18 @@ const HUMAN: Looks = {
     },
     anims: { move: 'Tank_Forward' },
   },
-  miningShip: { kit: 'craft_miner', height: 0.5 },
-  transport: { kit: 'cargo_ship', height: 0.7 },
+  miningShip: { kit: 'h_miner', height: 0.5 },
+  transport: { kit: 'h_transport', height: 0.6 },
   flakTank: {
     kit: 'mech',
     height: 0.8,
     mats: { Atlas: 'white' },
     anims: { attack: 'Shoot_Small' },
   },
-  fighter: { kit: 'craft_speederD', height: 0.3, length: 0.6 },
-  bomber: { kit: 'craft_speederB', height: 0.42, length: 0.7, mats: { metal: 'steel' } },
-  spaceFighter: { kit: 'craft_speederA', height: 0.35, length: 0.7 },
-  cruiser: { kit: 'craft_cargoB', height: 0.6, length: 1.3 },
+  fighter: { kit: 'h_fighter', height: 0.3, length: 0.6 },
+  bomber: { kit: 'h_bomber', height: 0.42, length: 0.75 },
+  spaceFighter: { kit: 'h_space_fighter', height: 0.35, length: 0.7 },
+  cruiser: { kit: 'h_cruiser', height: 0.6, length: 1.3 },
 };
 
 const ALIEN: Looks = {
@@ -88,7 +88,7 @@ const ALIEN: Looks = {
     mats: { Main: 'skinChitin', Main_Dark: 'skinFlesh', White: 'glowGreen' },
     anims: { idle: 'Idle', move: 'Walk', attack: 'Bite_InPlace' },
   },
-  miningShip: { kit: 'speeder_c', height: 0.4, alienPaint: true },
+  miningShip: { kit: 'a_miner', height: 0.45 },
   flakTank: {
     kit: 'mech_heavy',
     height: 0.8,
@@ -107,7 +107,7 @@ const ALIEN: Looks = {
     mats: { Main: 'skinChitin', Belly: 'skinFlesh', Eyes: 'glowGreen', Claws: 'bone' },
     anims: { idle: 'Dragon_Flying', move: 'Dragon_Flying', attack: 'Dragon_Attack' },
   },
-  spaceFighter: { kit: 'craft_speederD', height: 0.35, length: 0.7, alienPaint: true },
+  spaceFighter: { kit: 'a_space_fighter', height: 0.35, length: 0.7 },
 };
 
 export const UNIT_LOOKS: Record<Faction, Looks> = { human: HUMAN, alien: ALIEN };

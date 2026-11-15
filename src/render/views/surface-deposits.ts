@@ -1,4 +1,6 @@
-import { CircleGeometry, ConeGeometry, Group, Mesh, MeshStandardNodeMaterial } from 'three/webgpu';
+import { CircleGeometry, Group, Mesh, MeshStandardNodeMaterial } from 'three/webgpu';
+import { kitModel, remapMaterials } from '../models/kit';
+import { KIT_MATERIALS } from '../models/kit-materials';
 import {
   color,
   float,
@@ -57,18 +59,15 @@ function pool(map: SurfaceMap, cx: number, cy: number): Group {
   return g;
 }
 
+/** Glowing diamond crystals on a rock bed (Blender model 'crystals'). */
 function crystals(map: SurfaceMap, cx: number, cy: number): Group {
   const g = new Group();
-  const mat = solidMaterial(0x8fe3ff, { glow: 0.7, metal: 0.1, rough: 0.05 });
-  for (let i = 0; i < 9; i++) {
-    const h = 0.4 + ((i * 7) % 5) * 0.15;
-    const c = new Mesh(new ConeGeometry(0.1 + (i % 3) * 0.04, h, 6), mat);
-    const r = (i / 9) * 0.8;
-    c.position.set(Math.cos(i * 2.1) * r, h / 2, Math.sin(i * 2.1) * r);
-    c.rotation.set(Math.sin(i * 1.7) * 0.5, 0, Math.cos(i * 1.3) * 0.5);
-    c.castShadow = true;
-    g.add(c);
-  }
+  const model = kitModel('crystals');
+  remapMaterials(model, {
+    crystal: () => solidMaterial(0x8fe3ff, { glow: 0.7, metal: 0.1, rough: 0.05 }),
+    rock: KIT_MATERIALS.rockDark,
+  });
+  g.add(model);
   g.position.set(cx - map.size / 2, visualHeight(map, cx, cy), cy - map.size / 2);
   return g;
 }
