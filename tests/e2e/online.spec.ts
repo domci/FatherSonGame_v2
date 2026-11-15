@@ -18,7 +18,7 @@ interface Online {
 
 async function newPage(browser: Browser, errors: string[]): Promise<Page> {
   // Small windows: more 3D games in software rendering are slow in CI.
-  const ctx = await browser.newContext({ viewport: { width: 900, height: 600 } });
+  const ctx = await browser.newContext({ viewport: { width: 900, height: 600 }, locale: 'de-DE' });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(e.message));
   return page;
