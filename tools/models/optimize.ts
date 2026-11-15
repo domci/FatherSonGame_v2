@@ -32,6 +32,8 @@ function addLevels(doc: Document, node: Node): void {
     for (const prim of copy.listPrimitives()) {
       const simple = prim.clone();
       simplifyPrimitive(simple, { simplifier: MeshoptSimplifier, ...level });
+      // Tiny thin parts (wings) can vanish: keep them as they are then (an empty buffer breaks meshopt).
+      if (!simple.getIndices()?.getCount()) continue;
       copy.removePrimitive(prim);
       copy.addPrimitive(simple);
     }

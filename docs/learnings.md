@@ -118,3 +118,9 @@ Short notes when something went wrong or was surprising. Newest on top.
   ~80 % Dreiecke. Nach einem `join()` sind die alten Python-Objekte tot (ReferenceError): Listen vorher bilden.
 - Die Spiel-Sprache folgt jetzt der Browser-Sprache: Playwright-Skripte brauchen `locale: 'de-DE'`, sonst gibt es
   den Knopf "Neues Spiel" nicht.
+- Runde 3 (animierte Einheiten): Gelenke als Empties mit festen Teilen darunter, Clips als NLA-Spuren `Rig|Idle`
+  usw. Der glTF-Export mit `export_animation_mode='NLA_TRACKS'` macht daraus je Clip eine Animation für alle Teile.
+- Bug in `lib.join()`: Bei nur einem Objekt wurde der Eltern-Knoten nicht gesetzt (Teile blieben stehen, wenn das
+  Gelenk sich drehte). Immer prüfen, ob Teile wirklich am Gelenk hängen (`/tmp`-Skript mit `matrix_world`).
+- meshoptimizer kann dünne Teile (Flügel) beim Vereinfachen ganz löschen. Ein leerer Puffer lässt den
+  meshopt-Encoder abstürzen ("Assertion failed"): leere LOD-Teile nicht übernehmen.

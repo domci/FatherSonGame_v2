@@ -15,14 +15,12 @@ import { makeLods } from './lod';
 
 /** Kenney Space Kit parts (CC0). */
 export const KENNEY = [
-  'platform_large',
   'hangar_roundGlass',
   'hangar_roundA',
   'hangar_smallA',
   'hangar_smallB',
   'hangar_largeA',
   'craft_cargoA',
-  'craft_miner',
   'satelliteDish_large',
   'satelliteDish_detailed',
   'machine_wireless',
@@ -40,7 +38,6 @@ export const KENNEY = [
   'rock_crystals',
   'structure_detailed',
   'structure_closed',
-  'turret_single',
   'rocket_baseA',
   'rocket_fuelB',
   'rocket_sidesA',
@@ -49,30 +46,8 @@ export const KENNEY = [
   'supports_low',
   'corridor_window',
   'rover',
-  'cargo_ship',
-  'speeder_c',
   'turret_double',
-  'craft_speederA',
-  'craft_speederB',
-  'craft_speederD',
-  'craft_cargoB',
   'hangar_largeB',
-] as const;
-
-/** Animated robots by Quaternius (CC0). */
-export const QUATERNIUS = [
-  'robot_flyer',
-  'robot_gunner',
-  'astronaut',
-  'tank',
-  'alien_big',
-  'crab',
-  'jelly_flyer',
-  'armored_bee',
-  'wyvern',
-  'bat',
-  'mech',
-  'mech_heavy',
 ] as const;
 
 /** Own models, built with Blender scripts (tools/models/, see docs/models.md). */
@@ -99,10 +74,22 @@ export const BLENDER = [
   'horn',
   'h_turret',
   'crystals',
+  'h_tank',
+  'h_infantry',
+  'h_drone',
+  'h_hunter',
+  'h_flak',
+  'a_drone',
+  'a_hunter',
+  'a_infantry',
+  'a_tank',
+  'a_flak',
+  'a_fighter',
+  'a_bomber',
 ] as const;
 
 export type BlenderName = (typeof BLENDER)[number];
-export type KitName = (typeof KENNEY)[number] | (typeof QUATERNIUS)[number] | BlenderName;
+export type KitName = (typeof KENNEY)[number] | BlenderName;
 
 export function isBlender(name: string): name is BlenderName {
   return (BLENDER as readonly string[]).includes(name);
@@ -118,11 +105,7 @@ interface KitEntry {
 const cache = new Map<KitName, KitEntry>();
 
 function urlOf(name: KitName): string {
-  const folder = (QUATERNIUS as readonly string[]).includes(name)
-    ? 'quaternius'
-    : isBlender(name)
-      ? 'blender'
-      : 'kenney';
+  const folder = isBlender(name) ? 'blender' : 'kenney';
   return `${import.meta.env.BASE_URL}models/${folder}/${name}.glb`;
 }
 
@@ -160,7 +143,7 @@ export function loadKit(): Promise<void> {
   loading ??= (async () => {
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
-    const names: KitName[] = [...KENNEY, ...QUATERNIUS, ...BLENDER];
+    const names: KitName[] = [...KENNEY, ...BLENDER];
     await Promise.all(
       names.map(async (name) => {
         const gltf = await loader.loadAsync(urlOf(name));

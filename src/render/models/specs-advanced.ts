@@ -76,7 +76,7 @@ export const ADVANCED_SPECS: Record<Advanced, readonly ModelPart[]> = {
   spaceport: [
     pad(4),
     ...cornerLights(4),
-    { kit: 'craft_miner', pos: [0.55, Y, 0.45], scale: 1.1, rot: [0, -0.5, 0] },
+    { kit: 'h_miner', pos: [0.55, Y, 0.45], scale: 0.9, rot: [0, -0.5, 0] },
     { kit: 'rocket_baseA', pos: [-1.1, Y, -1.1], scale: 0.7 },
     { kit: 'rocket_fuelB', pos: [-1.1, 1.22, -1.1], scale: 0.7 },
     { kit: 'rocket_sidesA', pos: [-1.1, 1.92, -1.1], scale: 0.7 },

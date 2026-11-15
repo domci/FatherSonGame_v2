@@ -22,6 +22,8 @@ MODELS = [
     'h_fighter', 'h_bomber', 'h_space_fighter', 'h_transport', 'h_miner', 'h_cruiser',
     'a_miner', 'a_space_fighter', 'tunnel', 'vein',
     'pad', 'mound', 'mushroom', 'horn', 'h_turret', 'crystals',
+    'h_tank', 'h_infantry', 'h_drone', 'h_hunter', 'h_flak',
+    'a_drone', 'a_hunter', 'a_infantry', 'a_tank', 'a_flak', 'a_fighter', 'a_bomber',
 ]
 OUT = os.path.join(HERE, '..', 'out')
 

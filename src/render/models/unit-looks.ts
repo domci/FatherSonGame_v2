@@ -20,33 +20,13 @@ export interface UnitLook {
 type Looks = Partial<Record<UnitId, UnitLook>>;
 
 const HUMAN: Looks = {
-  drone: { kit: 'robot_flyer', height: 0.55 },
-  hunter: { kit: 'robot_gunner', height: 0.75 },
-  infantry: {
-    kit: 'astronaut',
-    height: 0.82,
-    anims: { idle: 'Idle_Gun', move: 'Run_Gun', attack: 'Idle_Gun' },
-  },
-  tank: {
-    kit: 'tank',
-    height: 0.62,
-    mats: {
-      Main: 'white',
-      Main_Light: 'white',
-      Main_Dark: 'steel',
-      Main_Details: 'orange',
-      Wheels: 'dark',
-    },
-    anims: { move: 'Tank_Forward' },
-  },
+  drone: { kit: 'h_drone', height: 0.55 },
+  hunter: { kit: 'h_hunter', height: 0.75 },
+  infantry: { kit: 'h_infantry', height: 0.82 },
+  tank: { kit: 'h_tank', height: 0.62 },
   miningShip: { kit: 'h_miner', height: 0.5 },
   transport: { kit: 'h_transport', height: 0.6 },
-  flakTank: {
-    kit: 'mech',
-    height: 0.8,
-    mats: { Atlas: 'white' },
-    anims: { attack: 'Shoot_Small' },
-  },
+  flakTank: { kit: 'h_flak', height: 0.8 },
   fighter: { kit: 'h_fighter', height: 0.3, length: 0.6 },
   bomber: { kit: 'h_bomber', height: 0.42, length: 0.75 },
   spaceFighter: { kit: 'h_space_fighter', height: 0.35, length: 0.7 },
@@ -54,59 +34,14 @@ const HUMAN: Looks = {
 };
 
 const ALIEN: Looks = {
-  drone: {
-    kit: 'jelly_flyer',
-    height: 0.6,
-    mats: { Glub_Main: 'skinChitin', Wings: 'glowCyan' },
-    anims: { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Punch' },
-  },
-  hunter: {
-    kit: 'armored_bee',
-    height: 0.55,
-    mats: {
-      Armabee_Main: 'skinChitin',
-      Armabee_Secondary: 'skinFlesh',
-      Wings: 'membrane',
-      Eye_White: 'glowGreen',
-    },
-    anims: { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Headbutt' },
-  },
-  infantry: {
-    kit: 'alien_big',
-    height: 0.85,
-    mats: {
-      Alien_Main: 'skinChitin',
-      Alien_Secondary: 'skinFlesh',
-      Eye_White: 'glowGreen',
-      Tongue: 'glowViolet',
-    },
-    anims: { idle: 'Idle', move: 'Run', attack: 'Weapon' },
-  },
-  tank: {
-    kit: 'crab',
-    height: 0.6,
-    mats: { Main: 'skinChitin', Main_Dark: 'skinFlesh', White: 'glowGreen' },
-    anims: { idle: 'Idle', move: 'Walk', attack: 'Bite_InPlace' },
-  },
+  drone: { kit: 'a_drone', height: 0.6 },
+  hunter: { kit: 'a_hunter', height: 0.55 },
+  infantry: { kit: 'a_infantry', height: 0.85 },
+  tank: { kit: 'a_tank', height: 0.6 },
   miningShip: { kit: 'a_miner', height: 0.45 },
-  flakTank: {
-    kit: 'mech_heavy',
-    height: 0.8,
-    mats: { Atlas: 'skinChitin' },
-    anims: { attack: 'Shoot_Big' },
-  },
-  fighter: {
-    kit: 'bat',
-    height: 0.45,
-    mats: { Main: 'skinChitin', Belly: 'skinFlesh', Eyes: 'glowGreen', Nose: 'glowViolet' },
-    anims: { idle: 'Bat_Flying', move: 'Bat_Flying', attack: 'Bat_Attack' },
-  },
-  bomber: {
-    kit: 'wyvern',
-    height: 0.6,
-    mats: { Main: 'skinChitin', Belly: 'skinFlesh', Eyes: 'glowGreen', Claws: 'bone' },
-    anims: { idle: 'Dragon_Flying', move: 'Dragon_Flying', attack: 'Dragon_Attack' },
-  },
+  flakTank: { kit: 'a_flak', height: 0.8 },
+  fighter: { kit: 'a_fighter', height: 0.45 },
+  bomber: { kit: 'a_bomber', height: 0.6 },
   spaceFighter: { kit: 'a_space_fighter', height: 0.35, length: 0.7 },
 };
 

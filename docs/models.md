@@ -8,8 +8,7 @@ Read this before you touch `tools/models/` or `public/models/blender/`.
 | Source | Folder | What |
 |---|---|---|
 | Kenney Space Kit (CC0) | `public/models/kenney/` | hangars, turrets, ships, rocks (parts for buildings) |
-| Quaternius (CC0) | `public/models/quaternius/` | animated robots, mechs, monsters |
-| **Own Blender models** | `public/models/blender/` | glass dome, alien pod, spider, alien spore ship, spider eggs, spider nest |
+| **Own Blender models** | `public/models/blender/` | all units and ships (animated), domes, tunnels, pads, turrets, alien pods/ground/horns/mushrooms, spiders, nests, crystals |
 | Code shapes | `src/render/models/parts.ts` | small simple parts (boxes, cylinders, horns, ...) |
 
 Own models are **built by Python scripts**, not by hand in a Blender window. So Claude (or anybody) can change
@@ -91,6 +90,19 @@ else a `blender` app on the PATH (`blender -b -P ...`).
 - Many copies on screen (domes, pods): watch the frame rate on the tablet; lower the LOD distances in
   `lod.ts` if needed.
 
+## Animation (units)
+
+Units are animated with **pivots, not skinning**: every moving part is an empty (`limb()` in `rig.py`) with rigid
+meshes under it. That is simple to build from code, cheap to draw, and works with LOD.
+- `anim.py`: `add_clips([(name, tracks)])` keys the pivots and puts each clip on an NLA track named
+  `Rig|<Clip>`. The exporter (`NLA_TRACKS` + merge by track) makes one glTF animation per clip.
+- Clip names the game finds (`animator.ts`): `Idle`, `Run` or `Walk`, `Shoot` or `Attack`.
+- Channels in game axes: `turn`, `pitch`, `roll`, `x`, `y`, `z`, as offsets from the rest pose. `loop()` makes
+  keys that end where they start. Helpers: `walk`, `legs_walk`, `flap`, `bob`, `tilt`, `recoil`, `merge`.
+- Pitch sign: a positive `pitch` turns a hanging arm backwards; use negative values to raise it forward.
+- Check a pose: `node tools/models/shots-gallery.mjs out.png units move` (or `attack`) shows every unit 0.15 s
+  into that clip.
+
 ## Best practices (learned while building the models)
 
 **Modeling (Blender scripts)**
@@ -145,10 +157,11 @@ else a `blender` app on the PATH (`blender -b -P ...`).
 | `vein` | alien living vein between buildings (repeated) |
 | `spore_ship`, `a_miner`, `a_space_fighter` | alien ships (cruiser = spore ship 1.6x) |
 | `spider`, `egg`, `nest` | spider creatures |
+| `h_infantry`, `h_tank`, `h_drone`, `h_hunter`, `h_flak` | human ground units (animated) |
+| `a_infantry`, `a_tank`, `a_drone`, `a_hunter`, `a_flak`, `a_fighter`, `a_bomber` | alien units (animated) |
 | `crystals` | diamond deposits on the ground |
 
 Triangles and sizes: run `bun run models` (it prints them). All 26 models together: about 0.9 MB (gzip ~half).
 
-Still from kits (good next candidates): animated units (Quaternius: drone, hunter, infantry, tank, flak mech,
-alien creatures; they need rigs and animations in Blender), Kenney building parts (hangars, dishes, rockets,
-structures), turret_double, terrain rocks, alien special buildings made of code shapes (solar leaves, hangar).
+Still from kits (good next candidates): Kenney building parts (hangars, dishes, rockets, structures, rover),
+turret_double, terrain rocks, alien special buildings made of code shapes (solar leaves, hangar).

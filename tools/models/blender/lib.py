@@ -157,6 +157,8 @@ def join(objs, name, parent=None):
             apply_all(ob)
     if len(objs) == 1:
         objs[0].name = name
+        if parent:
+            objs[0].parent = parent
         return objs[0]
     with bpy.context.temp_override(
         active_object=objs[0], selected_editable_objects=objs, selected_objects=objs
@@ -218,6 +220,7 @@ def triangles():
 
 
 def export(path):
+    animated = any(o.animation_data and o.animation_data.nla_tracks for o in bpy.context.scene.objects)
     bpy.ops.export_scene.gltf(
         filepath=path,
         export_format='GLB',
@@ -225,7 +228,10 @@ def export(path):
         export_yup=True,
         export_materials='EXPORT',
         export_texcoords=False,
-        export_animations=False,
+        export_animations=animated,
+        export_animation_mode='NLA_TRACKS',
+        export_merge_animation='NLA_TRACK',
+        export_force_sampling=False,
         export_extras=False,
     )
 

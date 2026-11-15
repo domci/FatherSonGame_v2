@@ -38,7 +38,7 @@ export const AIR_SPACE_SPECS: Record<AirSpaceId, readonly ModelPart[]> = {
     ...cornerLights(4),
     ...runway(),
     { kit: 'hangar_largeB', pos: [-0.75, Y, -0.75], scale: 0.95 },
-    { kit: 'craft_speederD', pos: [0.6, 0.15, 1.2], scale: 0.7, rot: [0, -Math.PI / 2, 0] },
+    { kit: 'h_fighter', pos: [0.6, 0.15, 1.2], scale: 0.7, rot: [0, -Math.PI / 2, 0] },
     { shape: 'cyl', size: [0.16, 1.3], pos: [1.45, 0.75, -1.25], mat: 'white' },
     { shape: 'cyl', size: [0.3, 0.32], pos: [1.45, 1.5, -1.25], mat: 'glass' },
     { shape: 'cyl', size: [0.33, 0.06], pos: [1.45, 1.69, -1.25], mat: 'orange' },

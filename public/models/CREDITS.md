@@ -6,14 +6,11 @@ All models and sounds here are public domain (CC0 1.0). Crediting is not require
 
 - `kenney/` – Space Kit 2.0 by Kenney (https://kenney.nl/assets/space-kit), CC0 1.0.
   Includes the cargo ships, speeders (planes and war ships), hangars and turrets.
-- `quaternius/` – robots, mechs, astronaut, tank and monsters (alien, crab, jelly, bee, bat, wyvern) by Quaternius
-  (https://quaternius.com), CC0 1.0
-  (meshopt-optimized copies from the `@netforge/asset-library-files` npm package).
-
-- `blender/` – own models (glass dome, alien pod, spider, spore ship, eggs, nest), made for this game with the
+- `blender/` – own models (all units and ships, glass domes, tunnels, pads, alien pods and ground, spiders, nests,
+  crystals and more), made for this game with the
   Blender scripts in `tools/models/blender/` (see `docs/models.md`). Same license as the game code.
 
-Materials are replaced in code (`src/render/models/kit.ts`, `alien-materials.ts`),
+Materials are replaced in code (`src/render/models/kit.ts`, `parts.ts`, `alien-materials.ts`),
 so colors here may differ from the game.
 
 ## Sounds (`public/audio/`)

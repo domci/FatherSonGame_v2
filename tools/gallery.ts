@@ -19,7 +19,8 @@ import { BUILDING_LIST } from '../src/content/building-list';
 import type { Faction } from '../src/content/factions';
 import type { UnitId } from '../src/content/units';
 import { solidMaterial } from '../src/render/materials';
-import { loadKit } from '../src/render/models/kit';
+import { Animator, type Pose } from '../src/render/models/animator';
+import { kitAnimations, loadKit } from '../src/render/models/kit';
 import { buildModel } from '../src/render/models/parts';
 import { buildingParts } from '../src/render/models/building-models';
 import { eggModel, nestModel, unitModel } from '../src/render/models/unit-models';
@@ -35,10 +36,23 @@ function place(scene: Scene, obj: Object3D, x: number, z: number, scale = 1): vo
   scene.add(obj);
 }
 
+/** A unit caught mid-move (?pose=move|attack), so the picture shows that the animation works. */
+function posed(id: UnitId, f: Faction): Object3D {
+  const model = unitModel(id, f);
+  const look = UNIT_LOOKS[f][id];
+  const pose = new URLSearchParams(location.search).get('pose') as Pose | null;
+  if (look && pose) {
+    const anim = new Animator(model, kitAnimations(look.kit), look.anims);
+    anim.set(pose);
+    anim.update(0.15);
+  }
+  return model;
+}
+
 /** All units of both peoples in two rows (?set=units). */
 function fillUnits(scene: Scene): void {
   (['human', 'alien'] as Faction[]).forEach((f, row) => {
-    UNITS.forEach((id, i) => place(scene, unitModel(id, f), (i - 4.5) * 2.7, row * 4.2 - 4, 2));
+    UNITS.forEach((id, i) => place(scene, posed(id, f), (i - 4.5) * 2.7, row * 4.2 - 4, 2));
     place(scene, unitModel('cruiser', f), 3, 5.2 + row * 2.8, 1.8);
   });
   place(scene, unitModel('spider'), -9, 6, 2.2);
