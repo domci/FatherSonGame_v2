@@ -4,6 +4,7 @@ import type { SideId } from '../sim/entity';
 import type { LinkStatus } from '../online/online-game';
 import { el } from './dom';
 import { icon } from './icons';
+import { t, tx } from '../i18n';
 
 /** What the chat window needs from the online game. */
 export interface ChatSource {
@@ -15,10 +16,16 @@ export interface ChatSource {
 }
 
 const TO_TEXT: Record<ChatTo['kind'], string> = {
-  world: 'Alle',
-  allies: 'Verbündete',
-  side: 'Privat',
+  world: t('toAll'),
+  allies: t('toAllies'),
+  side: t('toPrivate'),
 };
+
+/** A ready-made message shows in the reader's own language. */
+export function lineText(l: ChatLine): string {
+  const quick = l.quick === undefined ? undefined : QUICK_MESSAGES[l.quick];
+  return quick ? tx(quick) : l.text;
+}
 
 /** Lines from others that came after `since` (for the red dot on the chat button). */
 export function unreadCount(lines: readonly ChatLine[], me: SideId, since: number): number {
@@ -28,7 +35,7 @@ export function unreadCount(lines: readonly ChatLine[], me: SideId, since: numbe
 /** Chat window: lines, ready-made messages, own text (checked by the server), report button. */
 export class ChatPanel {
   readonly root = el('div', { class: 'panel chat-panel', hidden: true });
-  readonly button = el('button', { class: 'seg-btn chat-btn', title: 'Chat' });
+  readonly button = el('button', { class: 'seg-btn chat-btn', title: t('chat') });
   private list = el('div', { class: 'chat-list' });
   private input = el('input', { class: 'chat-input', maxlength: String(CHAT_MAX) });
   private rules = el('ul', { class: 'chat-rules', hidden: true });
@@ -40,9 +47,9 @@ export class ChatPanel {
   constructor(private src: ChatSource) {
     this.button.append(icon('message-circle'), el('span', { class: 'dot' }));
     this.button.onclick = () => this.toggle();
-    this.input.placeholder = 'Nachricht …';
+    this.input.placeholder = t('msgPh');
     this.input.onkeydown = (e) => e.key === 'Enter' && this.sendText();
-    for (const rule of CHAT_RULES) this.rules.append(el('li', {}, rule));
+    for (const rule of CHAT_RULES) this.rules.append(el('li', {}, tx(rule)));
     this.root.append(this.head(), this.rules, this.list, this.quickRow(), this.inputRow());
   }
 
@@ -78,7 +85,7 @@ export class ChatPanel {
             buttons.forEach((b, i) => b.classList.toggle('on', kinds[i] === kind));
           },
         },
-        `An: ${TO_TEXT[kind]}`,
+        t('toWho', { w: TO_TEXT[kind] }),
       ),
     );
     return el(
@@ -87,12 +94,12 @@ export class ChatPanel {
       el('div', { class: 'panel seg' }, ...buttons),
       el(
         'button',
-        { class: 'seg-btn', title: 'Chat-Regeln', onclick: () => this.toggleRules() },
+        { class: 'seg-btn', title: t('chatRules'), onclick: () => this.toggleRules() },
         icon('info'),
       ),
       el(
         'button',
-        { class: 'seg-btn', title: 'Schließen', onclick: () => this.toggle() },
+        { class: 'seg-btn', title: t('close'), onclick: () => this.toggle() },
         icon('x'),
       ),
     );
@@ -111,15 +118,15 @@ export class ChatPanel {
       { class: mine ? 'chat-line mine' : 'chat-line' },
       el('span', { class: 'chat-name' }, l.name),
       tag,
-      el('span', { class: 'chat-text' }, l.text),
+      el('span', { class: 'chat-text' }, lineText(l)),
     );
-    if (!mine && !l.quick) row.append(this.reportButton(l.id));
+    if (!mine && l.quick === undefined) row.append(this.reportButton(l.id));
     return row;
   }
 
   private reportButton(id: string): HTMLElement {
     const done = this.reported.has(id);
-    const b = el('button', { class: 'chat-report', title: 'Melden' }, icon('flag'));
+    const b = el('button', { class: 'chat-report', title: t('report') }, icon('flag'));
     b.toggleAttribute('disabled', done);
     b.onclick = () => {
       this.reported.add(id);
@@ -134,7 +141,7 @@ export class ChatPanel {
       'div',
       { class: 'chat-quick' },
       ...QUICK_MESSAGES.map((text, i) =>
-        el('button', { class: 'chip', onclick: () => this.src.say(this.to, i) }, text),
+        el('button', { class: 'chip', onclick: () => this.src.say(this.to, i) }, tx(text)),
       ),
     );
   }
@@ -146,7 +153,7 @@ export class ChatPanel {
       this.input,
       el(
         'button',
-        { class: 'seg-btn', title: 'Senden', onclick: () => this.sendText() },
+        { class: 'seg-btn', title: t('send'), onclick: () => this.sendText() },
         icon('send'),
       ),
     );

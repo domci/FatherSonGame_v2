@@ -1,0 +1,32 @@
+import type { Loc } from '../../content/text';
+
+export const PEOPLES = {
+  weaker: { de: 'schwächer als ihr', en: 'weaker than you' },
+  stronger: { de: 'stärker als ihr', en: 'stronger than you' },
+  asStrong: { de: 'etwa so stark wie ihr', en: 'about as strong as you' },
+  defeated: { de: 'Besiegt', en: 'Defeated' },
+  you: { de: 'Ihr', en: 'You' },
+  wildAnimal: { de: 'Wildes Tier', en: 'Wild animal' },
+  enemy: { de: 'Feind', en: 'Enemy' },
+  enemyOf: { de: 'Feind: {n}', en: 'Enemy: {n}' },
+  allyOf: { de: 'Verbündet: {n}', en: 'Allied: {n}' },
+  peaceOf: { de: 'Frieden: {n}', en: 'Peace: {n}' },
+  offerPeace: { de: 'Frieden anbieten', en: 'Offer peace' },
+  offerAlliance: { de: 'Bündnis anbieten', en: 'Offer alliance' },
+  declareWar: { de: 'Krieg erklären', en: 'Declare war' },
+  endAlliance: { de: 'Bündnis beenden', en: 'End alliance' },
+  decline: { de: 'Ablehnen', en: 'Decline' },
+  warWith: { de: 'Krieg mit {n}', en: 'War with {n}' },
+  peaceWith: { de: 'Frieden mit {n}', en: 'Peace with {n}' },
+  allianceWith: { de: 'Bündnis mit {n}', en: 'Alliance with {n}' },
+  offersPeace: { de: '{n} bietet euch Frieden an!', en: '{n} offers you peace!' },
+  offersAlliance: { de: '{n} bietet euch ein Bündnis an!', en: '{n} offers you an alliance!' },
+  accept: { de: 'Annehmen', en: 'Accept' },
+  outOfGame: { de: 'aus dem Spiel', en: 'out of the game' },
+  peoples: { de: 'Völker', en: 'Peoples' },
+  diplomacy: { de: 'Diplomatie', en: 'Diplomacy' },
+  peoplesHelp: {
+    de: 'Krieg: ihr kämpft. Frieden: keiner greift an. Bündnis: ihr seht alles zusammen und gewinnt zusammen.',
+    en: 'War: you fight. Peace: nobody attacks. Alliance: you see everything together and win together.',
+  },
+} as const satisfies Record<string, Loc>;

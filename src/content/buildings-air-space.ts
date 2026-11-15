@@ -1,15 +1,19 @@
 import type { BuildingDef } from './buildings';
+import { L } from './text';
 
 /** M4: air field, flak and the cannon that shoots into orbit. */
 export const AIR_SPACE_BUILDINGS: readonly BuildingDef[] = [
   {
     id: 'airfield',
-    name: 'Flugfeld',
+    name: L('Flugfeld', 'Airfield'),
     category: 'military',
     size: 4,
     tier: 3,
     requires: 'aviation',
-    description: 'Baut Jagdflugzeuge und Bomber. Flugzeuge fliegen über Mauern und tanken Gas.',
+    description: L(
+      'Baut Jagdflugzeuge und Bomber. Flugzeuge fliegen über Mauern und tanken Gas.',
+      'Builds fighter jets and bombers. Aircraft fly over walls and refuel with gas.',
+    ),
     trains: ['fighter', 'bomber'],
     levels: [
       { cost: { regolith: 900, metal: 60, diamonds: 30 }, hp: 1200, energy: -10, armor: 3 },
@@ -19,12 +23,15 @@ export const AIR_SPACE_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'flakTower',
-    name: 'Flak-Turm',
+    name: L('Flak-Turm', 'Flak Tower'),
     category: 'defense',
     size: 2,
     tier: 3,
     requires: 'flak',
-    description: 'Schießt Flugzeuge ab. Gegen Bodentruppen hilft er nicht.',
+    description: L(
+      'Schießt Flugzeuge ab. Gegen Bodentruppen hilft er nicht.',
+      'Shoots down aircraft. It does not help against ground troops.',
+    ),
     levels: [
       {
         cost: { regolith: 300, diamonds: 12 },
@@ -51,12 +58,15 @@ export const AIR_SPACE_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'orbitalCannon',
-    name: 'Orbitalkanone',
+    name: L('Orbitalkanone', 'Orbital Cannon'),
     category: 'defense',
     size: 3,
     tier: 4,
     requires: 'warships',
-    description: 'Schießt feindliche Kampfschiffe im Orbit über eurem Planeten ab.',
+    description: L(
+      'Schießt feindliche Kampfschiffe im Orbit über eurem Planeten ab.',
+      'Shoots down enemy warships in orbit above your planet.',
+    ),
     levels: [
       {
         cost: { regolith: 1500, metal: 200, diamonds: 60 },

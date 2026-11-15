@@ -5,6 +5,7 @@ import type { ClientMessage, ServerMessage } from '../net/protocol';
 import { applyCommand } from '../sim/commands';
 import { createOnlineWorld, freeSeats } from '../sim/online';
 import { OnlineGame, OnlineError, type Link, type LinkStatus } from './online-game';
+import { same } from '../content/text';
 
 const T0 = 1_800_000_000_000;
 const WORLD = {
@@ -37,7 +38,7 @@ class FakeLink implements Link, Peer {
       chat: [],
       world: { ...WORLD, side },
     }));
-    if (err) this.onMessage({ t: 'error', code: err, text: 'voll' });
+    if (err) this.onMessage({ t: 'error', code: err, text: same('voll') });
   }
   send(msg: ClientMessage | string): void {
     if (typeof msg === 'string') return this.onMessage(JSON.parse(msg) as ServerMessage);
@@ -115,7 +116,7 @@ describe('online game in the browser (M7)', () => {
     const game = new OnlineGame(new FakeLink(room, 'acc1'));
     await game.start();
     const notes: string[] = [];
-    game.onNotice = (text) => notes.push(text);
+    game.onNotice = (text) => notes.push(text.de);
     game.send({
       type: 'build',
       player: 'player',
@@ -158,7 +159,7 @@ describe('online game in the browser (M7)', () => {
       });
     expect(game.chat).toHaveLength(100);
     expect(game.chat[0]?.text).toBe('m5');
-    link.onMessage({ t: 'error', code: 'banned', text: 'raus' });
+    link.onMessage({ t: 'error', code: 'banned', text: same('raus') });
     expect(seen.at(-1)).toBe('banned');
     game.say(to, 'Hallo');
     game.say(to, 2);

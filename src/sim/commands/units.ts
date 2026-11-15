@@ -14,6 +14,7 @@ import type { GameState } from '../state';
 import { pay } from '../wallet';
 import { hostile } from '../relations';
 import { fail, OK, type CommandResult } from './result';
+import { L, fmt, type Loc } from '../../content/text';
 
 export interface MoveCommand {
   type: 'move';
@@ -86,11 +87,14 @@ export function formation(target: Vec2, count: number, gap = 0.9): Vec2[] {
   }));
 }
 
-const NO_GAS = 'Kein Gas: Flugzeuge brauchen Gas als Treibstoff.';
+const NO_GAS = L(
+  'Kein Gas: Flugzeuge brauchen Gas als Treibstoff.',
+  'No gas: aircraft need gas as fuel.',
+);
 
 export function move(state: GameState, cmd: MoveCommand): CommandResult {
   const all = ownUnits(state, cmd.player, cmd.unitIds);
-  if (all.length === 0) return fail('Keine Einheit ausgewählt.');
+  if (all.length === 0) return fail(L('Keine Einheit ausgewählt.', 'No unit selected.'));
   const fuel = hasFuel(state, cmd.player);
   const units = all.filter((u) => fuel || !needsFuel(u));
   if (units.length === 0) return fail(NO_GAS);
@@ -106,12 +110,15 @@ export function move(state: GameState, cmd: MoveCommand): CommandResult {
 export function attack(state: GameState, cmd: AttackCommand): CommandResult {
   const target = findEntity(state, cmd.targetId);
   if (!target?.health || target.owner === cmd.player || target.aboard)
-    return fail('Kein gültiges Ziel.');
-  if (!hostile(state, cmd.player, target.owner)) return fail('Mit diesem Volk ist kein Krieg.');
+    return fail(L('Kein gültiges Ziel.', 'Not a valid target.'));
+  if (!hostile(state, cmd.player, target.owner))
+    return fail(L('Mit diesem Volk ist kein Krieg.', 'You are not at war with this people.'));
   const fighters = ownUnits(state, cmd.player, cmd.unitIds).filter((u) => u.attacker);
-  if (fighters.length === 0) return fail('Diese Einheiten können nicht kämpfen.');
+  if (fighters.length === 0)
+    return fail(L('Diese Einheiten können nicht kämpfen.', 'These units cannot fight.'));
   const able = fighters.filter((u) => canHit(u, target));
-  if (able.length === 0) return fail('Diese Einheiten können das nicht treffen.');
+  if (able.length === 0)
+    return fail(L('Diese Einheiten können das nicht treffen.', 'These units cannot hit that.'));
   const fuel = hasFuel(state, cmd.player);
   const units = able.filter((u) => fuel || !needsFuel(u));
   if (units.length === 0) return fail(NO_GAS);
@@ -128,29 +135,34 @@ function queuedHousing(state: GameState, player: PlayerId): number {
   return sum;
 }
 
+const NOT_READY = L('Gebäude nicht bereit.', 'Building not ready.');
+
 /** Why this building cannot train this unit (null = it can). */
-function trainerProblem(state: GameState, cmd: TrainCommand, b: Entity | undefined): string | null {
-  if (!b?.building || b.owner !== cmd.player || b.building.level < 1)
-    return 'Gebäude nicht bereit.';
+function trainerProblem(state: GameState, cmd: TrainCommand, b: Entity | undefined): Loc | null {
+  if (!b?.building || b.owner !== cmd.player || b.building.level < 1) return NOT_READY;
   if (!BUILDINGS[b.building.type].trains?.includes(cmd.unit))
-    return 'Kann diese Einheit nicht bauen.';
+    return L('Kann diese Einheit nicht bauen.', 'Cannot train this unit.');
   const need = UNITS[cmd.unit].requires;
   if (need && !hasResearch(state, cmd.player, need))
-    return `Braucht zuerst: ${RESEARCH[need].name}.`;
+    return fmt(L('Braucht zuerst: {r}.', 'Needs first: {r}.'), { r: RESEARCH[need].name });
   return null;
 }
 
 export function train(state: GameState, cmd: TrainCommand): CommandResult {
   const b = findEntity(state, cmd.buildingId);
   const problem = trainerProblem(state, cmd, b);
-  if (problem || !b) return fail(problem ?? 'Gebäude nicht bereit.');
+  if (problem || !b) return fail(problem ?? NOT_READY);
   const def = UNITS[cmd.unit];
   const stats = playerStats(state, cmd.player);
   if (stats.housingUsed + queuedHousing(state, cmd.player) + def.housing > stats.housing) {
-    return fail('Kein Platz mehr. Baut mehr Wohn-Kuppeln.');
+    return fail(
+      L('Kein Platz mehr. Baut mehr Wohn-Kuppeln.', 'No room left. Build more habitat domes.'),
+    );
   }
-  if (b.training && b.training.queue.length >= MAX_QUEUE) return fail('Warteschlange ist voll.');
-  if (!pay(getPlayer(state, cmd.player), def.cost)) return fail('Nicht genug Rohstoffe.');
+  if (b.training && b.training.queue.length >= MAX_QUEUE)
+    return fail(L('Warteschlange ist voll.', 'The queue is full.'));
+  if (!pay(getPlayer(state, cmd.player), def.cost))
+    return fail(L('Nicht genug Rohstoffe.', 'Not enough resources.'));
   if (b.training) b.training.queue.push(cmd.unit);
   else
     state.world.addComponent(b, 'training', {

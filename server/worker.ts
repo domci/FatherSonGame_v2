@@ -1,5 +1,6 @@
 import { handleApi, json } from './api';
 import { roomOf, type Env } from './env';
+import { L } from '../src/content/text';
 
 export { LobbyDO } from './lobby';
 export { WorldRoom } from './room';
@@ -15,7 +16,15 @@ export default {
         return await handleApi(req, env, url.pathname);
       } catch (e) {
         console.error('api error', e);
-        return json({ error: 'Server-Fehler. Bitte später noch einmal.' }, 500);
+        return json(
+          {
+            error: L(
+              'Server-Fehler. Bitte später noch einmal.',
+              'Server error. Please try again later.',
+            ),
+          },
+          500,
+        );
       }
     }
     return env.ASSETS.fetch(req);

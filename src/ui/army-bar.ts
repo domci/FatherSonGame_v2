@@ -4,6 +4,7 @@ import { isFighter } from '../sim/ai/queries';
 import { findBody } from '../sim/generation/solar-system';
 import { el } from './dom';
 import { icon, type IconName } from './icons';
+import { t } from '../i18n';
 
 /** Own fighting units on the surface the player looks at. */
 export function armyOf(session: Session): number[] {
@@ -36,23 +37,18 @@ export class ArmyBar {
   readonly root = el('div', { class: 'panel army-bar' });
   private box: HTMLElement;
   private front: HTMLElement;
-  private frontLabel = el('span', {}, 'Front');
+  private frontLabel = el('span', {}, t('front'));
 
   constructor(private session: Session) {
-    const army = button('swords', 'Armee', 'Alle Kampf-Einheiten wählen', () => this.selectArmy());
-    this.box = button(
-      'square-dashed-mouse-pointer',
-      'Rahmen',
-      'Rahmen ziehen (Maus: Shift + ziehen)',
-      () => {
-        session.ui.boxMode = !session.ui.boxMode;
-      },
-    );
+    const army = button('swords', t('army'), t('armyHelp'), () => this.selectArmy());
+    this.box = button('square-dashed-mouse-pointer', t('box'), t('boxHelp'), () => {
+      session.ui.boxMode = !session.ui.boxMode;
+    });
     this.front = el(
       'button',
       {
         class: 'army-btn',
-        title: 'Zwischen Basis und Front wechseln',
+        title: t('frontHelp'),
         onclick: () => this.toggleFront(),
       },
       icon('flag'),
@@ -68,15 +64,15 @@ export class ArmyBar {
     const home = viewerHome(s.state);
     const away = s.ui.zone !== home;
     this.front.hidden = !away && !frontZone(s);
-    this.frontLabel.textContent = away ? 'Basis' : 'Front';
+    this.frontLabel.textContent = away ? t('viewBase') : t('front');
     this.front.title = away
-      ? 'Zurück zur Basis'
-      : `Zur Front: ${findBody(s.state.system, frontZone(s) ?? '')?.name ?? ''}`;
+      ? t('backToBase')
+      : t('toFront', { p: findBody(s.state.system, frontZone(s) ?? '')?.name ?? '' });
   }
 
   private selectArmy(): void {
     const ids = armyOf(this.session);
-    if (ids.length === 0) this.session.onMessage('Keine Kampf-Einheiten hier.', 'info');
+    if (ids.length === 0) this.session.onMessage(t('noArmy'), 'info');
     this.session.select(ids);
   }
 

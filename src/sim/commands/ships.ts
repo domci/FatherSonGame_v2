@@ -4,6 +4,7 @@ import { findEntity } from '../spawn';
 import type { GameState } from '../state';
 import { launchShip } from '../systems/mining';
 import { fail, OK, type CommandResult } from './result';
+import { L } from '../../content/text';
 
 export interface SendShipCommand {
   type: 'sendShip';
@@ -21,20 +22,25 @@ export interface RecallShipCommand {
 
 export function sendShip(state: GameState, cmd: SendShipCommand): CommandResult {
   const ship = findEntity(state, cmd.shipId);
-  if (!ship?.ship || ship.owner !== cmd.player) return fail('Schiff nicht gefunden.');
-  if (ship.unit?.type === 'transport') return fail('Das ist kein Mining-Schiff.');
-  if (ship.ship.phase !== 'docked') return fail('Das Schiff ist unterwegs.');
+  if (!ship?.ship || ship.owner !== cmd.player)
+    return fail(L('Schiff nicht gefunden.', 'Ship not found.'));
+  if (ship.unit?.type === 'transport')
+    return fail(L('Das ist kein Mining-Schiff.', 'That is not a mining ship.'));
+  if (ship.ship.phase !== 'docked')
+    return fail(L('Das Schiff ist unterwegs.', 'The ship is on its way.'));
   const home = state.players[cmd.player]?.homeBodyId;
-  if (cmd.targetId === home) return fail('Das ist euer Heimatplanet.');
+  if (cmd.targetId === home)
+    return fail(L('Das ist euer Heimatplanet.', 'That is your home planet.'));
   if (cmd.targetId !== BELT_ID && !findBody(state.system, cmd.targetId))
-    return fail('Ziel unbekannt.');
+    return fail(L('Ziel unbekannt.', 'Unknown target.'));
   launchShip(state, ship, cmd.targetId);
   return OK;
 }
 
 export function recallShip(state: GameState, cmd: RecallShipCommand): CommandResult {
   const ship = findEntity(state, cmd.shipId);
-  if (!ship?.ship || ship.owner !== cmd.player) return fail('Schiff nicht gefunden.');
+  if (!ship?.ship || ship.owner !== cmd.player)
+    return fail(L('Schiff nicht gefunden.', 'Ship not found.'));
   ship.ship.repeat = false;
   return OK;
 }

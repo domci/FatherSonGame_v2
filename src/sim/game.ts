@@ -1,3 +1,4 @@
+import type { Loc } from '../content/text';
 import { World } from 'miniplex';
 import type { Difficulty } from '../content/ai';
 import { FACTIONS } from '../content/factions';
@@ -69,12 +70,7 @@ export function createGame(options: NewGameOptions): GameState {
 const MAX_EVENTS = 80;
 
 /** A news line. With `to`, only that side sees it (online games have more than one person). */
-export function addEvent(
-  state: GameState,
-  text: string,
-  kind: GameEvent['kind'],
-  to?: SideId,
-): void {
+export function addEvent(state: GameState, text: Loc, kind: GameEvent['kind'], to?: SideId): void {
   state.events.push(to ? { time: state.time, text, kind, to } : { time: state.time, text, kind });
   if (state.events.length > MAX_EVENTS) state.events.shift();
 }

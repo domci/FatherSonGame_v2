@@ -4,6 +4,7 @@ import { findEntity } from '../spawn';
 import type { GameState } from '../state';
 import { flightMs, passengers, unloadShip } from '../transport';
 import { fail, OK, type CommandResult } from './result';
+import { L, isLoc, type Loc } from '../../content/text';
 
 export interface BoardCommand {
   type: 'board';
@@ -26,12 +27,12 @@ export interface FlyCommand {
   targetId: string;
 }
 
-function readyTransport(state: GameState, player: PlayerId, shipId: number): Entity | string {
+function readyTransport(state: GameState, player: PlayerId, shipId: number): Entity | Loc {
   const ship = findEntity(state, shipId);
   if (!ship?.ship || ship.unit?.type !== 'transport' || ship.owner !== player)
-    return 'Transportschiff nicht gefunden.';
+    return L('Transportschiff nicht gefunden.', 'Transport ship not found.');
   if (ship.ship.phase !== 'docked' && ship.ship.phase !== 'landed')
-    return 'Das Schiff fliegt gerade.';
+    return L('Das Schiff fliegt gerade.', 'The ship is flying right now.');
   return ship;
 }
 
@@ -52,7 +53,7 @@ function canBoard(u: Entity | undefined, ship: Entity, player: PlayerId): u is E
 
 export function board(state: GameState, cmd: BoardCommand): CommandResult {
   const ship = readyTransport(state, cmd.player, cmd.shipId);
-  if (typeof ship === 'string') return fail(ship);
+  if (isLoc(ship)) return fail(ship);
   let left = spaceLeft(state, ship);
   let count = 0;
   for (const id of cmd.unitIds) {
@@ -67,21 +68,25 @@ export function board(state: GameState, cmd: BoardCommand): CommandResult {
     u.zone = 'space';
     state.world.addComponent(u, 'aboard', { shipId: ship.id });
   }
-  return count > 0 ? OK : fail('Keine passende Einheit oder kein Platz mehr.');
+  return count > 0
+    ? OK
+    : fail(L('Keine passende Einheit oder kein Platz mehr.', 'No matching unit or no room left.'));
 }
 
 export function unload(state: GameState, cmd: UnloadCommand): CommandResult {
   const ship = readyTransport(state, cmd.player, cmd.shipId);
-  if (typeof ship === 'string') return fail(ship);
-  return unloadShip(state, ship) > 0 ? OK : fail('Das Schiff ist leer.');
+  if (isLoc(ship)) return fail(ship);
+  return unloadShip(state, ship) > 0 ? OK : fail(L('Das Schiff ist leer.', 'The ship is empty.'));
 }
 
 export function fly(state: GameState, cmd: FlyCommand): CommandResult {
   const ship = readyTransport(state, cmd.player, cmd.shipId);
-  if (typeof ship === 'string') return fail(ship);
-  if (!ship.ship || !ship.zone) return fail('Schiff nicht bereit.');
-  if (!state.surfaces[cmd.targetId]) return fail('Dort kann man nicht landen.');
-  if (cmd.targetId === ship.zone) return fail('Das Schiff ist schon dort.');
+  if (isLoc(ship)) return fail(ship);
+  if (!ship.ship || !ship.zone) return fail(L('Schiff nicht bereit.', 'Ship not ready.'));
+  if (!state.surfaces[cmd.targetId])
+    return fail(L('Dort kann man nicht landen.', 'You cannot land there.'));
+  if (cmd.targetId === ship.zone)
+    return fail(L('Das Schiff ist schon dort.', 'The ship is already there.'));
   ship.ship.fromBodyId = ship.zone;
   ship.ship.targetBodyId = cmd.targetId;
   ship.ship.phase = 'outbound';

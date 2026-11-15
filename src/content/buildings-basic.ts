@@ -1,16 +1,19 @@
 import type { BuildingDef } from './buildings';
+import { L } from './text';
 
 /** Basic economy buildings. Change numbers here to balance the game. */
 export const BASIC_BUILDINGS: readonly BuildingDef[] = [
   {
     id: 'commandDome',
-    name: 'Kommando-Kuppel',
+    name: L('Kommando-Kuppel', 'Command Dome'),
     category: 'command',
     size: 4,
     tier: 3,
     unique: true,
-    description:
+    description: L(
       'Das Wrack eures Raumschiffs, jetzt euer Zentrum. Baut Drohnen und wehrt sich mit einem kleinen Laser.',
+      'The wreck of your spaceship, now your center. Builds drones and defends itself with a small laser.',
+    ),
     trains: ['drone'],
     levels: [
       {
@@ -47,11 +50,14 @@ export const BASIC_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'solarField',
-    name: 'Solarfeld',
+    name: L('Solarfeld', 'Solar Field'),
     category: 'energy',
     size: 2,
     tier: 1,
-    description: 'Fängt Sonnenlicht ein und macht Energie.',
+    description: L(
+      'Fängt Sonnenlicht ein und macht Energie.',
+      'Catches sunlight and makes energy.',
+    ),
     levels: [
       { cost: { regolith: 60 }, hp: 200, energy: 12 },
       { cost: { regolith: 150 }, hp: 300, energy: 20 },
@@ -60,11 +66,14 @@ export const BASIC_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'regolithExcavator',
-    name: 'Regolith-Bagger',
+    name: L('Regolith-Bagger', 'Regolith Excavator'),
     category: 'mining',
     size: 2,
     tier: 1,
-    description: 'Gräbt Regolith aus dem Boden. Grund-Baumaterial.',
+    description: L(
+      'Gräbt Regolith aus dem Boden. Grund-Baumaterial.',
+      'Digs regolith out of the ground. Basic building material.',
+    ),
     levels: [
       { cost: { regolith: 50 }, hp: 250, energy: -4, produces: { regolith: 30 } },
       { cost: { regolith: 140 }, hp: 350, energy: -6, produces: { regolith: 55 } },
@@ -73,11 +82,14 @@ export const BASIC_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'habitatDome',
-    name: 'Wohn-Kuppel',
+    name: L('Wohn-Kuppel', 'Habitat Dome'),
     category: 'housing',
     size: 3,
     tier: 1,
-    description: 'Glaskuppel mit Luft zum Atmen. Platz für Bewohner und Einheiten.',
+    description: L(
+      'Glaskuppel mit Luft zum Atmen. Platz für Bewohner und Einheiten.',
+      'Glass dome with air to breathe. Room for residents and units.',
+    ),
     levels: [
       { cost: { regolith: 120, water: 10 }, hp: 400, energy: -3, housing: 4, residents: 8 },
       { cost: { regolith: 300, water: 30 }, hp: 600, energy: -4, housing: 7, residents: 14 },
@@ -92,11 +104,11 @@ export const BASIC_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'storage',
-    name: 'Lagerhalle',
+    name: L('Lagerhalle', 'Storage Hall'),
     category: 'processing',
     size: 2,
     tier: 2,
-    description: 'Mehr Platz für Rohstoffe.',
+    description: L('Mehr Platz für Rohstoffe.', 'More room for resources.'),
     levels: [
       { cost: { regolith: 150 }, hp: 400, energy: -1, storage: 1500 },
       { cost: { regolith: 400 }, hp: 500, energy: -1, storage: 3500 },
@@ -105,12 +117,15 @@ export const BASIC_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'pinkPump',
-    name: 'Pinke Pumpe',
+    name: L('Pinke Pumpe', 'Pink Pump'),
     category: 'mining',
     size: 2,
     tier: 1,
     needsDeposit: 'pink',
-    description: 'Pumpt pinke Flüssigkeit aus einer Quelle.',
+    description: L(
+      'Pumpt pinke Flüssigkeit aus einer Quelle.',
+      'Pumps pink liquid out of a spring.',
+    ),
     levels: [
       { cost: { regolith: 80 }, hp: 250, energy: -3, produces: { pinkLiquid: 20 } },
       { cost: { regolith: 200 }, hp: 350, energy: -5, produces: { pinkLiquid: 36 } },
@@ -119,11 +134,14 @@ export const BASIC_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'waterOxygenPlant',
-    name: 'Wasser- und Sauerstoff-Anlage',
+    name: L('Wasser- und Sauerstoff-Anlage', 'Water and Oxygen Plant'),
     category: 'processing',
     size: 2,
     tier: 2,
-    description: 'Macht aus pinker Flüssigkeit Wasser und Sauerstoff.',
+    description: L(
+      'Macht aus pinker Flüssigkeit Wasser und Sauerstoff.',
+      'Turns pink liquid into water and oxygen.',
+    ),
     levels: [
       {
         cost: { regolith: 120 },
@@ -145,37 +163,6 @@ export const BASIC_BUILDINGS: readonly BuildingDef[] = [
         energy: -9,
         consumes: { pinkLiquid: 48 },
         produces: { water: 30, oxygen: 30 },
-      },
-    ],
-  },
-  {
-    id: 'greenhouse',
-    name: 'Gewächshaus',
-    category: 'food',
-    size: 3,
-    tier: 1,
-    description: 'Pflanzen unter Glas. Braucht Wasser, macht Nahrung.',
-    levels: [
-      {
-        cost: { regolith: 100, water: 20 },
-        hp: 300,
-        energy: -4,
-        consumes: { water: 4 },
-        produces: { food: 16 },
-      },
-      {
-        cost: { regolith: 260, water: 40 },
-        hp: 400,
-        energy: -5,
-        consumes: { water: 6 },
-        produces: { food: 28 },
-      },
-      {
-        cost: { regolith: 600, water: 80, diamonds: 10 },
-        hp: 500,
-        energy: -6,
-        consumes: { water: 8 },
-        produces: { food: 45 },
       },
     ],
   },

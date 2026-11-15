@@ -3,6 +3,7 @@ import type { Entity, PlayerId } from '../entity';
 import type { GameState } from '../state';
 import { isPlace, spaceTravelMs, warships } from '../space/places';
 import { fail, OK, type CommandResult } from './result';
+import { L } from '../../content/text';
 
 export interface FleetCommand {
   type: 'fleet';
@@ -30,12 +31,12 @@ function groupSpeeds(ships: Entity[]): Map<string, number> {
 
 /** Sends war ships to a planet or the belt. Ships from one place stay together. */
 export function fleet(state: GameState, cmd: FleetCommand): CommandResult {
-  if (!isPlace(state, cmd.targetId)) return fail('Ziel unbekannt.');
+  if (!isPlace(state, cmd.targetId)) return fail(L('Ziel unbekannt.', 'Unknown target.'));
   const ids = cmd.shipIds ? new Set(cmd.shipIds) : undefined;
   const ready = warships(state).filter((e) => waiting(e, cmd.player, ids));
-  if (ready.length === 0) return fail('Keine freien Kampfschiffe.');
+  if (ready.length === 0) return fail(L('Keine freien Kampfschiffe.', 'No free warships.'));
   const go = ready.filter((e) => e.orbit?.at !== cmd.targetId);
-  if (go.length === 0) return fail('Die Flotte ist schon dort.');
+  if (go.length === 0) return fail(L('Die Flotte ist schon dort.', 'The fleet is already there.'));
   const speeds = groupSpeeds(go);
   for (const ship of go) {
     if (!ship.orbit) continue;

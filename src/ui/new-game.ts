@@ -4,6 +4,7 @@ import { thumb } from './build-menu';
 import { el } from './dom';
 import { icon } from './icons';
 import { levelPicker, opponentPicker, toggleRow } from './menu-kit';
+import { t, tx } from '../i18n';
 
 export interface NewGameChoice {
   faction: Faction;
@@ -19,8 +20,8 @@ function factionCard(f: Faction, pick: (f: Faction) => void): HTMLElement {
     'button',
     { class: `faction-card ${f}`, onclick: () => pick(f), 'data-faction': f },
     el('span', { class: 'fc-img' }, thumb('commandDome', 'thumb', f)),
-    el('span', { class: 'fc-name' }, info.name),
-    el('span', { class: 'fc-text' }, info.pitch),
+    el('span', { class: 'fc-name' }, tx(info.name)),
+    el('span', { class: 'fc-text' }, tx(info.pitch)),
   );
 }
 
@@ -44,12 +45,17 @@ function dialogButtons(
   return el(
     'div',
     { class: 'dlg-buttons' },
-    el('button', { class: 'm-item', onclick: () => onBack() }, icon('x'), el('span', {}, 'Zurück')),
+    el(
+      'button',
+      { class: 'm-item', onclick: () => onBack() },
+      icon('x'),
+      el('span', {}, t('back')),
+    ),
     el(
       'button',
       { class: 'm-item primary', onclick: () => onStart(choice) },
       icon('rocket'),
-      el('span', {}, "Los geht's"),
+      el('span', {}, t('letsGo')),
     ),
   );
 }
@@ -66,8 +72,8 @@ export function newGameDialog(
     opponents: 1,
   };
   const offline = toggleRow(
-    'Angriffe, auch wenn keiner spielt',
-    'Aus: Die Gegner greifen nur an, wenn ihr spielt.',
+    t('offlineAtk'),
+    t('offlineAtkHelp'),
     false,
     (on) => (choice.offlineAttacks = on),
   );
@@ -77,10 +83,10 @@ export function newGameDialog(
     el(
       'div',
       { class: 'panel dialog wide' },
-      el('div', { class: 'p-sub' }, 'Neues Spiel'),
-      el('h2', {}, 'Wählt euer Volk'),
+      el('div', { class: 'p-sub' }, t('newGameSub')),
+      el('h2', {}, t('chooseFaction')),
       factionPicker(choice),
-      el('h4', { class: 'dlg-h' }, 'Gegner'),
+      el('h4', { class: 'dlg-h' }, t('opponents')),
       opponentPicker(choice.opponents, (n) => (choice.opponents = n)),
       levelPicker(choice.difficulty, (d) => (choice.difficulty = d)),
       offline,

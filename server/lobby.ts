@@ -1,3 +1,4 @@
+import type { Loc } from '../src/content/text';
 import { DurableObject } from 'cloudflare:workers';
 import type { NewWorld, WorldInfo } from '../src/net/protocol';
 import type { SideId } from '../src/sim/entity';
@@ -38,7 +39,7 @@ export class LobbyDO extends DurableObject<Env> {
   touchWorld(id: string, taken: number): Promise<void> {
     return this.core.touchWorld(id, taken);
   }
-  strike(account: string): Promise<{ text: string; chatBanUntil: number; banned: boolean }> {
+  strike(account: string): Promise<{ text?: Loc; chatBanUntil: number; banned: boolean }> {
     return this.core.strike(account);
   }
   report(r: Omit<Report, 'id' | 'time'>): Promise<void> {

@@ -2,13 +2,21 @@ import { GEO } from './geo';
 import { MATH } from './math';
 import { NATURE } from './nature';
 import { PHYSICS } from './physics';
+import { PHYSICS_2 } from './physics-2';
 import { SPACE } from './space';
 import type { QuizQuestion } from './types';
 
 export { QUIZ_TOPICS, type QuizQuestion, type QuizTopic } from './types';
 
 /** All quiz questions. Add new ones in the topic files. */
-export const QUIZ: readonly QuizQuestion[] = [...SPACE, ...PHYSICS, ...MATH, ...NATURE, ...GEO];
+export const QUIZ: readonly QuizQuestion[] = [
+  ...SPACE,
+  ...PHYSICS,
+  ...PHYSICS_2,
+  ...MATH,
+  ...NATURE,
+  ...GEO,
+];
 
 export const QUIZ_BY_ID: ReadonlyMap<string, QuizQuestion> = new Map(QUIZ.map((x) => [x.id, x]));
 

@@ -76,8 +76,8 @@ describe('save and load', () => {
   });
 
   it('rejects broken or too new data', () => {
-    expect(() => fromSaveData(null)).toThrow('Kein gültiger Spielstand.');
-    expect(() => fromSaveData({ version: 999 })).toThrow('neueren Version');
-    expect(() => fromSaveData({ version: 0 })).toThrow('Keine Migration');
+    expect(() => fromSaveData(null)).toThrow('Not a valid saved game.');
+    expect(() => fromSaveData({ version: 999 })).toThrow('newer version');
+    expect(() => fromSaveData({ version: 0 })).toThrow('No migration');
   });
 });

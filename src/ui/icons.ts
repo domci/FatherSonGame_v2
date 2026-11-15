@@ -6,6 +6,7 @@ import {
 } from '../content/resources';
 import { el, formatNumber } from './dom';
 import { ICON_DATA, type IconName } from './icon-data';
+import { t, tx } from '../i18n';
 
 export type { IconName };
 
@@ -36,7 +37,7 @@ export function resourceIcon(id: ResourceId): HTMLElement {
 /** Small cost chips: [icon 60] [icon 10]. Red when the player has too little. */
 export function costChips(cost: ResourceAmounts, have?: ResourceAmounts): HTMLElement {
   const ids = RESOURCE_IDS.filter((id) => cost[id]);
-  if (!ids.length) return el('span', { class: 'cost free' }, 'gratis');
+  if (!ids.length) return el('span', { class: 'cost free' }, t('free'));
   return el(
     'span',
     { class: 'cost' },
@@ -45,7 +46,7 @@ export function costChips(cost: ResourceAmounts, have?: ResourceAmounts): HTMLEl
       const short = have !== undefined && (have[id] ?? 0) < need;
       return el(
         'span',
-        { class: short ? 'chip-cost short' : 'chip-cost', title: RESOURCE_INFO[id].name },
+        { class: short ? 'chip-cost short' : 'chip-cost', title: tx(RESOURCE_INFO[id].name) },
         resourceIcon(id),
         formatNumber(need),
       );

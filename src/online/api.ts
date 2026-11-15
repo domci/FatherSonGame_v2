@@ -1,4 +1,5 @@
 import type { AccountInfo, NewWorld, ReportAction, ReportInfo, WorldInfo } from '../net/protocol';
+import { L, LocError, isLoc, type Loc } from '../content/text';
 
 /** Your online account on this device. The key is the only "password" (no e-mail, no real name). */
 export interface StoredAccount {
@@ -38,13 +39,19 @@ export function fromDeviceCode(code: string): { id: string; key: string } | unde
 }
 
 /** The server said no, or is not there (status 0). 401 = the account is gone. */
-export class ApiError extends Error {
+export class ApiError extends LocError {
   constructor(
-    text: string,
+    text: Loc,
     readonly status = 0,
   ) {
     super(text);
   }
+}
+
+function serverError(error: unknown, status: number): Loc {
+  if (isLoc(error)) return error;
+  if (typeof error === 'string') return L(error, error);
+  return L(`Fehler ${status}`, `Error ${status}`);
 }
 
 async function call<T>(
@@ -59,16 +66,19 @@ async function call<T>(
   try {
     res = await fetch(path, { ...init, headers });
   } catch {
-    throw new ApiError('Keine Verbindung zum Server.');
+    throw new ApiError(L('Keine Verbindung zum Server.', 'No connection to the server.'));
   }
   // No JSON: the page runs without the world server (for example on GitHub Pages).
   if (!res.headers.get('content-type')?.includes('json'))
     throw new ApiError(
-      'Hier gibt es keinen Online-Server. Online geht nur auf der Online-Seite.',
+      L(
+        'Hier gibt es keinen Online-Server. Online geht nur auf der Online-Seite.',
+        'There is no online server here. Online only works on the online page.',
+      ),
       res.status,
     );
-  const data = (await res.json().catch(() => ({}))) as T & { error?: string };
-  if (!res.ok) throw new ApiError(data.error ?? `Fehler ${res.status}`, res.status);
+  const data = (await res.json().catch(() => ({}))) as T & { error?: unknown };
+  if (!res.ok) throw new ApiError(serverError(data.error, res.status), res.status);
   return data;
 }
 

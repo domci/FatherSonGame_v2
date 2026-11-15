@@ -5,6 +5,7 @@ import { addEvent } from './game';
 import { isOnline, tell, tellHumans } from './humans';
 import { aliveSides, allied, hostileSides, isSide } from './relations';
 import type { GameState } from './state';
+import { L, fmt } from '../content/text';
 
 /** You (and your allies) win when only you and your allies are left. Online worlds never end. */
 export function checkVictory(state: GameState): void {
@@ -24,15 +25,32 @@ export function defeat(state: GameState, side: SideId, by?: PlayerId): void {
   state.offers = state.offers.filter((o) => o.from !== side && o.to !== side);
   const core = FACTIONS[p.faction].core;
   if (side === 'player' && !isOnline(state)) {
-    addEvent(state, `${core} zerstört!`, 'bad');
+    addEvent(state, fmt(L('{c} zerstört!', '{c} destroyed!'), { c: core }), 'bad');
     state.winner ??= isSide(by) ? by : (hostileSides(state, 'player')[0] ?? 'ai');
     return;
   }
-  tell(state, side, `${core} zerstört! Ihr seid besiegt. Ihr könnt neu anfangen.`, 'bad');
+  tell(
+    state,
+    side,
+    fmt(
+      L(
+        '{c} zerstört! Ihr seid besiegt. Ihr könnt neu anfangen.',
+        '{c} destroyed! You are defeated. You can start again.',
+      ),
+      { c: core },
+    ),
+    'bad',
+  );
   tellHumans(state, (h) =>
     h === side
       ? undefined
-      : [`${core} zerstört: ${p.name} ist besiegt!`, allied(state, h, side) ? 'bad' : 'good'],
+      : [
+          fmt(L('{c} zerstört: {n} ist besiegt!', '{c} destroyed: {n} is defeated!'), {
+            c: core,
+            n: p.name,
+          }),
+          allied(state, h, side) ? 'bad' : 'good',
+        ],
   );
   checkVictory(state);
 }

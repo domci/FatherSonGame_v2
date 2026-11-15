@@ -2,6 +2,7 @@ import { MISSION_NAME, STORY } from '../content/mission';
 import type { Faction } from '../content/factions';
 import { el } from './dom';
 import { icon } from './icons';
+import { t, tx } from '../i18n';
 
 /** The story window at the start of a new game. */
 export function storyIntro(faction: Faction, onClose: () => void): HTMLElement {
@@ -11,9 +12,9 @@ export function storyIntro(faction: Faction, onClose: () => void): HTMLElement {
     el(
       'div',
       { class: `panel dialog story-box ${faction}` },
-      el('div', { class: 'p-sub' }, `Mission „${MISSION_NAME}“`),
-      el('h2', {}, story.title),
-      ...story.lines.map((line) => el('p', { class: 'p-text' }, line)),
+      el('div', { class: 'p-sub' }, t('missionName', { m: tx(MISSION_NAME) })),
+      el('h2', {}, tx(story.title)),
+      ...story.lines.map((line) => el('p', { class: 'p-text' }, tx(line))),
       el(
         'button',
         {
@@ -24,7 +25,7 @@ export function storyIntro(faction: Faction, onClose: () => void): HTMLElement {
           },
         },
         icon('play'),
-        el('span', {}, 'Zur Basis'),
+        el('span', {}, t('toBase')),
       ),
     ),
   );

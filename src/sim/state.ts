@@ -1,3 +1,4 @@
+import type { Loc } from '../content/text';
 import type { World } from 'miniplex';
 import type { Difficulty } from '../content/ai';
 import type { Faction } from '../content/factions';
@@ -139,7 +140,7 @@ export interface Mark {
 
 export interface GameEvent {
   time: number;
-  text: string;
+  text: Loc;
   kind: 'info' | 'good' | 'bad';
   /** Only this side sees it (missing = everybody). */
   to?: SideId;
@@ -168,4 +169,4 @@ export interface GameState {
   marks: Mark[];
 }
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;

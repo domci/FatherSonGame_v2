@@ -11,9 +11,9 @@ describe('chat checks (M7)', () => {
   it('blocks insults, numbers, links and real-life contact', () => {
     expect(checkRules('Gut gemacht, wollen wir Frieden?')).toBeUndefined();
     expect(checkRules('du bist ein 1d1ot')?.strike).toBe(true);
-    expect(checkRules('ruf an 0171 2345678')?.text).toContain('Nummern');
-    expect(checkRules('schau www.example.com')?.text).toContain('Links');
-    expect(checkRules('Wo wohnst du?')?.text).toContain('echten Daten');
+    expect(checkRules('ruf an 0171 2345678')?.text.de).toContain('Nummern');
+    expect(checkRules('schau www.example.com')?.text.de).toContain('Links');
+    expect(checkRules('Wo wohnst du?')?.text.de).toContain('echten Daten');
     expect(checkRules('   ')?.strike).toBe(false);
     expect(checkRules('x'.repeat(500))?.strike).toBe(false);
   });
@@ -36,13 +36,17 @@ describe('chat checks (M7)', () => {
     const quick = await chat.post({ ...me, chatBanUntil: 999 }, { kind: 'world' }, { quick: 0 });
     expect(quick.ok && quick.line.text).toBe('Hallo!');
     const bad = await chat.post(me, { kind: 'world' }, { text: 'Hallo zusammen' });
-    expect(bad).toEqual({ ok: false, strike: true, text: 'Diese Nachricht ist nicht erlaubt.' });
+    expect(bad).toEqual({
+      ok: false,
+      strike: true,
+      text: expect.objectContaining({ de: 'Diese Nachricht ist nicht erlaubt.' }),
+    });
     const paused = await chat.post(
       { ...me, chatBanUntil: 200_000 },
       { kind: 'world' },
       { text: 'hi' },
     );
-    expect(!paused.ok && paused.text).toContain('Chat-Pause');
+    expect(!paused.ok && paused.text.de).toContain('Chat-Pause');
     const ok = await new RoomChat(rulesOnly, () => 100).post(
       me,
       { kind: 'world' },

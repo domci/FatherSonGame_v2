@@ -71,7 +71,10 @@ describe('diplomacy commands', () => {
     const s = threeSides();
     s.time = 2 * MIN;
     const r = applyCommand(s, { type: 'diplomacy', player: 'player', side: 'ai', action: 'peace' });
-    expect(r).toEqual({ ok: false, reason: 'Frieden ist erst in 3 Minuten möglich.' });
+    expect(r).toEqual({
+      ok: false,
+      reason: expect.objectContaining({ de: 'Frieden ist erst in 3 Minuten möglich.' }),
+    });
   });
 
   it('the computer takes peace when both face a common danger', () => {
@@ -79,7 +82,7 @@ describe('diplomacy commands', () => {
     const r = applyCommand(s, { type: 'diplomacy', player: 'player', side: 'ai', action: 'peace' });
     expect(r.ok).toBe(true);
     expect(relationOf(s, 'player', 'ai')).toBe('peace');
-    expect(s.events.at(-1)?.text).toContain('Frieden mit');
+    expect(s.events.at(-1)?.text.de).toContain('Frieden mit');
   });
 
   it('the computer says no to peace when it feels strong (hard level)', () => {
@@ -115,7 +118,10 @@ describe('diplomacy commands', () => {
     expect(s.ai.ai?.distrust).toEqual(['player']);
     s.time += 10 * MIN;
     const r = applyCommand(s, { ...end, action: 'alliance' });
-    expect(r).toEqual({ ok: false, reason: 'Schwarm Xar traut euch nicht mehr.' });
+    expect(r).toEqual({
+      ok: false,
+      reason: expect.objectContaining({ de: 'Xar traut euch nicht mehr.' }),
+    });
   });
 
   it('offers of the computer wait for the player, who can say yes or no', () => {

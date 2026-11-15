@@ -3,6 +3,7 @@ import type { ResearchId } from './research';
 import type { Hits, UnitId } from './units';
 import { BUILDING_LIST } from './building-list';
 import { stageSeconds } from './time-curve';
+import type { Loc } from './text';
 
 export type BuildingId =
   | 'commandDome'
@@ -87,8 +88,8 @@ export interface BuildingLevel {
 
 export interface BuildingDef {
   id: BuildingId;
-  name: string;
-  description: string;
+  name: Loc;
+  description: Loc;
   category: BuildingCategory;
   /** Size in tiles (square). */
   size: number;

@@ -76,7 +76,10 @@ describe('building', () => {
       });
     expect(place(-3).ok).toBe(true);
     expect(place(0).ok).toBe(true);
-    expect(place(3)).toEqual({ ok: false, reason: 'Keine freie Bau-Drohne.' });
+    expect(place(3)).toEqual({
+      ok: false,
+      reason: expect.objectContaining({ de: 'Keine freie Bau-Drohne.' }),
+    });
   });
 
   it('new buildings must be close enough for a tunnel; walls may stand alone', () => {
@@ -87,7 +90,9 @@ describe('building', () => {
     expect(applyCommand(s, { ...far, building: 'solarField' }).ok).toBe(false);
     expect(applyCommand(s, { ...far, building: 'solarField' })).toEqual({
       ok: false,
-      reason: expect.stringContaining('Tunnel') as string,
+      reason: expect.objectContaining({
+        de: expect.stringContaining('Tunnel') as string,
+      }) as object,
     });
     expect(applyCommand(s, { ...far, building: 'wall' }).ok).toBe(true);
     const near = { ...far, tileX: tileX + 10, building: 'solarField' } as const;
@@ -114,7 +119,10 @@ describe('building', () => {
       tileX: 1,
       tileY: 1,
     });
-    expect(r2).toEqual({ ok: false, reason: 'Muss genau auf einem passenden Vorkommen stehen.' });
+    expect(r2).toEqual({
+      ok: false,
+      reason: expect.objectContaining({ de: 'Muss genau auf einem passenden Vorkommen stehen.' }),
+    });
   });
 
   it('upgrades take longer each level', () => {

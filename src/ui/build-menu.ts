@@ -9,6 +9,7 @@ import { canAfford } from '../sim/wallet';
 import { el } from './dom';
 import { costText } from './format';
 import { costChips, icon, type IconName } from './icons';
+import { t, tx } from '../i18n';
 
 /** Picture of a building (rendered from its 3D model, see tools/thumbs). */
 export function thumb(id: BuildingId, cls = 'thumb', faction: Faction = 'human'): HTMLElement {
@@ -21,15 +22,16 @@ export function thumb(id: BuildingId, cls = 'thumb', faction: Faction = 'human')
 }
 
 function researchName(id: string | undefined): string {
-  return RESEARCH_LIST.find((r) => r.id === id)?.name ?? '';
+  const r = RESEARCH_LIST.find((x) => x.id === id);
+  return r ? tx(r.name) : '';
 }
 
 type Tab = 'base' | 'army' | 'defense';
 
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
-  { id: 'base', label: 'Basis', icon: 'house' },
-  { id: 'army', label: 'Militär', icon: 'swords' },
-  { id: 'defense', label: 'Schutz', icon: 'shield' },
+  { id: 'base', label: t('tabBase'), icon: 'house' },
+  { id: 'army', label: t('tabArmy'), icon: 'swords' },
+  { id: 'defense', label: t('tabDefense'), icon: 'shield' },
 ];
 
 function tabOf(def: BuildingDef): Tab {
@@ -54,20 +56,20 @@ export class BuildMenu {
     'button',
     { class: 'build-cancel', onclick: () => this.session.startPlacing(undefined) },
     icon('x'),
-    el('span', {}, 'Abbrechen'),
+    el('span', {}, t('cancel')),
   );
   private lastHave = '';
 
   constructor(private session: Session) {
     const tabs = el('div', { class: 'build-tabs' });
-    for (const t of TABS) {
+    for (const tab of TABS) {
       const b = el(
         'button',
-        { class: 'build-tab', title: t.label, onclick: () => this.setTab(t.id) },
-        icon(t.icon),
-        el('span', {}, t.label),
+        { class: 'build-tab', title: tab.label, onclick: () => this.setTab(tab.id) },
+        icon(tab.icon),
+        el('span', {}, tab.label),
       );
-      this.tabButtons.set(t.id, b);
+      this.tabButtons.set(tab.id, b);
       tabs.append(b);
     }
     this.root.append(tabs);
@@ -91,7 +93,7 @@ export class BuildMenu {
       card.root.classList.toggle('locked', locked);
       card.root.disabled = locked;
       if (locked)
-        card.root.title = `${this.name(id)} – erst erforschen: ${researchName(def.requires)}`;
+        card.root.title = t('lockedTitle', { b: this.name(id), r: researchName(def.requires) });
       card.root.classList.toggle('poor', !player || !canAfford(player, cost));
       card.root.classList.toggle('on', s.ui.placing === id);
       if (fresh) card.cost.replaceChildren(costChips(cost, player?.resources));
@@ -99,7 +101,7 @@ export class BuildMenu {
   }
 
   private name(id: BuildingId): string {
-    return buildingName(id, this.session.ui.faction);
+    return tx(buildingName(id, this.session.ui.faction));
   }
 
   private addCard(def: BuildingDef): void {
@@ -109,7 +111,11 @@ export class BuildMenu {
       'button',
       {
         class: 'build-card',
-        title: `${this.name(def.id)}: ${buildingDescription(def.id, faction)}\nKosten: ${costText(buildingLevel(def, 1).cost)}`,
+        title: t('cardTitle', {
+          b: this.name(def.id),
+          d: tx(buildingDescription(def.id, faction)),
+          c: costText(buildingLevel(def, 1).cost),
+        }),
         onclick: () => this.pick(def.id),
         'data-building': def.id,
       },

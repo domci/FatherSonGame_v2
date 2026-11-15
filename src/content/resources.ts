@@ -1,3 +1,5 @@
+import { L } from './text';
+import type { Loc } from './text';
 /**
  * All resources that can be stored. Energy is not stored: it is a flow (production vs. use).
  * Knowledge crystals come only from the quiz (M5).
@@ -18,20 +20,20 @@ export type ResourceId = (typeof RESOURCE_IDS)[number];
 export type ResourceAmounts = Partial<Record<ResourceId, number>>;
 
 export interface ResourceInfo {
-  name: string;
+  name: Loc;
   color: string;
 }
 
 export const RESOURCE_INFO: Record<ResourceId, ResourceInfo> = {
-  regolith: { name: 'Regolith', color: '#b8a58a' },
-  metal: { name: 'Metall', color: '#9fb3c8' },
-  gas: { name: 'Gas', color: '#f2c879' },
-  diamonds: { name: 'Diamanten', color: '#8fe3ff' },
-  pinkLiquid: { name: 'Pinke Flüssigkeit', color: '#ff6ec7' },
-  water: { name: 'Wasser', color: '#4aa8ff' },
-  oxygen: { name: 'Sauerstoff', color: '#b8f0ff' },
-  food: { name: 'Nahrung', color: '#9be36b' },
-  crystals: { name: 'Wissenskristalle', color: '#c9a2ff' },
+  regolith: { name: L('Regolith', 'Regolith'), color: '#b8a58a' },
+  metal: { name: L('Metall', 'Metal'), color: '#9fb3c8' },
+  gas: { name: L('Gas', 'Gas'), color: '#f2c879' },
+  diamonds: { name: L('Diamanten', 'Diamonds'), color: '#8fe3ff' },
+  pinkLiquid: { name: L('Pinke Flüssigkeit', 'Pink Liquid'), color: '#ff6ec7' },
+  water: { name: L('Wasser', 'Water'), color: '#4aa8ff' },
+  oxygen: { name: L('Sauerstoff', 'Oxygen'), color: '#b8f0ff' },
+  food: { name: L('Nahrung', 'Food'), color: '#9be36b' },
+  crystals: { name: L('Wissenskristalle', 'Knowledge Crystals'), color: '#c9a2ff' },
 };
 
 export const START_RESOURCES: ResourceAmounts = {

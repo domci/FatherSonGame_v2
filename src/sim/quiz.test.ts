@@ -23,8 +23,10 @@ describe('quiz questions', () => {
     expect(QUIZ.length).toBeGreaterThanOrEqual(60);
     expect(new Set(QUIZ.map((x) => x.id)).size).toBe(QUIZ.length);
     for (const x of QUIZ) {
-      expect(new Set(x.answers).size, x.id).toBe(4);
-      expect(x.explain.length, x.id).toBeGreaterThan(5);
+      expect(new Set(x.answers.map((a) => a.de)).size, x.id).toBe(4);
+      expect(new Set(x.answers.map((a) => a.en)).size, x.id).toBe(4);
+      expect(x.explain.de.length, x.id).toBeGreaterThan(5);
+      expect(x.explain.en.length, x.id).toBeGreaterThan(5);
       expect(x.age).toBeGreaterThanOrEqual(10);
     }
     for (const topic of Object.keys(QUIZ_TOPICS))
@@ -65,7 +67,7 @@ describe('knowledge quiz', () => {
     expect(me(s).quiz.wrong).toBe(1);
     const r = ask(s);
     expect(r.ok).toBe(false);
-    expect(!r.ok && r.reason).toContain('Pause');
+    expect(!r.ok && r.reason.de).toContain('Pause');
     s.time += QUIZ_RULES.wrongPauseMs;
     expect(ask(s).ok).toBe(true);
   });
@@ -79,7 +81,7 @@ describe('knowledge quiz', () => {
     }
     expect(quizStatus(me(s).quiz, s.time).left).toBe(0);
     const r = ask(s);
-    expect(!r.ok && r.reason).toContain('Stunde');
+    expect(!r.ok && r.reason.de).toContain('Stunde');
     s.time += HOUR;
     expect(ask(s).ok).toBe(true);
   });
@@ -100,8 +102,9 @@ describe('knowledge quiz', () => {
   });
 
   it('writes waiting times for kids', () => {
-    expect(formatWait(30 * SECOND)).toBe('30 Sekunden');
-    expect(formatWait(60 * SECOND)).toBe('1 Minute');
-    expect(formatWait(HOUR - 1)).toBe('60 Minuten');
+    expect(formatWait(30 * SECOND).de).toBe('30 Sekunden');
+    expect(formatWait(30 * SECOND).en).toBe('30 seconds');
+    expect(formatWait(60 * SECOND).de).toBe('1 Minute');
+    expect(formatWait(HOUR - 1).de).toBe('60 Minuten');
   });
 });

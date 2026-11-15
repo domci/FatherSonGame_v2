@@ -1,6 +1,7 @@
 import type { ResourceAmounts } from '../content/resources';
 import { el, formatDuration } from './dom';
 import { costChips, icon, type IconName } from './icons';
+import { t } from '../i18n';
 
 /** Panel title with optional picture and small category line. */
 export function header(title: string, sub: string, picture?: HTMLElement): HTMLElement {
@@ -16,15 +17,15 @@ export function levelPips(level: number, max: number): HTMLElement {
   const pips = Array.from({ length: max }, (_, i) =>
     el('span', { class: i < level ? 'pip on' : 'pip' }),
   );
-  return el('div', { class: 'pips', title: `Stufe ${level} von ${max}` }, ...pips);
+  return el('div', { class: 'pips', title: t('pipsTitle', { l: level, m: max }) }, ...pips);
 }
 
 export function section(title: string, ...children: (HTMLElement | null)[]): HTMLElement {
   return el('div', { class: 'p-sec' }, el('h4', {}, title), ...children);
 }
 
-export function text(t: string, cls = 'p-text'): HTMLElement {
-  return el('p', { class: cls }, t);
+export function text(body: string, cls = 'p-text'): HTMLElement {
+  return el('p', { class: cls }, body);
 }
 
 export function stat(ico: IconName, label: string, value: string, color?: string): HTMLElement {
@@ -86,8 +87,8 @@ export function action(ico: IconName, label: string, o: ActionOpts): HTMLElement
 
 /** Updates timers and progress bars inside root. */
 export function tickTimers(root: HTMLElement, now: number): void {
-  for (const t of root.querySelectorAll<HTMLElement>('.timer'))
-    t.textContent = formatDuration(Number(t.dataset.until) - now);
+  for (const node of root.querySelectorAll<HTMLElement>('.timer'))
+    node.textContent = formatDuration(Number(node.dataset.until) - now);
   for (const b of root.querySelectorAll<HTMLElement>('.prog-bar')) {
     const from = Number(b.dataset.from);
     const until = Number(b.dataset.until);

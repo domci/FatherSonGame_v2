@@ -1,5 +1,6 @@
 import { el } from './dom';
 import { button } from './online-menu';
+import { t } from '../i18n';
 
 /** The address of the page with the world code: opening it joins the world (M7, ADR 0010). */
 export function worldLink(code: string, origin = location.origin): string {
@@ -14,10 +15,10 @@ export function codeInHash(hash: string): string | undefined {
 async function copy(text: string, field: HTMLInputElement, note: HTMLElement): Promise<void> {
   try {
     await navigator.clipboard.writeText(text);
-    note.textContent = 'Kopiert! Schick den Link jetzt deinen Freunden.';
+    note.textContent = t('shCopied');
   } catch {
     field.select();
-    note.textContent = 'Markiert. Kopiere den Link mit Strg+C (oder lange tippen).';
+    note.textContent = t('shMarked');
   }
 }
 
@@ -26,30 +27,22 @@ export function shareBox(world: { name: string; code: string }): (HTMLElement | 
   const link = worldLink(world.code);
   const field = el('input', { class: 'code-input share-link', readonly: 'true', value: link });
   field.addEventListener('focus', () => field.select());
-  const note = el('p', { class: 'p-text muted' }, `Welt-Code: ${world.code}`);
+  const note = el('p', { class: 'p-text muted' }, t('shCode', { c: world.code }));
   const share = (): void =>
     void navigator
-      .share({ title: world.name, text: `Komm in meine Welt „${world.name}“!`, url: link })
+      .share({ title: world.name, text: t('shText', { n: world.name }), url: link })
       .catch(() => undefined);
   return [
-    el(
-      'p',
-      { class: 'p-text' },
-      'Wer diesen Link öffnet, kann eurer Welt beitreten. Ist sie voll, kommt ein neuer Planet dazu.',
-    ),
+    el('p', { class: 'p-text' }, t('shHelp')),
     el(
       'div',
       { class: 'code-row' },
       field,
-      button('copy', 'Kopieren', () => void copy(link, field, note)),
+      button('copy', t('shCopy'), () => void copy(link, field, note)),
     ),
-    'share' in navigator && button('send', 'Teilen …', share, 'small'),
+    'share' in navigator && button('send', t('shShare'), share, 'small'),
     note,
-    el(
-      'p',
-      { class: 'p-text muted' },
-      'Gib den Link nur Leuten, die du kennst. Neue Spieler haben 3 Tage Schutz.',
-    ),
+    el('p', { class: 'p-text muted' }, t('shSafe')),
   ];
 }
 
@@ -65,9 +58,9 @@ export function shareModal(
       'div',
       { class: 'panel dialog' },
       el('div', { class: 'p-sub' }, world.name),
-      el('h2', {}, 'Freunde einladen'),
+      el('h2', {}, t('invite')),
       ...shareBox(world),
-      el('div', { class: 'dlg-buttons' }, button('check', 'Fertig', onClose, 'primary')),
+      el('div', { class: 'dlg-buttons' }, button('check', t('shDone'), onClose, 'primary')),
     ),
   );
 }

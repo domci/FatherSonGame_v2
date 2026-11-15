@@ -1,6 +1,7 @@
 import { makeName } from '../net/names';
 import { el } from './dom';
 import { icon, type IconName } from './icons';
+import { t, lang } from '../i18n';
 
 type Child = HTMLElement | string | false | undefined;
 
@@ -36,7 +37,7 @@ export function problemLine(text?: string): HTMLElement | false {
 }
 
 export function privacyLink(): HTMLElement {
-  return el('a', { class: 'privacy-link', href: '#datenschutz' }, 'Datenschutz: was wir speichern');
+  return el('a', { class: 'privacy-link', href: '#datenschutz' }, t('privacyLink'));
 }
 
 export interface NamePickActions {
@@ -52,32 +53,28 @@ export function namePicker(a: NamePickActions, problem?: string): HTMLElement {
   const fill = (): void =>
     names.replaceChildren(
       ...[0, 1, 2].map(() => {
-        const name = makeName(Math.random);
+        const name = makeName(Math.random, lang());
         return el('button', { class: 'm-item name-pick', onclick: () => a.pick(name) }, name);
       }),
     );
   fill();
   const code = el('input', { class: 'code-input', placeholder: 'XXXX-XXXX-XXXX-XXXX-XXXX-XXXX' });
   return onlineDialog(
-    'Online spielen',
-    'Wähle deinen Namen',
+    t('mOnline'),
+    t('pickName'),
     problemLine(problem),
-    el(
-      'p',
-      { class: 'p-text muted' },
-      'Online heißt du nicht wie im echten Leben. Such dir einen Spielnamen aus. Wir fragen nicht nach E-Mail oder Passwort.',
-    ),
+    el('p', { class: 'p-text muted' }, t('nameHelp')),
     names,
-    button('sparkles', 'Andere Namen', fill, 'small'),
-    el('h4', { class: 'dlg-h' }, 'Schon ein Konto auf einem anderen Gerät?'),
+    button('sparkles', t('otherNames'), fill, 'small'),
+    el('h4', { class: 'dlg-h' }, t('haveAccount')),
     el(
       'div',
       { class: 'code-row' },
       code,
-      button('log-in', 'Anmelden', () => a.login(code.value)),
+      button('log-in', t('login'), () => a.login(code.value)),
     ),
     privacyLink(),
-    button('x', 'Zurück', () => a.back()),
+    button('x', t('back'), () => a.back()),
   );
 }
 
@@ -86,21 +83,13 @@ export function deviceCodeDialog(code: string, onClose: () => void): HTMLElement
   const box = el('div', { class: 'device-code' }, code);
   const copy = (): void => void navigator.clipboard?.writeText(code).catch(() => undefined);
   const d = onlineDialog(
-    'Konto',
-    'Auf anderem Gerät spielen',
-    el(
-      'p',
-      { class: 'p-text' },
-      'Gib diesen Code auf dem anderen Gerät ein: „Online spielen“, dann „Anmelden“.',
-    ),
+    t('account'),
+    t('otherDevice'),
+    el('p', { class: 'p-text' }, t('codeHelp')),
     box,
-    button('copy', 'Kopieren', copy, 'small'),
-    el(
-      'p',
-      { class: 'p-text muted' },
-      'Halte den Code geheim. Er ist wie ein Schlüssel: Wer ihn hat, spielt mit deinem Konto.',
-    ),
-    button('check', 'Fertig', () => onClose(), 'primary'),
+    button('copy', t('copy'), copy, 'small'),
+    el('p', { class: 'p-text muted' }, t('codeSecret')),
+    button('check', t('done'), () => onClose(), 'primary'),
   );
   return d;
 }
@@ -113,13 +102,13 @@ export function confirmDialog(
   no: () => void,
 ): HTMLElement {
   return onlineDialog(
-    'Bist du sicher?',
+    t('sure'),
     title,
     el('p', { class: 'p-text' }, text),
     el(
       'div',
       { class: 'dlg-buttons' },
-      button('x', 'Abbrechen', no),
+      button('x', t('cancel'), no),
       button('trash-2', yes.label, () => yes.run(), 'primary'),
     ),
   );

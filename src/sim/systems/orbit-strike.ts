@@ -8,6 +8,7 @@ import { hasResearch } from '../research-helpers';
 import { blockers, warships } from '../space/places';
 import type { GameState } from '../state';
 import { dealDamage } from './damage';
+import { L } from '../../content/text';
 
 /** Time between two shots from orbit of one ship. */
 export const STRIKE_MS = 4000;
@@ -21,7 +22,15 @@ function alarm(state: GameState, victim: SideId): void {
   lastAlarm.set(state, times);
   if (state.time - (times.get(victim) ?? -Infinity) < ALARM_MS) return;
   times.set(victim, state.time);
-  addEvent(state, 'Angriff aus dem Orbit! Schilde und Orbitalkanonen helfen.', 'bad', victim);
+  addEvent(
+    state,
+    L(
+      'Angriff aus dem Orbit! Schilde und Orbitalkanonen helfen.',
+      'Attack from orbit! Shields and orbital cannons help.',
+    ),
+    'bad',
+    victim,
+  );
 }
 
 /** Cannons that shoot into orbit first, then any building. */

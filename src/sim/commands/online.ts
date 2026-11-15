@@ -6,6 +6,7 @@ import { isSide } from '../relations';
 import { makePlayer, setupBase } from '../setup';
 import type { Faction, GameState } from '../state';
 import { fail, OK, type CommandResult } from './result';
+import { L, fmt } from '../../content/text';
 
 /** Server only: a person takes a free seat of an online world. */
 export interface JoinCommand {
@@ -36,14 +37,14 @@ export interface RestartCommand {
 
 export function join(state: GameState, cmd: JoinCommand): CommandResult {
   if (!isSide(cmd.player) || !freeSeats(state).includes(cmd.player))
-    return fail('Dieser Platz ist nicht frei.');
+    return fail(L('Dieser Platz ist nicht frei.', 'This seat is not free.'));
   seatPerson(state, cmd.player, cmd.faction, cmd.name);
   return OK;
 }
 
 export function presence(state: GameState, cmd: PresenceCommand): CommandResult {
   const p = state.players[cmd.player];
-  if (!p) return fail('Unbekannter Spieler.');
+  if (!p) return fail(L('Unbekannter Spieler.', 'Unknown player.'));
   p.here = cmd.here;
   return OK;
 }
@@ -51,12 +52,16 @@ export function presence(state: GameState, cmd: PresenceCommand): CommandResult 
 export function leave(state: GameState, cmd: LeaveCommand): CommandResult {
   const side = cmd.player;
   const p = isSide(side) ? state.players[side] : undefined;
-  if (!p || !isSide(side) || side === 'player') return fail('Dieser Platz kann nicht frei werden.');
+  if (!p || !isSide(side) || side === 'player')
+    return fail(L('Dieser Platz kann nicht frei werden.', 'This seat cannot be freed.'));
   clearSide(state, side);
   state.players = Object.fromEntries(
     Object.entries(state.players).filter(([id]) => id !== side),
   ) as GameState['players'];
-  tellHumans(state, () => [`${p.name} hat eure Welt verlassen.`, 'info']);
+  tellHumans(state, () => [
+    fmt(L('{n} hat eure Welt verlassen.', '{n} has left your world.'), { n: p.name }),
+    'info',
+  ]);
   return OK;
 }
 
@@ -81,8 +86,9 @@ function startAgain(state: GameState, side: SideId, faction: Faction): void {
 
 export function restart(state: GameState, cmd: RestartCommand): CommandResult {
   const p = isSide(cmd.player) ? state.players[cmd.player] : undefined;
-  if (!state.settings.online || !p || !isSide(cmd.player)) return fail('Nur in Online-Welten.');
-  if (!p.defeated) return fail('Ihr seid noch nicht besiegt.');
+  if (!state.settings.online || !p || !isSide(cmd.player))
+    return fail(L('Nur in Online-Welten.', 'Only in online worlds.'));
+  if (!p.defeated) return fail(L('Ihr seid noch nicht besiegt.', 'You are not defeated yet.'));
   startAgain(state, cmd.player, p.faction);
   return OK;
 }

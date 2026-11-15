@@ -1,8 +1,11 @@
+import { setLang } from '../i18n';
 import { describe, expect, it } from 'vitest';
 import { createGame } from '../sim/game';
 import { setRelation } from '../sim/relations';
 import { spawnUnit } from '../sim/spawn';
 import { ownerLabel, relationLabel, strengthWord } from './panel-peoples';
+
+setLang('de');
 
 describe('peoples window texts', () => {
   it('names relations and colors from the player view', () => {

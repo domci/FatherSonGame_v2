@@ -5,18 +5,19 @@ import { MISSION, MISSION_NAME, type MissionGoal } from '../content/mission';
 import { nameOfBuilding } from '../sim/names';
 import { clear, el } from './dom';
 import { costChips, icon } from './icons';
+import { t, tx } from '../i18n';
 
 function goalTitle(session: Session, goal: MissionGoal): string {
   const s = session.state;
   switch (goal.kind) {
     case 'build':
-      return `Baut: ${nameOfBuilding(s, viewerOf(s), goal.building)}`;
+      return t('goalBuild', { b: tx(nameOfBuilding(s, viewerOf(s), goal.building)) });
     case 'people':
-      return `Habt ${goal.count} Bewohner (jetzt ${s.players[viewerOf(s)]?.colony.people ?? 0})`;
+      return t('goalPeople', { n: goal.count, now: s.players[viewerOf(s)]?.colony.people ?? 0 });
     case 'research':
-      return 'Erforscht etwas';
+      return t('goalResearch');
     case 'quiz':
-      return 'Beantwortet eine Quizfrage richtig';
+      return t('goalQuiz');
   }
 }
 
@@ -24,7 +25,7 @@ function goalTitle(session: Session, goal: MissionGoal): string {
 function hintText(session: Session, hint: string): string {
   return hint.replace(/\{b:(\w+)\}/g, (all, id: string) =>
     id in BUILDINGS
-      ? nameOfBuilding(session.state, viewerOf(session.state), id as BuildingId)
+      ? tx(nameOfBuilding(session.state, viewerOf(session.state), id as BuildingId))
       : all,
   );
 }
@@ -50,7 +51,7 @@ export class MissionCard {
         'button',
         {
           class: 'icon-btn close',
-          title: 'Mission ausblenden',
+          title: t('hideMission'),
           onclick: () => this.session.command({ type: 'missionOff', player: this.session.me }),
         },
         icon('x'),
@@ -58,11 +59,11 @@ export class MissionCard {
       el(
         'div',
         { class: 'p-sub' },
-        `Mission „${MISSION_NAME}“ · ${m.step + 1} von ${MISSION.length}`,
+        t('missionStep', { m: tx(MISSION_NAME), a: m.step + 1, b: MISSION.length }),
       ),
       el('div', { class: 'mission-goal' }, icon('flag'), goalTitle(this.session, step.goal)),
-      el('p', { class: 'p-text muted' }, hintText(this.session, step.hint)),
-      el('div', { class: 'mission-reward' }, el('span', {}, 'Belohnung'), costChips(step.reward)),
+      el('p', { class: 'p-text muted' }, hintText(this.session, tx(step.hint))),
+      el('div', { class: 'mission-reward' }, el('span', {}, t('reward')), costChips(step.reward)),
     );
   }
 }

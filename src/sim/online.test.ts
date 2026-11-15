@@ -85,7 +85,7 @@ describe('online worlds (M7)', () => {
       action: 'alliance',
     });
     expect(offer.ok).toBe(true);
-    const news = s.events.filter((e) => e.text.includes('Bündnis an'));
+    const news = s.events.filter((e) => e.text.de.includes('Bündnis an'));
     expect(news.map((e) => e.to)).toEqual(['player']);
     expect(s.offers[0]?.until).toBe(s.time + 24 * HOUR);
   });
@@ -96,11 +96,11 @@ describe('online worlds (M7)', () => {
     const war = () =>
       applyCommand(s, { type: 'diplomacy', player: 'player', side: 'ai2', action: 'war' });
     const first = war();
-    expect(first.ok ? '' : first.reason).toContain('Anfänger-Schild');
+    expect(first.ok ? '' : first.reason.de).toContain('Anfänger-Schild');
     skipShields(s);
     research(s, 'player', 6);
     const second = war();
-    expect(second.ok ? '' : second.reason).toContain('schwächer');
+    expect(second.ok ? '' : second.reason.de).toContain('schwächer');
     research(s, 'ai2', 6);
     s.players.player!.shieldUntil = s.time + HOUR;
     expect(war().ok).toBe(true);

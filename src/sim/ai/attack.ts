@@ -7,6 +7,7 @@ import type { AiState, GameState, PlayerState } from '../state';
 import { housingOf, isFighter, unitsOf } from './queries';
 import { homeDefense, powerOf, progressOf, sumPower } from './strength';
 import { nextTarget, type AiOptions } from './targets';
+import { L } from '../../content/text';
 
 /** Biggest attack wave (housing). One transport carries 10. */
 const MAX_WAVE = 30;
@@ -95,5 +96,13 @@ export function launchAttack(
   if (sendShips(state, player.id, riders, enemy.homeBodyId) === 0) return;
   ai.waves += 1;
   ai.nextAttackAt = state.time + t.attackEveryMs;
-  tell(state, enemy.id, 'Achtung: Ein feindliches Schiff fliegt zu euch!', 'bad');
+  tell(
+    state,
+    enemy.id,
+    L(
+      'Achtung: Ein feindliches Schiff fliegt zu euch!',
+      'Watch out: an enemy ship is flying to you!',
+    ),
+    'bad',
+  );
 }

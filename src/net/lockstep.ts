@@ -6,6 +6,7 @@ import { tick } from '../sim/update';
 import { setViewer } from '../sim/viewer';
 import { digest } from './digest';
 import type { ServerMessage } from './protocol';
+import { L, type Loc } from '../content/text';
 
 /**
  * The browser side of an online game: replays the steps of the server with the same
@@ -21,7 +22,7 @@ export class Lockstep {
   private cmds: [number, Command][] = [];
   private hashes = new Map<number, string>();
   /** One of our own commands did not work (reason for a message). */
-  onFail: (reason: string) => void = () => undefined;
+  onFail: (reason: Loc) => void = () => undefined;
   /** We went a different way than the server: ask for a fresh snapshot. */
   onMismatch: () => void = () => undefined;
   /** A new game state arrived (first one, or after a resync). */
@@ -82,10 +83,10 @@ export class Lockstep {
   }
 }
 
-function safeApply(state: GameState, cmd: Command): { ok: true } | { ok: false; reason: string } {
+function safeApply(state: GameState, cmd: Command): { ok: true } | { ok: false; reason: Loc } {
   try {
     return applyCommand(state, cmd);
   } catch {
-    return { ok: false, reason: 'Befehl ging nicht.' };
+    return { ok: false, reason: L('Befehl ging nicht.', 'The command did not work.') };
   }
 }

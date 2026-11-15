@@ -4,7 +4,8 @@ export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 120_000,
   retries: process.env.CI ? 1 : 0,
-  use: { baseURL: 'http://localhost:4173', trace: 'off' },
+  // German texts in the tests; the language test sets English itself.
+  use: { baseURL: 'http://localhost:4173', trace: 'off', locale: 'de-DE' },
   // CI builds dist in its own step; locally the first server builds it.
   webServer: [
     {

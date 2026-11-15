@@ -10,6 +10,7 @@ import type {
 import type { Command } from '../sim/commands';
 import type { SideId } from '../sim/entity';
 import type { GameState } from '../sim/state';
+import { L, LocError, type Loc } from '../content/text';
 
 export type LinkStatus = 'connecting' | 'online' | 'lost' | 'closed';
 
@@ -23,10 +24,10 @@ export interface Link {
 }
 
 /** The server said no (old version, unknown account, world full, banned, world gone). */
-export class OnlineError extends Error {
+export class OnlineError extends LocError {
   constructor(
     readonly code: ErrorCode,
-    text: string,
+    text: Loc,
   ) {
     super(text);
   }
@@ -47,7 +48,7 @@ export class OnlineGame {
   /** A fresh game state from the server (the game screen swaps it in). */
   onState: (state: GameState) => void = () => undefined;
   onChat: (line: ChatLine) => void = () => undefined;
-  onNotice: (text: string, kind: 'info' | 'bad') => void = () => undefined;
+  onNotice: (text: Loc, kind: 'info' | 'bad') => void = () => undefined;
   /** The server said no while playing (the game screen goes back to the lobby). */
   onError: (e: OnlineError) => void = () => undefined;
   private lastResync = -Infinity;
@@ -73,7 +74,16 @@ export class OnlineGame {
   start(waitMs = 20_000): Promise<GameState> {
     return new Promise((ok, no) => {
       const timer = setTimeout(
-        () => this.fail(new OnlineError('gone', 'Der Server antwortet nicht. Später noch mal!')),
+        () =>
+          this.fail(
+            new OnlineError(
+              'gone',
+              L(
+                'Der Server antwortet nicht. Später noch mal!',
+                'The server does not answer. Try again later!',
+              ),
+            ),
+          ),
         waitMs,
       );
       this.first = {

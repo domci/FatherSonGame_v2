@@ -3,6 +3,7 @@ import type { Command } from '../sim/commands';
 import type { SideId } from '../sim/entity';
 import type { SaveData } from '../sim/save/save';
 import type { Faction } from '../sim/state';
+import type { Loc } from '../content/text';
 
 /**
  * Messages between the browser and the world server (M7), as JSON over a WebSocket.
@@ -20,8 +21,8 @@ export interface ChatLine {
   name: string;
   to: ChatTo;
   text: string;
-  /** A ready-made message (no check needed). */
-  quick?: boolean;
+  /** A ready-made message (number in QUICK_MESSAGES; each reader sees it in their language). */
+  quick?: number;
 }
 
 export type ClientMessage =
@@ -40,8 +41,8 @@ export type ServerMessage =
   | { t: 'steps'; to: number; cmds: [number, Command][] }
   | { t: 'hash'; tick: number; h: string }
   | { t: 'chat'; line: ChatLine }
-  | { t: 'notice'; text: string; kind: 'info' | 'bad' }
-  | { t: 'error'; code: ErrorCode; text: string }
+  | { t: 'notice'; text: Loc; kind: 'info' | 'bad' }
+  | { t: 'error'; code: ErrorCode; text: Loc }
   | { t: 'pong' };
 
 /** A world as the lobby shows it. */

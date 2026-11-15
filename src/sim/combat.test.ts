@@ -156,7 +156,7 @@ describe('end of the game', () => {
     const core = coreOf(s, 'ai')!;
     dealDamage(s, core, 1e6);
     expect(s.winner).toBe('player');
-    expect(s.events.at(-1)?.text).toContain('zerstört');
+    expect(s.events.at(-1)?.text.de).toContain('zerstört');
     const dome = buildingsOf(s, 'player', 'commandDome')[0]!;
     expect(
       applyCommand(s, { type: 'train', player: 'player', buildingId: dome.id, unit: 'drone' }).ok,

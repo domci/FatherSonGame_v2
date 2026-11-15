@@ -9,6 +9,7 @@ import { addHomePlanet } from './generation/home-planets';
 import { makePlayer, setupBase, setupNests } from './setup';
 import type { Faction, GameState } from './state';
 import { progressOf } from './ai/strength';
+import { L, fmt, type Loc } from '../content/text';
 
 export interface OnlineWorldOptions {
   seed: number;
@@ -95,7 +96,12 @@ export function seatPerson(state: GameState, seat: SideId, faction: Faction, nam
   if (!state.world.entities.some((e) => e.nest && e.zone === zone)) setupNests(state, map);
   makePeace(state, seat);
   tellHumans(state, (h) =>
-    h === seat ? undefined : [`${name} ist in eure Welt gekommen.`, 'info'],
+    h === seat
+      ? undefined
+      : [
+          fmt(L('{n} ist in eure Welt gekommen.', '{n} has come into your world.'), { n: name }),
+          'info',
+        ],
   );
 }
 
@@ -109,17 +115,32 @@ export function clearSide(state: GameState, side: SideId): void {
 }
 
 /** Why `from` may not declare war on `to` (online, person against person). Empty = allowed. */
-export function shieldRule(state: GameState, from: SideId, to: SideId): string {
-  if (!isOnline(state) || !isHuman(state, from) || !isHuman(state, to)) return '';
+export function shieldRule(state: GameState, from: SideId, to: SideId): Loc | undefined {
+  if (!isOnline(state) || !isHuman(state, from) || !isHuman(state, to)) return undefined;
   const target = state.players[to];
   const left = (target?.shieldUntil ?? 0) - state.time;
-  if (left > 0) return `${target?.name ?? to} hat noch einen Anfänger-Schild (${hours(left)}).`;
+  const n = target?.name ?? to;
+  if (left > 0)
+    return fmt(
+      L('{n} hat noch einen Anfänger-Schild ({h}).', '{n} still has a beginner shield ({h}).'),
+      {
+        n,
+        h: hours(left),
+      },
+    );
   if (progressOf(state, to) < ONLINE.minStrength * progressOf(state, from))
-    return `${target?.name ?? to} ist viel schwächer als ihr. Sucht euch einen stärkeren Gegner.`;
-  return '';
+    return fmt(
+      L(
+        '{n} ist viel schwächer als ihr. Sucht euch einen stärkeren Gegner.',
+        '{n} is much weaker than you. Find a stronger opponent.',
+      ),
+      { n },
+    );
+  return undefined;
 }
 
-function hours(ms: number): string {
+function hours(ms: number): Loc {
   const h = Math.ceil(ms / 3_600_000);
-  return h === 1 ? 'noch 1 Stunde' : `noch ${h} Stunden`;
+  if (h === 1) return L('noch 1 Stunde', '1 hour left');
+  return fmt(L('noch {h} Stunden', '{h} hours left'), { h });
 }

@@ -11,6 +11,8 @@ import type { LobbyDO } from './lobby';
 import { publicInfo, type AccountRecord, type WorldRecord } from './lobby-core';
 import { canRead, type RoomChat } from './room-chat';
 import type { Peer, RoomCore } from './room-core';
+import type { Loc } from '../src/content/text';
+import { SERVER_TEXT } from './texts';
 
 /** What the message handlers need from the world room. */
 export interface RoomContext {
@@ -27,9 +29,9 @@ export interface RoomContext {
   persist(): Promise<void>;
 }
 
-function fail(ctx: RoomContext, peer: Peer, code: ErrorCode, text: string): void {
+function fail(ctx: RoomContext, peer: Peer, code: ErrorCode, text: Loc): void {
   ctx.send(peer, { t: 'error', code, text });
-  peer.close(4000 + ['reload', 'auth', 'full', 'banned', 'gone'].indexOf(code), text);
+  peer.close(4000 + ['reload', 'auth', 'full', 'banned', 'gone'].indexOf(code), text.en);
 }
 
 async function hello(
@@ -38,12 +40,11 @@ async function hello(
   msg: Extract<ClientMessage, { t: 'hello' }>,
 ): Promise<void> {
   const { core, info } = ctx;
-  if (!core || !info) return fail(ctx, peer, 'gone', 'Diese Welt gibt es nicht mehr.');
-  if (ctx.build && msg.build !== ctx.build)
-    return fail(ctx, peer, 'reload', 'Es gibt eine neue Version. Bitte neu laden.');
+  if (!core || !info) return fail(ctx, peer, 'gone', SERVER_TEXT.gone);
+  if (ctx.build && msg.build !== ctx.build) return fail(ctx, peer, 'reload', SERVER_TEXT.reload);
   const a = await ctx.lobby().verify(String(msg.account), String(msg.key));
-  if (!a) return fail(ctx, peer, 'auth', 'Dieses Konto gibt es nicht.');
-  if (a.banned) return fail(ctx, peer, 'banned', 'Du darfst nicht mehr online spielen.');
+  if (!a) return fail(ctx, peer, 'auth', SERVER_TEXT.noAccount);
+  if (a.banned) return fail(ctx, peer, 'banned', SERVER_TEXT.banned);
   const before = core.seats[a.id];
   const faction = msg.faction === 'alien' ? 'alien' : 'human';
   const err = core.connect(peer, { account: a.id, name: a.name, faction }, (side) => ({
@@ -52,7 +53,7 @@ async function hello(
     chat: core.state ? ctx.chat.lines.filter((l) => canRead(core.state, side, l)) : [],
     world: publicInfo(info, side),
   }));
-  if (err) return fail(ctx, peer, err, 'In dieser Welt ist kein Platz mehr frei.');
+  if (err) return fail(ctx, peer, err, SERVER_TEXT.full);
   ctx.accounts.set(peer, a);
   info.lastActive = Date.now();
   ctx.startTimers();
@@ -86,7 +87,11 @@ async function chat(
   if (!m || !validTo(msg.to)) return;
   const now = Date.now();
   if (now - (ctx.lastChat.get(peer) ?? 0) < CHAT_GAP_MS)
-    return ctx.send(peer, { t: 'notice', text: 'Nicht so schnell.', kind: 'bad' });
+    return ctx.send(peer, {
+      t: 'notice',
+      text: SERVER_TEXT.tooFast,
+      kind: 'bad',
+    });
   ctx.lastChat.set(peer, now);
   const quick = Number.isInteger(msg.quick) ? msg.quick : undefined;
   const text = typeof msg.text === 'string' ? msg.text : undefined;
@@ -94,12 +99,16 @@ async function chat(
   const r = await ctx.chat.post(sender, msg.to, { text, quick });
   if (r.ok) return deliver(ctx, r.line);
   ctx.send(peer, { t: 'notice', text: r.text, kind: 'bad' });
-  if (!r.strike) return;
+  if (r.strike) await punish(ctx, peer, account);
+}
+
+/** One more bad message: warning, chat pause, or out. */
+async function punish(ctx: RoomContext, peer: Peer, account: AccountRecord): Promise<void> {
   const s = await ctx.lobby().strike(account.id);
   account.chatBanUntil = s.chatBanUntil;
   account.banned = s.banned;
   if (s.text) ctx.send(peer, { t: 'notice', text: s.text, kind: 'bad' });
-  if (s.banned) fail(ctx, peer, 'banned', s.text);
+  if (s.banned) fail(ctx, peer, 'banned', s.text ?? SERVER_TEXT.banned);
 }
 
 async function report(
@@ -119,7 +128,11 @@ async function report(
     name: line.name,
     text: line.text,
   });
-  ctx.send(peer, { t: 'notice', text: 'Danke! Deine Meldung ist angekommen.', kind: 'info' });
+  ctx.send(peer, {
+    t: 'notice',
+    text: SERVER_TEXT.thanks,
+    kind: 'info',
+  });
 }
 
 /** One message from a browser. Before "hello" only "hello" and "ping" count. */

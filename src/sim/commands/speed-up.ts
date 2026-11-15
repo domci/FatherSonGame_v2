@@ -5,6 +5,7 @@ import { entityTimer, researchTimer, speedUpPrice } from '../speed-up';
 import type { GameState } from '../state';
 import { pay } from '../wallet';
 import { fail, OK, type CommandResult } from './result';
+import { L, fmt } from '../../content/text';
 
 /** Finish building, upgrade, training (entityId) or research now, paid with knowledge crystals. */
 export interface SpeedUpCommand {
@@ -23,10 +24,19 @@ function timerOf(state: GameState, cmd: SpeedUpCommand): { finishAt: number } | 
 export function speedUp(state: GameState, cmd: SpeedUpCommand): CommandResult {
   const timer = timerOf(state, cmd);
   const left = timer ? timer.finishAt - state.time : 0;
-  if (!timer || left <= 0) return fail('Hier läuft gerade nichts.');
+  if (!timer || left <= 0)
+    return fail(L('Hier läuft gerade nichts.', 'Nothing is running here right now.'));
   const price = speedUpPrice(left);
   if (!pay(getPlayer(state, cmd.player), { crystals: price }))
-    return fail(`Braucht ${price} Wissenskristalle. Beantwortet Quizfragen!`);
+    return fail(
+      fmt(
+        L(
+          'Braucht {n} Wissenskristalle. Beantwortet Quizfragen!',
+          'Needs {n} knowledge crystals. Answer quiz questions!',
+        ),
+        { n: price },
+      ),
+    );
   timer.finishAt = state.time;
   return OK;
 }

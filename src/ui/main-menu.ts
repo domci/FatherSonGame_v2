@@ -1,5 +1,7 @@
 import { el } from './dom';
 import { icon, type IconName } from './icons';
+import { langSwitch } from './lang-switch';
+import { t } from '../i18n';
 
 export interface MenuActions {
   newGame(): void;
@@ -22,32 +24,25 @@ function menuItem(ico: IconName, label: string, onclick: () => void, primary = f
 /** Start screen: key art in the back, title and menu on the left. */
 export function mainMenu(actions: MenuActions): HTMLElement {
   const items = [
-    actions.continueGame && menuItem('play', 'Weiterspielen', actions.continueGame, true),
-    menuItem('rocket', 'Neues Spiel', actions.newGame, !actions.continueGame),
-    menuItem('globe', 'Online spielen', actions.online),
-    menuItem('upload', 'Spielstand laden', actions.importGame),
+    actions.continueGame && menuItem('play', t('mContinue'), actions.continueGame, true),
+    menuItem('rocket', t('mNewGame'), actions.newGame, !actions.continueGame),
+    menuItem('globe', t('mOnline'), actions.online),
+    menuItem('upload', t('mLoad'), actions.importGame),
   ];
   return el(
     'div',
     { class: 'screen start' },
     el('div', { class: 'keyart' }),
     el('div', { class: 'keyart-shade' }),
+    langSwitch(),
     el(
       'div',
       { class: 'start-col' },
-      el('div', { class: 'kicker' }, 'Ein Weltraum-Strategiespiel'),
-      el('h1', { class: 'title' }, 'Bruchlandung'),
-      el(
-        'p',
-        { class: 'lead' },
-        'Euer Schiff ist abgestürzt. Baut eine Kuppel-Basis, holt Rohstoffe aus dem All und behauptet euch gegen Spinnenwesen und Aliens.',
-      ),
+      el('div', { class: 'kicker' }, t('mKicker')),
+      el('h1', { class: 'title' }, t('mTitle')),
+      el('p', { class: 'lead' }, t('mLead')),
       el('nav', { class: 'm-list' }, ...items),
-      el(
-        'div',
-        { class: 'start-foot' },
-        'Spielt als Menschen oder als Aliens  ·  Für Kinder ab 10',
-      ),
+      el('div', { class: 'start-foot' }, t('mFoot')),
     ),
   );
 }
@@ -73,26 +68,20 @@ export function pauseMenu(actions: PauseActions): HTMLElement {
     el(
       'div',
       { class: 'panel dialog' },
-      el('div', { class: 'p-sub' }, 'Pause'),
-      el('h2', {}, 'Menü'),
+      el('div', { class: 'p-sub' }, t('pSub')),
+      el('h2', {}, t('pMenu')),
       el(
         'nav',
         { class: 'm-list' },
-        menuItem('play', 'Weiter', actions.resume, true),
-        actions.share && menuItem('send', 'Freunde einladen', actions.share),
-        actions.save && menuItem('save', 'Jetzt speichern', actions.save),
-        actions.exportFile && menuItem('download', 'Spielstand als Datei', actions.exportFile),
-        menuItem('log-out', actions.quitLabel ?? 'Zum Hauptmenü', actions.quit),
+        menuItem('play', t('pResume'), actions.resume, true),
+        actions.share && menuItem('send', t('invite'), actions.share),
+        actions.save && menuItem('save', t('pSave'), actions.save),
+        actions.exportFile && menuItem('download', t('pExport'), actions.exportFile),
+        menuItem('log-out', actions.quitLabel ?? t('pQuit'), actions.quit),
       ),
-      el('h4', { class: 'dlg-h' }, 'Einstellungen'),
+      el('h4', { class: 'dlg-h' }, t('pSettings')),
       ...actions.settings,
-      el(
-        'p',
-        { class: 'p-text muted' },
-        actions.save
-          ? 'Das Spiel speichert alle 2 Minuten von selbst.'
-          : 'Die Welt läuft weiter, auch wenn du weg bist. Der Server speichert sie.',
-      ),
+      el('p', { class: 'p-text muted' }, actions.save ? t('pAutoSave') : t('pServerSave')),
     ),
   );
 }
@@ -104,11 +93,6 @@ export function loadingScreen(): HTMLElement {
     { class: 'screen loading' },
     el('div', { class: 'keyart' }),
     el('div', { class: 'keyart-shade' }),
-    el(
-      'div',
-      { class: 'load-box' },
-      el('div', { class: 'spinner' }),
-      el('span', {}, 'Landeanflug …'),
-    ),
+    el('div', { class: 'load-box' }, el('div', { class: 'spinner' }), el('span', {}, t('loading'))),
   );
 }

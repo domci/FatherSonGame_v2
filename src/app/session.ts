@@ -7,6 +7,7 @@ import { toSaveData } from '../sim/save/save';
 import { writeSave } from '../platform/storage';
 import type { ViewName } from '../render/views/view';
 import type { Faction } from '../content/factions';
+import { tx } from '../i18n';
 
 export type Speed = 1 | 10 | 100;
 
@@ -69,7 +70,7 @@ export class Session {
       return true;
     }
     const result = applyCommand(this.state, cmd);
-    if (!result.ok) this.onMessage(result.reason, 'bad');
+    if (!result.ok) this.onMessage(tx(result.reason), 'bad');
     return result.ok;
   }
 

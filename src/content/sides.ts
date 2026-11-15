@@ -1,5 +1,6 @@
 import type { AiId, SideId } from '../sim/entity';
 import type { Faction } from './factions';
+import { L } from './text';
 
 /** At most this many computer sides in one game (M6). */
 export const MAX_OPPONENTS = 3;
@@ -7,10 +8,10 @@ export const MAX_OPPONENTS = 3;
 /** The human player's name in lists ("Ihr" = you, plural, like everywhere in the game). */
 export const PLAYER_NAME = 'Ihr';
 
-/** Names of computer sides, by people. Each computer side takes the next free one. */
+/** Names of computer sides, by people (the same in all languages). Each takes the next free one. */
 export const SIDE_NAMES: Record<Faction, readonly string[]> = {
-  human: ['Kolonie Nova', 'Station Orion', 'Basis Vega'],
-  alien: ['Schwarm Xar', 'Brut der Zyl', 'Nest Krah'],
+  human: ['Nova', 'Orion', 'Vega'],
+  alien: ['Xar', 'Zyl', 'Krah'],
 };
 
 /** One color per side, for lists, labels and planet rings. */
@@ -49,9 +50,9 @@ export function aiFaction(player: Faction, index: number): Faction {
 }
 
 export const RELATION_NAMES = {
-  war: 'Krieg',
-  peace: 'Frieden',
-  alliance: 'Bündnis',
+  war: L('Krieg', 'War'),
+  peace: L('Frieden', 'Peace'),
+  alliance: L('Bündnis', 'Alliance'),
 } as const;
 export type RelationKind = keyof typeof RELATION_NAMES;
 

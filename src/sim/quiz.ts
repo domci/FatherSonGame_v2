@@ -2,6 +2,7 @@ import { QUIZ, QUIZ_RULES } from '../content/quiz';
 import { HOUR } from './clock';
 import { nextRandom } from './game';
 import type { GameState, PlayerState, QuizState } from './state';
+import { L, fmt, type Loc } from '../content/text';
 
 export function newQuiz(): QuizState {
   return { asked: [], answers: [], pauseUntil: 0, right: 0, wrong: 0 };
@@ -52,11 +53,11 @@ export function pickQuestion(state: GameState, player: PlayerState): void {
 }
 
 /** "45 Sekunden" or "12 Minuten" (for messages). */
-export function formatWait(ms: number): string {
+export function formatWait(ms: number): Loc {
   const s = Math.max(1, Math.ceil(ms / 1000));
-  if (s < 60) return `${s} Sekunden`;
+  if (s < 60) return fmt(L('{n} Sekunden', '{n} seconds'), { n: s });
   const m = Math.ceil(s / 60);
-  return m === 1 ? '1 Minute' : `${m} Minuten`;
+  return m === 1 ? L('1 Minute', '1 minute') : fmt(L('{n} Minuten', '{n} minutes'), { n: m });
 }
 
 /** Is the shown answer number `choice` the right one? */

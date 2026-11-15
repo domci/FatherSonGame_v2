@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 type Child = HTMLElement | string | null | undefined | false;
 
 /** Small helper to create HTML elements: el('button', { class: 'x', onclick }, 'Text'). */
@@ -31,8 +32,8 @@ export function formatDuration(ms: number): string {
   const d = Math.floor(s / 86400);
   const h = Math.floor((s % 86400) / 3600);
   const m = Math.floor((s % 3600) / 60);
-  if (d > 0) return `${d} T ${h} Std`;
-  if (h > 0) return `${h} Std ${m} Min`;
-  if (m > 0) return `${m} Min ${s % 60} Sek`;
-  return `${s} Sek`;
+  if (d > 0) return t('durD', { d, h });
+  if (h > 0) return t('durH', { h, m });
+  if (m > 0) return t('durM', { m, s: s % 60 });
+  return t('durS', { s });
 }

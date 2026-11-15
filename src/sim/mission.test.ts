@@ -28,7 +28,7 @@ describe('first mission', () => {
     missionSystem(s);
     expect(me(s).mission.step).toBe(1);
     expect(me(s).resources.regolith).toBe(before + (MISSION[0]?.reward.regolith ?? 0));
-    expect(s.events.some((e) => e.text.includes('Aufgabe geschafft'))).toBe(true);
+    expect(s.events.some((e) => e.text.de.includes('Aufgabe geschafft'))).toBe(true);
   });
 
   it('a site that is still being built does not count', () => {
@@ -66,7 +66,7 @@ describe('first mission', () => {
     missionSystem(s);
     missionSystem(s);
     expect(me(s).mission.step).toBe(MISSION.length);
-    expect(s.events.filter((e) => e.text.includes('Mission')).length).toBe(1);
+    expect(s.events.filter((e) => e.text.de.includes('Mission')).length).toBe(1);
   });
 
   it('can be switched off', () => {
@@ -84,11 +84,14 @@ describe('first mission', () => {
 
   it('names only real buildings in the hints', () => {
     for (const step of MISSION)
-      for (const [, id] of step.hint.matchAll(/\{b:(\w+)\}/g))
+      for (const [, id] of step.hint.de.matchAll(/\{b:(\w+)\}/g))
         expect(Object.keys(BUILDINGS)).toContain(id);
   });
 
   it('writes rewards for people', () => {
-    expect(rewardText({ water: 50, oxygen: 50 })).toBe('50 Wasser, 50 Sauerstoff');
+    expect(rewardText({ water: 50, oxygen: 50 })).toEqual({
+      de: '50 Wasser, 50 Sauerstoff',
+      en: '50 Water, 50 Oxygen',
+    });
   });
 });

@@ -9,6 +9,7 @@ import { addResources } from '../wallet';
 import { SECOND } from '../clock';
 import { isBlocked, runBlockade, type BlockadeOptions } from '../space/blockade';
 import { placeName } from './fleet';
+import { L, fmt } from '../../content/text';
 
 export const MINING_MS = 60 * SECOND;
 /** Flight time per map unit. */
@@ -75,12 +76,34 @@ function meetBlockade(state: GameState, ship: Entity, data: ShipData, target: st
   const survived = runBlockade(state, ship, target);
   const where = placeName(state, target);
   if (!survived) {
-    tell(state, ship.owner, `Blockade bei ${where}: Mining-Schiff abgeschossen!`, 'bad');
+    tell(
+      state,
+      ship.owner,
+      fmt(
+        L(
+          'Blockade bei {w}: Mining-Schiff abgeschossen!',
+          'Blockade at {w}: mining ship shot down!',
+        ),
+        { w: where },
+      ),
+      'bad',
+    );
     return;
   }
   data.repeat = false;
   setPhase(data, 'returning', end, travelMs(state, ship, target));
-  tell(state, ship.owner, `Blockade bei ${where}! Das Mining-Schiff kehrt um.`, 'bad');
+  tell(
+    state,
+    ship.owner,
+    fmt(
+      L(
+        'Blockade bei {w}! Das Mining-Schiff kehrt um.',
+        'Blockade at {w}! The mining ship turns back.',
+      ),
+      { w: where },
+    ),
+    'bad',
+  );
 }
 
 function nextPhase(state: GameState, ship: Entity, data: ShipData, opts: BlockadeOptions): void {
@@ -97,7 +120,12 @@ function nextPhase(state: GameState, ship: Entity, data: ShipData, opts: Blockad
     if (data.repeat) setPhase(data, 'outbound', end, travelMs(state, ship, target));
     else {
       setPhase(data, 'docked', end, 0);
-      tell(state, ship.owner, 'Mining-Schiff ist zurück im Hafen.', 'info');
+      tell(
+        state,
+        ship.owner,
+        L('Mining-Schiff ist zurück im Hafen.', 'Mining ship is back in port.'),
+        'info',
+      );
     }
   }
 }

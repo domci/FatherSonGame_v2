@@ -45,7 +45,7 @@ describe('people in the domes', () => {
     const c = me(s).colony;
     expect(c.sick).toBeGreaterThan(1);
     expect(c.mood).toBeLessThan(50);
-    expect(s.events.filter((e) => e.text.includes('Kein Sauerstoff'))).toHaveLength(1);
+    expect(s.events.filter((e) => e.text.de.includes('Kein Sauerstoff'))).toHaveLength(1);
   });
 
   it('work in the buildings: too few people = slower production, but never below 25 %', () => {
@@ -78,7 +78,7 @@ describe('people in the domes', () => {
     Object.assign(me(s).resources, { oxygen: 0, water: 0, food: 0 });
     for (let i = 0; i < 240; i++) colonySystem(s, MINUTE);
     expect(me(s).colony.people).toBe(MIN_PEOPLE);
-    expect(s.events.some((e) => e.text.includes('verlassen'))).toBe(true);
+    expect(s.events.some((e) => e.text.de.includes('verlassen'))).toBe(true);
   });
 
   it('a medical station heals, a park makes them happier', () => {
@@ -89,10 +89,10 @@ describe('people in the domes', () => {
     add(s, 'medbay');
     add(s, 'park');
     const stats = playerStats(s, 'player');
-    expect(moodParts(me(s).colony, stats).find((p) => p.text === 'Parks')?.value).toBeGreaterThan(
-      0,
-    );
-    expect(without.some((p) => p.text === 'Parks')).toBe(false);
+    expect(
+      moodParts(me(s).colony, stats).find((p) => p.text.de === 'Parks')?.value,
+    ).toBeGreaterThan(0);
+    expect(without.some((p) => p.text.de === 'Parks')).toBe(false);
     for (let i = 0; i < 3; i++) colonySystem(s, MINUTE);
     expect(me(s).colony.sick).toBeLessThan(6 - 2.5);
   });

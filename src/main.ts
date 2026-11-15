@@ -25,6 +25,7 @@ import { storyIntro } from './ui/story';
 import { OnlineFlow } from './app/online-flow';
 import { watchPages } from './app/pages';
 import { codeInHash } from './ui/share-world';
+import { lang, errorText } from './i18n';
 
 const MIN_AWAY_MS = 60_000;
 
@@ -48,7 +49,7 @@ async function resume(raw: unknown): Promise<void> {
 }
 
 function showError(e: unknown): void {
-  const text = e instanceof Error ? e.message : String(e);
+  const text = errorText(e);
   root().append(el('div', { class: 'toasts' }, el('div', { class: 'toast bad' }, text)));
 }
 
@@ -82,5 +83,6 @@ function start(): void {
   new OnlineFlow(root(), () => void showMenu(), linked).start();
 }
 
+document.documentElement.lang = lang();
 start();
 watchPages();

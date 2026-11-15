@@ -1,6 +1,7 @@
 import type { ReportAction, ReportInfo } from '../net/protocol';
 import { el } from './dom';
 import { icon, type IconName } from './icons';
+import { t, lang } from '../i18n';
 
 export interface ParentsApi {
   reports(password: string): Promise<ReportInfo[]>;
@@ -8,22 +9,22 @@ export interface ParentsApi {
 }
 
 const ACTIONS: { action: ReportAction; label: string; icon: IconName; help: string }[] = [
-  { action: 'dismiss', label: 'Ist okay', icon: 'check', help: 'Meldung schließen.' },
+  { action: 'dismiss', label: t('isOk'), icon: 'check', help: t('closeReport') },
   {
     action: 'strike',
-    label: 'Verwarnen',
+    label: t('warn'),
     icon: 'triangle-alert',
-    help: 'Wie eine schlimme Nachricht: Verwarnung, dann Chat-Pause.',
+    help: t('warnHelp'),
   },
-  { action: 'ban', label: 'Sperren', icon: 'x', help: 'Darf nicht mehr online spielen.' },
+  { action: 'ban', label: t('ban'), icon: 'x', help: t('banHelp') },
 ];
 
 function reportRow(r: ReportInfo, act: (a: ReportAction) => void): HTMLElement {
-  const when = new Date(r.time).toLocaleString('de-DE');
+  const when = new Date(r.time).toLocaleString(lang() === 'de' ? 'de-DE' : 'en-GB');
   return el(
     'div',
     { class: 'report-row' },
-    el('div', { class: 'wr-info' }, `${when} · Welt ${r.world}`),
+    el('div', { class: 'wr-info' }, t('worldN', { w: when, n: r.world })),
     el('div', { class: 'chat-line' }, el('span', { class: 'chat-name' }, r.name), r.text),
     el(
       'div',
@@ -47,7 +48,7 @@ function reportLoader(api: ParentsApi, password: HTMLInputElement, list: HTMLEle
   const load = async (): Promise<void> => {
     try {
       const reports = await api.reports(password.value);
-      if (reports.length === 0) return say('Keine offenen Meldungen.');
+      if (reports.length === 0) return say(t('noReports'));
       const act = (r: ReportInfo, a: ReportAction): void =>
         void api.resolve(password.value, r.id, a).then(load);
       const rows = reports
@@ -67,7 +68,11 @@ function plainButton(ico: IconName, label: string, onclick: () => void): HTMLEle
 
 /** Parents' page (#eltern): reported chat lines, with the server password. */
 export function parentsPage(api: ParentsApi, onClose: () => void): HTMLElement {
-  const password = el('input', { class: 'code-input', type: 'password', placeholder: 'Passwort' });
+  const password = el('input', {
+    class: 'code-input',
+    type: 'password',
+    placeholder: t('password'),
+  });
   const list = el('div', { class: 'world-list' });
   const load = reportLoader(api, password, list);
   password.onkeydown = (e) => e.key === 'Enter' && void load();
@@ -77,21 +82,17 @@ export function parentsPage(api: ParentsApi, onClose: () => void): HTMLElement {
     el(
       'div',
       { class: 'panel dialog wide' },
-      el('div', { class: 'p-sub' }, 'Für Eltern'),
-      el('h2', {}, 'Meldungen'),
-      el(
-        'p',
-        { class: 'p-text muted' },
-        'Hier stehen Chat-Nachrichten, die Kinder gemeldet haben. Das Passwort ist der ADMIN_KEY des Servers.',
-      ),
+      el('div', { class: 'p-sub' }, t('forParents')),
+      el('h2', {}, t('reports')),
+      el('p', { class: 'p-text muted' }, t('parentsHelp')),
       el(
         'div',
         { class: 'code-row' },
         password,
-        plainButton('log-in', 'Zeigen', () => void load()),
+        plainButton('log-in', t('show'), () => void load()),
       ),
       list,
-      plainButton('x', 'Schließen', onClose),
+      plainButton('x', t('close'), onClose),
     ),
   );
 }

@@ -77,7 +77,7 @@ describe('speed up with knowledge crystals', () => {
     const s = newTestGame();
     me(s).research.current = { id: 'lasers', finishAt: s.time + HOUR };
     const r = applyCommand(s, { type: 'speedUp', player: 'player', research: true });
-    expect(!r.ok && r.reason).toContain('Wissenskristalle');
+    expect(!r.ok && r.reason.de).toContain('Wissenskristalle');
     delete me(s).research.current;
     me(s).resources.crystals = 99;
     expect(applyCommand(s, { type: 'speedUp', player: 'player', research: true }).ok).toBe(false);

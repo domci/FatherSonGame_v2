@@ -13,6 +13,7 @@ import { findEntity, spawnBuilding } from '../spawn';
 import type { GameState } from '../state';
 import { missing, pay } from '../wallet';
 import { fail, OK, type CommandResult } from './result';
+import { L, fmt, joinLoc, type Loc } from '../../content/text';
 
 export interface BuildCommand {
   type: 'build';
@@ -30,10 +31,16 @@ export interface UpgradeCommand {
 }
 
 const PLACE_TEXT = {
-  outside: 'Das passt nicht auf die Karte.',
-  blocked: 'Der Platz ist belegt.',
-  needsDeposit: 'Muss genau auf einem passenden Vorkommen stehen.',
-  tooFar: 'Zu weit weg: Ein Tunnel zum nächsten Gebäude ist höchstens 9 Felder lang.',
+  outside: L('Das passt nicht auf die Karte.', 'That does not fit on the map.'),
+  blocked: L('Der Platz ist belegt.', 'This spot is taken.'),
+  needsDeposit: L(
+    'Muss genau auf einem passenden Vorkommen stehen.',
+    'Must stand exactly on a matching deposit.',
+  ),
+  tooFar: L(
+    'Zu weit weg: Ein Tunnel zum nächsten Gebäude ist höchstens 9 Felder lang.',
+    'Too far: a tunnel to the next building is at most 9 tiles long.',
+  ),
 } as const;
 
 function freeDrone(state: GameState, owner: PlayerId, zone: string): Entity | undefined {
@@ -44,13 +51,9 @@ function freeDrone(state: GameState, owner: PlayerId, zone: string): Entity | un
     );
 }
 
-function missingText(
-  state: GameState,
-  owner: PlayerId,
-  cost: Parameters<typeof missing>[1],
-): string {
+function missingText(state: GameState, owner: PlayerId, cost: Parameters<typeof missing>[1]): Loc {
   const names = missing(getPlayer(state, owner), cost).map((id) => RESOURCE_INFO[id].name);
-  return `Nicht genug ${names.join(', ')}.`;
+  return fmt(L('Nicht genug {r}.', 'Not enough {r}.'), { r: joinLoc(names) });
 }
 
 /** Sends a drone to the building and starts the timer. */
@@ -79,14 +82,15 @@ function startConstruction(
 
 export function build(state: GameState, cmd: BuildCommand): CommandResult {
   const def = BUILDINGS[cmd.building];
-  if (def.unique) return fail('Dieses Gebäude kann man nicht bauen.');
+  if (def.unique)
+    return fail(L('Dieses Gebäude kann man nicht bauen.', 'This building cannot be built.'));
   if (def.requires && !hasResearch(state, cmd.player, def.requires))
-    return fail('Erst erforschen.');
+    return fail(L('Erst erforschen.', 'Research it first.'));
   const { zone, building, tileX, tileY } = cmd;
   const problem = placementProblem(state, zone, building, tileX, tileY, cmd.player);
   if (problem) return fail(PLACE_TEXT[problem]);
   const drone = freeDrone(state, cmd.player, cmd.zone);
-  if (!drone) return fail('Keine freie Bau-Drohne.');
+  if (!drone) return fail(L('Keine freie Bau-Drohne.', 'No free builder drone.'));
   const cost = buildingLevel(def, 1).cost;
   if (!pay(getPlayer(state, cmd.player), cost)) return fail(missingText(state, cmd.player, cost));
   const site = spawnBuilding(state, cmd.player, cmd.zone, {
@@ -102,13 +106,13 @@ export function build(state: GameState, cmd: BuildCommand): CommandResult {
 export function upgrade(state: GameState, cmd: UpgradeCommand): CommandResult {
   const site = findEntity(state, cmd.entityId);
   if (!site?.building || site.owner !== cmd.player || !site.zone)
-    return fail('Gebäude nicht gefunden.');
-  if (site.construction) return fail('Wird schon gebaut.');
+    return fail(L('Gebäude nicht gefunden.', 'Building not found.'));
+  if (site.construction) return fail(L('Wird schon gebaut.', 'Already being built.'));
   const def = BUILDINGS[site.building.type];
   const next = site.building.level + 1;
-  if (next > def.levels.length) return fail('Höchste Stufe erreicht.');
+  if (next > def.levels.length) return fail(L('Höchste Stufe erreicht.', 'Highest level reached.'));
   const drone = freeDrone(state, cmd.player, site.zone);
-  if (!drone) return fail('Keine freie Bau-Drohne.');
+  if (!drone) return fail(L('Keine freie Bau-Drohne.', 'No free builder drone.'));
   const cost = buildingLevel(def, next).cost;
   if (!pay(getPlayer(state, cmd.player), cost)) return fail(missingText(state, cmd.player, cost));
   startConstruction(state, site, drone, next);

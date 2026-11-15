@@ -3,16 +3,17 @@ import type { Session } from '../app/session';
 import type { Entity } from '../sim/entity';
 import { entityTimer, researchTimer, speedUpPrice } from '../sim/speed-up';
 import { action } from './panel-kit';
+import { t } from '../i18n';
 
 function button(
   session: Session,
   price: number,
   target: { entityId?: number; research?: boolean },
 ) {
-  return action('sparkles', 'Sofort fertig machen', {
+  return action('sparkles', t('finishNow'), {
     cost: { crystals: price },
     have: session.state.players[viewerOf(session.state)]?.resources,
-    title: 'Mit Wissenskristallen aus dem Quiz sofort fertig machen',
+    title: t('finishNowHelp'),
     onclick: () => session.command({ type: 'speedUp', player: session.me, ...target }),
   });
 }

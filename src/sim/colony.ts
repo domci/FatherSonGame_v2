@@ -8,6 +8,7 @@ import {
 } from '../content/colony';
 import type { PlayerStats } from './stats';
 import type { ColonyState } from './state';
+import { L, fmt, type Loc } from '../content/text';
 
 export function newColony(): ColonyState {
   return {
@@ -38,28 +39,40 @@ export function workFactor(c: ColonyState, stats: PlayerStats): number {
 }
 
 export interface MoodPart {
-  /** Short German reason for the colony window. */
-  text: string;
+  /** Short reason for the colony window. */
+  text: Loc;
   value: number;
 }
 
-const NEED_NAMES = { oxygen: 'Sauerstoff', water: 'Wasser', food: 'Nahrung' } as const;
+const NEED_NAMES = {
+  oxygen: L('Sauerstoff', 'Oxygen'),
+  water: L('Wasser', 'Water'),
+  food: L('Nahrung', 'Food'),
+} as const;
 
 /** Why the people feel like they do. The mood moves slowly to the sum. */
 export function moodParts(c: ColonyState, stats: PlayerStats): MoodPart[] {
-  const parts: MoodPart[] = [{ text: 'Grundlaune', value: MOOD.base }];
+  const parts: MoodPart[] = [{ text: L('Grundlaune', 'Base mood'), value: MOOD.base }];
   for (const id of NEED_IDS) {
     const met = c.met[id];
     const value = met >= 1 ? MOOD.needMet : MOOD.needMissing * (1 - met);
-    parts.push({ text: met >= 1 ? `${NEED_NAMES[id]} da` : `${NEED_NAMES[id]} fehlt`, value });
+    const what = met >= 1 ? L('{n} da', '{n} there') : L('{n} fehlt', '{n} missing');
+    parts.push({ text: fmt(what, { n: NEED_NAMES[id] }), value });
   }
-  if (c.people > stats.residents) parts.push({ text: 'Zu eng', value: MOOD.crowded });
+  if (c.people > stats.residents)
+    parts.push({ text: L('Zu eng', 'Too crowded'), value: MOOD.crowded });
   if (stats.efficiency < 1)
-    parts.push({ text: 'Zu wenig Energie', value: MOOD.noEnergy * (1 - stats.efficiency) });
+    parts.push({
+      text: L('Zu wenig Energie', 'Too little energy'),
+      value: MOOD.noEnergy * (1 - stats.efficiency),
+    });
   if (c.sick > 0 && c.people > 0)
-    parts.push({ text: 'Kranke', value: (MOOD.sick * c.sick) / c.people });
+    parts.push({ text: L('Kranke', 'Sick people'), value: (MOOD.sick * c.sick) / c.people });
   if (stats.parks > 0)
-    parts.push({ text: 'Parks', value: Math.min(MOOD.parksMax, stats.parks * stats.efficiency) });
+    parts.push({
+      text: L('Parks', 'Parks'),
+      value: Math.min(MOOD.parksMax, stats.parks * stats.efficiency),
+    });
   return parts.map((p) => ({ ...p, value: Math.round(p.value) }));
 }
 

@@ -4,6 +4,7 @@ import { alliesOf, sidesOf } from '../sim/relations';
 import type { GameState } from '../sim/state';
 import { el } from './dom';
 import { icon, type IconName } from './icons';
+import { t, tx } from '../i18n';
 
 export interface EndActions {
   menu(): void;
@@ -17,16 +18,20 @@ export function endText(state: GameState): string {
   if (!me || !winner) return '';
   const others = sidesOf(state).filter((id) => id !== viewerOf(state));
   if (state.winner !== viewerOf(state)) {
-    const who =
-      others.length === 1 ? `Die ${FACTIONS[winner.faction].name} haben` : `${winner.name} hat`;
-    return `Euer ${FACTIONS[me.faction].core} ist zerstört. ${who} gewonnen. Versucht es noch einmal!`;
+    const core = tx(FACTIONS[me.faction].core);
+    return others.length === 1
+      ? t('lostToPeople', { c: core, w: tx(FACTIONS[winner.faction].name) })
+      : t('lostToSide', { c: core, w: winner.name });
   }
   const enemy = state.players[others[0] ?? 'ai'];
   if (others.length === 1 && enemy)
-    return `Ihr habt den ${FACTIONS[enemy.faction].core} der ${FACTIONS[enemy.faction].name} zerstört. Der Planet gehört euch!`;
+    return t('wonOne', {
+      c: tx(FACTIONS[enemy.faction].core),
+      p: tx(FACTIONS[enemy.faction].name),
+    });
   const friends = alliesOf(state, viewerOf(state)).map((id) => state.players[id]?.name ?? id);
-  const together = friends.length ? ` Zusammen mit ${friends.join(' und ')}.` : '';
-  return `Alle Feinde sind besiegt. Das Sonnensystem gehört euch!${together}`;
+  const together = friends.length ? ` ${t('together', { n: friends.join(t('and')) })}` : '';
+  return `${t('wonAll')}${together}`;
 }
 
 function endButton(
@@ -51,7 +56,7 @@ function endDialog(won: boolean, title: string, text: string, buttons: HTMLEleme
       'div',
       { class: 'panel dialog' },
       el('div', { class: 'end-icon' }, icon(won ? 'trophy' : 'frown')),
-      el('div', { class: 'p-sub' }, 'Spiel vorbei'),
+      el('div', { class: 'p-sub' }, t('gameOver')),
       el('h2', {}, title),
       el('p', { class: 'p-text' }, text),
       el('nav', { class: 'm-list' }, ...buttons),
@@ -61,9 +66,9 @@ function endDialog(won: boolean, title: string, text: string, buttons: HTMLEleme
 
 /** Victory or defeat: shown once the game has a winner. */
 export function endScreen(won: boolean, text: string, a: EndActions): HTMLElement {
-  return endDialog(won, won ? 'Sieg!' : 'Niederlage', text, [
-    endButton('log-out', 'Zum Hauptmenü', () => a.menu(), true),
-    endButton('eye', 'Weiter ansehen', () => a.watch()),
+  return endDialog(won, won ? t('victory') : t('defeat'), text, [
+    endButton('log-out', t('pQuit'), () => a.menu(), true),
+    endButton('eye', t('watchOn'), () => a.watch()),
   ]);
 }
 
@@ -73,10 +78,10 @@ export function onlineDefeatScreen(
   a: { restart(): void; lobby(): void },
 ): HTMLElement {
   const me = state.players[viewerOf(state)];
-  const core = FACTIONS[me?.faction ?? 'human'].core;
-  const text = `Euer ${core} ist zerstört. Ihr könnt auf eurem Planeten neu anfangen. Die anderen spielen weiter.`;
-  return endDialog(false, 'Besiegt', text, [
-    endButton('rocket', 'Neu anfangen', () => a.restart(), true),
-    endButton('log-out', 'Zur Lobby', () => a.lobby()),
+  const core = tx(FACTIONS[me?.faction ?? 'human'].core);
+  const text = t('onlineDefeat', { c: core });
+  return endDialog(false, t('defeated'), text, [
+    endButton('rocket', t('restart'), () => a.restart(), true),
+    endButton('log-out', t('toLobby'), () => a.lobby()),
   ]);
 }

@@ -69,8 +69,8 @@ describe('computer enemy', () => {
     const s = playerBot(newBattleGame(3));
     play(s, 3 * HOUR);
     expect(s.ai.ai!.waves).toBeGreaterThanOrEqual(1);
-    expect(s.events.some((e) => e.text.includes('feindliches Schiff'))).toBe(true);
-    expect(s.events.some((e) => e.text.includes('gelandet'))).toBe(true);
+    expect(s.events.some((e) => e.text.de.includes('feindliches Schiff'))).toBe(true);
+    expect(s.events.some((e) => e.text.de.includes('gelandet'))).toBe(true);
   });
 
   it('also grows while the game is closed, but does not attack then', () => {
@@ -99,6 +99,6 @@ describe('computer enemy', () => {
   it('plays the humans when the player picks the aliens', () => {
     const s = createGame({ seed: 4, faction: 'alien', time: 0 });
     expect(s.players.ai?.faction).toBe('human');
-    expect(s.events[0]?.text).toContain('Brutkern');
+    expect(s.events[0]?.text.de).toContain('Brutkern');
   });
 });

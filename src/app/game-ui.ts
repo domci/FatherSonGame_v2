@@ -21,12 +21,13 @@ import { ChatPanel } from '../ui/chat-panel';
 import { shareModal } from '../ui/share-world';
 import type { WorldInfo } from '../net/protocol';
 import { onlineDefeatScreen } from '../ui/end-screen';
+import { t } from '../i18n';
 
 /** Sound for everybody; game options only for the maker of the world ('player'). */
 function settingRows(session: Session, sound: Sound): HTMLElement[] {
   const rows = [
-    toggleRow('Geräusche', 'Laser, Explosionen, Klicks', sound.sfxOn, () => sound.toggleSfx()),
-    toggleRow('Musik', 'Ruhige Klänge, Kampfmusik', sound.musicOn, () => sound.toggleMusic()),
+    toggleRow(t('sounds'), t('soundsHelp'), sound.sfxOn, () => sound.toggleSfx()),
+    toggleRow(t('music'), t('musicHelp'), sound.musicOn, () => sound.toggleMusic()),
   ];
   if (session.me !== 'player') return rows;
   return [
@@ -34,11 +35,8 @@ function settingRows(session: Session, sound: Sound): HTMLElement[] {
     levelPicker(session.state.settings.difficulty, (difficulty) =>
       session.command({ type: 'settings', player: session.me, difficulty }),
     ),
-    toggleRow(
-      'Angriffe, auch wenn keiner spielt',
-      'Aus: Die Gegner greifen nur an, wenn ihr spielt.',
-      session.state.settings.offlineAttacks,
-      (on) => session.command({ type: 'settings', player: session.me, offlineAttacks: on }),
+    toggleRow(t('offlineAtk'), t('offlineAtkHelp'), session.state.settings.offlineAttacks, (on) =>
+      session.command({ type: 'settings', player: session.me, offlineAttacks: on }),
     ),
   ];
 }
@@ -60,13 +58,13 @@ function openMenu(root: HTMLElement, session: Session, d: UiDeps): void {
     ? pauseMenu({
         resume: () => menu.remove(),
         quit: onQuit,
-        quitLabel: 'Zur Lobby',
+        quitLabel: t('toLobby'),
         settings,
         share,
       })
     : pauseMenu({
         resume: () => menu.remove(),
-        save: () => void session.save().then(() => session.onMessage('Gespeichert.', 'good')),
+        save: () => void session.save().then(() => session.onMessage(t('saved'), 'good')),
         exportFile: () => exportSave(toSaveData(session.state, Date.now())),
         quit: () => void session.save().then(onQuit),
         settings,

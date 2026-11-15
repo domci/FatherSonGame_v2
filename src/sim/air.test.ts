@@ -32,7 +32,10 @@ describe('ground and air', () => {
       unitIds: [tank.id],
       targetId: fighter.id,
     });
-    expect(r).toEqual({ ok: false, reason: 'Diese Einheiten können das nicht treffen.' });
+    expect(r).toEqual({
+      ok: false,
+      reason: expect.objectContaining({ de: 'Diese Einheiten können das nicht treffen.' }),
+    });
   });
 
   it('the command dome shoots at planes, the flak tower only at planes', () => {
@@ -113,7 +116,7 @@ describe('fuel (gas)', () => {
     runTicks(s, 10);
     expect(fighter.mover).toBeUndefined();
     expect(player.resources.gas).toBe(0);
-    expect(s.events.at(-1)?.text).toContain('Kein Gas');
+    expect(s.events.at(-1)?.text.de).toContain('Kein Gas');
   });
 });
 
@@ -135,7 +138,10 @@ describe('air field and flak', () => {
       buildingId: field.id,
       unit: 'fighter',
     } as const;
-    expect(applyCommand(s, train)).toEqual({ ok: false, reason: 'Braucht zuerst: Luftfahrt.' });
+    expect(applyCommand(s, train)).toEqual({
+      ok: false,
+      reason: expect.objectContaining({ de: 'Braucht zuerst: Luftfahrt.' }),
+    });
     player.research.done.push('aviation');
     expect(applyCommand(s, train).ok).toBe(true);
   });

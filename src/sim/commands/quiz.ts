@@ -5,6 +5,7 @@ import { getPlayer } from '../game';
 import { formatWait, isRight, pickQuestion, quizStatus } from '../quiz';
 import type { GameState } from '../state';
 import { fail, OK, type CommandResult } from './result';
+import { L, fmt } from '../../content/text';
 
 export interface QuizAskCommand {
   type: 'quizAsk';
@@ -24,9 +25,29 @@ export function quizAsk(state: GameState, cmd: QuizAskCommand): CommandResult {
   const status = quizStatus(player.quiz, state.time);
   if (player.quiz.current) return OK;
   if (status.reason === 'pause')
-    return fail(`Kurze Pause nach einer falschen Antwort: noch ${formatWait(status.waitMs)}.`);
+    return fail(
+      fmt(
+        L(
+          'Kurze Pause nach einer falschen Antwort: noch {t}.',
+          'Short break after a wrong answer: {t} left.',
+        ),
+        {
+          t: formatWait(status.waitMs),
+        },
+      ),
+    );
   if (status.reason === 'hour')
-    return fail(`Genug Fragen für diese Stunde. Nächste Frage in ${formatWait(status.waitMs)}.`);
+    return fail(
+      fmt(
+        L(
+          'Genug Fragen für diese Stunde. Nächste Frage in {t}.',
+          'Enough questions for this hour. Next question in {t}.',
+        ),
+        {
+          t: formatWait(status.waitMs),
+        },
+      ),
+    );
   pickQuestion(state, player);
   return OK;
 }
@@ -35,7 +56,7 @@ export function quizAsk(state: GameState, cmd: QuizAskCommand): CommandResult {
 export function quizAnswer(state: GameState, cmd: QuizAnswerCommand): CommandResult {
   const player = getPlayer(state, cmd.player);
   const quiz = player.quiz;
-  if (!quiz.current) return fail('Keine offene Frage.');
+  if (!quiz.current) return fail(L('Keine offene Frage.', 'No open question.'));
   if (isRight(quiz, cmd.choice)) {
     quiz.right += 1;
     player.resources.crystals = (player.resources.crystals ?? 0) + QUIZ_RULES.reward;

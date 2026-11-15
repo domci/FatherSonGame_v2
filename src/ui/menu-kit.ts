@@ -1,5 +1,6 @@
 import { DIFFICULTY_HELP, DIFFICULTY_NAMES, type Difficulty } from '../content/ai';
 import { el } from './dom';
+import { t, tx } from '../i18n';
 
 /** A row with a label, a small help text and an on/off switch. */
 export function toggleRow(
@@ -56,24 +57,20 @@ export function segRow<T extends string | number>(
   );
 }
 
-const OPPONENT_HELP = [
-  'Ihr gegen ein anderes Volk.',
-  'Drei Völker: Frieden und Bündnisse werden wichtig.',
-  'Vier Völker in einem großen Sonnensystem.',
-];
+const OPPONENT_HELP = [t('opp1'), t('opp2'), t('opp3')];
 
 /** How many computer peoples: 1, 2 or 3. */
 export function opponentPicker(current: number, onPick: (n: number) => void): HTMLElement {
   const options = OPPONENT_HELP.map((help, i) => ({ value: i + 1, text: String(i + 1), help }));
-  return segRow('Anzahl der Gegner', options, current, onPick);
+  return segRow(t('oppCount'), options, current, onPick);
 }
 
 /** Leicht / Mittel / Schwer with one help line for the chosen level. */
 export function levelPicker(current: Difficulty, onPick: (d: Difficulty) => void): HTMLElement {
   const options = (Object.keys(DIFFICULTY_NAMES) as Difficulty[]).map((d) => ({
     value: d,
-    text: DIFFICULTY_NAMES[d],
-    help: DIFFICULTY_HELP[d],
+    text: tx(DIFFICULTY_NAMES[d]),
+    help: tx(DIFFICULTY_HELP[d]),
   }));
-  return segRow('Stärke der Gegner', options, current, onPick);
+  return segRow(t('oppLevel'), options, current, onPick);
 }

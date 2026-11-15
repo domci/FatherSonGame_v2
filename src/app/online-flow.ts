@@ -14,11 +14,12 @@ import type { Faction } from '../sim/state';
 import { joinDialog, lobbyScreen, newWorldDialog, shareScreen } from '../ui/online-lobby';
 import { confirmDialog, deviceCodeDialog, namePicker, waitScreen } from '../ui/online-menu';
 import { startGame } from './game-app';
+import { t, errorText } from '../i18n';
 
 /** The version of this page; the server sends "reload" when it runs a newer one. */
 const BUILD: string = import.meta.env.VITE_BUILD ?? 'dev';
 
-const text = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+const text = (e: unknown): string => errorText(e);
 
 /** Online screens: name, lobby, new world, join, then the game (M7). */
 export class OnlineFlow {
@@ -65,7 +66,7 @@ export class OnlineFlow {
 
   private async login(code: string): Promise<void> {
     const ids = fromDeviceCode(code);
-    if (!ids) return this.pickName('Der Code hat 24 Zeichen. Bitte genau abschreiben.');
+    if (!ids) return this.pickName(t('code24'));
     try {
       const me = await api.me({ ...ids, name: '' });
       const a = { ...ids, name: me.name };
@@ -80,7 +81,7 @@ export class OnlineFlow {
   private lost(e: unknown): boolean {
     if (!(e instanceof ApiError) || e.status !== 401) return false;
     storeAccount(undefined);
-    this.pickName('Dein Konto gibt es nicht mehr. Wähle einen neuen Namen.');
+    this.pickName(t('accGone'));
     return true;
   }
 
@@ -88,7 +89,7 @@ export class OnlineFlow {
     const linked = this.pending;
     this.pending = undefined;
     if (linked) return this.joinCode(a, linked);
-    this.show(waitScreen('Verbinde …'));
+    this.show(waitScreen(t('connecting')));
     try {
       const worlds = await api.worlds(a);
       this.show(
@@ -141,7 +142,7 @@ export class OnlineFlow {
 
   private newWorld(a: StoredAccount): void {
     const create = async (w: Parameters<typeof api.createWorld>[1]): Promise<void> => {
-      this.show(waitScreen('Baue die Welt …'));
+      this.show(waitScreen(t('buildingWorld')));
       try {
         await this.play(a, await api.createWorld(a, w));
       } catch (e) {
@@ -169,16 +170,16 @@ export class OnlineFlow {
     };
     this.show(
       confirmDialog(
-        'Konto löschen',
-        `„${a.name}“ wird gelöscht, mit allen Chat-Sperren und Plätzen in Welten. Das geht nicht rückgängig.`,
-        { label: 'Löschen', run: () => void run() },
+        t('deleteAcc'),
+        t('deleteAccText', { n: a.name }),
+        { label: t('delete'), run: () => void run() },
         () => void this.lobby(a),
       ),
     );
   }
 
   private async play(a: StoredAccount, w: WorldInfo, faction?: Faction): Promise<void> {
-    this.show(waitScreen('Landeanflug …'));
+    this.show(waitScreen(t('loading')));
     const hello = { t: 'hello' as const, account: a.id, key: a.key, build: BUILD, faction };
     const game = new OnlineGame(new Connection(w.id, () => hello));
     try {
@@ -197,8 +198,8 @@ export class OnlineFlow {
     if (problem instanceof OnlineError && problem.code === 'reload') return location.reload();
     if (problem instanceof OnlineError && problem.code === 'auth') {
       storeAccount(undefined);
-      return this.pickName(problem.message);
+      return this.pickName(errorText(problem));
     }
-    void this.lobby(a, problem?.message);
+    void this.lobby(a, problem && errorText(problem));
   }
 }

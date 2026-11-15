@@ -76,7 +76,7 @@ describe('war ships', () => {
     expect(a.orbit).toMatchObject({ at: target });
     expect(a.orbit?.to).toBeUndefined();
     expect(b.orbit?.at).toBe(target);
-    expect(s.events.at(-1)?.text).toContain('angekommen');
+    expect(s.events.at(-1)?.text.de).toContain('angekommen');
   });
 
   it('fleets at the same place fight; the stronger one wins', () => {
@@ -87,7 +87,7 @@ describe('war ships', () => {
     runTicks(s, 200);
     expect(s.world.has(theirs)).toBe(false);
     expect(mine.every((m) => s.world.has(m))).toBe(true);
-    expect(s.events.some((e) => e.text.includes('zerstört'))).toBe(true);
+    expect(s.events.some((e) => e.text.de.includes('zerstört'))).toBe(true);
   });
 
   it('an orbital cannon shoots enemy ships above its planet', () => {
@@ -109,7 +109,7 @@ describe('blockade', () => {
     expect(ship.ship?.phase).toBe('returning');
     expect(ship.ship?.repeat).toBe(false);
     expect(ship.health!.hp).toBeLessThan(ship.health!.max);
-    expect(s.events.at(-1)?.text).toContain('Blockade');
+    expect(s.events.at(-1)?.text.de).toContain('Blockade');
   });
 
   it('a strong blockade destroys the mining ship', () => {
@@ -174,7 +174,7 @@ describe('attack from orbit', () => {
     runTicks(s, STRIKE_MS / 100 + 1);
     expect(damage(s)).toBeGreaterThan(0);
     expect(s.marks.some((m) => m.kind === 'strike')).toBe(true);
-    expect(s.events.some((e) => e.text.includes('Orbit'))).toBe(true);
+    expect(s.events.some((e) => e.text.de.includes('Orbit'))).toBe(true);
   });
 
   it('not while own war ships guard the orbit', () => {

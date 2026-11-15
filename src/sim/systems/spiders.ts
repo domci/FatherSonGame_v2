@@ -6,6 +6,7 @@ import type { Entity } from '../entity';
 import { findEntity, spawn, spawnUnit } from '../spawn';
 import type { GameState } from '../state';
 import { distanceTo } from './targeting';
+import { L } from '../../content/text';
 
 const TERRITORY = 9;
 const MAX_EGGS = 4;
@@ -48,7 +49,7 @@ function think(state: GameState, spider: Entity, nest: Entity | undefined): void
   const intruder = nearest(playerThings(state, spider.zone), nest.position, TERRITORY);
   if (intruder) {
     if (spider.spider.mode !== 'attack' && spider.owner === 'wild')
-      tell(state, intruder.owner, 'Spinnenwesen greifen an!', 'bad');
+      tell(state, intruder.owner, L('Spinnenwesen greifen an!', 'Spider creatures attack!'), 'bad');
     spider.spider.mode = 'attack';
     spider.attacker.targetId = intruder.id;
     return;

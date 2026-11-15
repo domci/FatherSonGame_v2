@@ -15,6 +15,7 @@ import { GameSounds } from '../audio/game-sounds';
 import { focusPoint } from './focus';
 import { buildUi, wireSound, type GameUi } from './game-ui';
 import type { OnlineGame } from '../online/online-game';
+import { tx } from '../i18n';
 
 const AUTOSAVE_MS = 2 * 60 * 1000;
 
@@ -67,7 +68,7 @@ export interface GameOptions {
 /** Online: fresh states, server messages and problems reach the game screen. */
 function linkOnline(session: Session, online: OnlineGame, quit: (e?: Error) => void): void {
   online.onState = (state) => (session.state = state);
-  online.onNotice = (text, kind) => session.onMessage(text, kind);
+  online.onNotice = (text, kind) => session.onMessage(tx(text), kind);
   online.onError = (e) => quit(e);
 }
 

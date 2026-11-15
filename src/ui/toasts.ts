@@ -3,6 +3,7 @@ import type { SideId } from '../sim/entity';
 import type { GameEvent } from '../sim/state';
 import { el } from './dom';
 import { icon, type IconName } from './icons';
+import { tx } from '../i18n';
 
 const ICON: Record<GameEvent['kind'], IconName> = {
   info: 'info',
@@ -20,12 +21,12 @@ export function freshEvents(
   seen: { time: number; texts: Set<string> },
 ): GameEvent[] {
   const fresh = events.filter(
-    (e) => e.time > seen.time || (e.time === seen.time && !seen.texts.has(e.text)),
+    (e) => e.time > seen.time || (e.time === seen.time && !seen.texts.has(e.text.de)),
   );
   const last = events.at(-1);
   if (last && last.time !== seen.time) seen.texts.clear();
   if (last) seen.time = last.time;
-  for (const e of events) if (e.time === seen.time) seen.texts.add(e.text);
+  for (const e of events) if (e.time === seen.time) seen.texts.add(e.text.de);
   return fresh.filter((e) => !e.to || e.to === me);
 }
 
@@ -41,14 +42,14 @@ export class Toasts {
 
   update(): void {
     const fresh = freshEvents(this.session.state.events, this.session.me, this.seen);
-    for (const e of fresh.slice(-4)) this.show(e.text, e.kind);
+    for (const e of fresh.slice(-4)) this.show(tx(e.text), e.kind);
   }
 
   show(text: string, kind: GameEvent['kind']): void {
-    const t = el('div', { class: `toast ${kind}` }, icon(ICON[kind]), el('span', {}, text));
-    this.root.prepend(t);
+    const box = el('div', { class: `toast ${kind}` }, icon(ICON[kind]), el('span', {}, text));
+    this.root.prepend(box);
     while (this.root.children.length > 4) this.root.lastElementChild?.remove();
-    window.setTimeout(() => t.classList.add('out'), 3500);
-    window.setTimeout(() => t.remove(), 4200);
+    window.setTimeout(() => box.classList.add('out'), 3500);
+    window.setTimeout(() => box.remove(), 4200);
   }
 }

@@ -6,6 +6,7 @@ import { newQuiz } from '../quiz';
 import { newMission } from '../systems/mission';
 import { SAVE_VERSION, type MissionState } from '../state';
 import type { SaveData } from './save';
+import { L, LocError, fmt, same } from '../../content/text';
 
 /**
  * One function per old version: turns version N into N+1.
@@ -28,7 +29,16 @@ const MIGRATIONS: Record<number, (old: Record<string, unknown>) => Record<string
     relations: {},
     offers: [],
   }),
+  // Two languages: news lines become { de, en }. Old lines were German only.
+  4: (old) => ({ ...old, events: withLocEvents(old.events) }),
 };
+
+function withLocEvents(events: unknown): unknown[] {
+  if (!Array.isArray(events)) return [];
+  return events.map((e: unknown) =>
+    isRecord(e) && typeof e.text === 'string' ? { ...e, text: same(e.text) } : e,
+  );
+}
 
 function withOpponents(settings: unknown): Record<string, unknown> {
   const s = isRecord(settings) ? settings : {};
@@ -75,13 +85,21 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 export function migrate(raw: unknown): SaveData {
   if (!isRecord(raw) || typeof raw.version !== 'number')
-    throw new Error('Kein gültiger Spielstand.');
+    throw new LocError(L('Kein gültiger Spielstand.', 'Not a valid saved game.'));
   let data = raw;
   let version = raw.version;
-  if (version > SAVE_VERSION) throw new Error('Spielstand ist von einer neueren Version.');
+  if (version > SAVE_VERSION)
+    throw new LocError(
+      L('Spielstand ist von einer neueren Version.', 'The saved game is from a newer version.'),
+    );
   while (version < SAVE_VERSION) {
     const step = MIGRATIONS[version];
-    if (!step) throw new Error(`Keine Migration von Version ${version}.`);
+    if (!step)
+      throw new LocError(
+        fmt(L('Keine Migration von Version {v}.', 'No migration from version {v}.'), {
+          v: version,
+        }),
+      );
     data = { ...step(data), version: version + 1 };
     version += 1;
   }

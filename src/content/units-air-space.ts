@@ -1,4 +1,5 @@
 import type { UnitDef } from './units';
+import { L } from './text';
 
 export type AirSpaceId = 'flakTank' | 'fighter' | 'bomber' | 'spaceFighter' | 'cruiser';
 
@@ -6,7 +7,7 @@ export type AirSpaceId = 'flakTank' | 'fighter' | 'bomber' | 'spaceFighter' | 'c
 export const AIR_SPACE_UNITS: Record<AirSpaceId, UnitDef> = {
   flakTank: {
     id: 'flakTank',
-    name: 'Flak-Panzer',
+    name: L('Flak-Panzer', 'Flak Tank'),
     hp: 320,
     speed: 2,
     flying: false,
@@ -22,7 +23,7 @@ export const AIR_SPACE_UNITS: Record<AirSpaceId, UnitDef> = {
   },
   fighter: {
     id: 'fighter',
-    name: 'Jagdflugzeug',
+    name: L('Jagdflugzeug', 'Fighter Jet'),
     hp: 180,
     speed: 6,
     flying: true,
@@ -41,7 +42,7 @@ export const AIR_SPACE_UNITS: Record<AirSpaceId, UnitDef> = {
   },
   bomber: {
     id: 'bomber',
-    name: 'Bomber',
+    name: L('Bomber', 'Bomber'),
     hp: 420,
     speed: 3.2,
     flying: true,
@@ -61,7 +62,7 @@ export const AIR_SPACE_UNITS: Record<AirSpaceId, UnitDef> = {
   },
   spaceFighter: {
     id: 'spaceFighter',
-    name: 'Raumjäger',
+    name: L('Raumjäger', 'Space Fighter'),
     hp: 260,
     speed: 2,
     flying: true,
@@ -77,7 +78,7 @@ export const AIR_SPACE_UNITS: Record<AirSpaceId, UnitDef> = {
   },
   cruiser: {
     id: 'cruiser',
-    name: 'Kreuzer',
+    name: L('Kreuzer', 'Cruiser'),
     hp: 1400,
     speed: 1,
     flying: true,

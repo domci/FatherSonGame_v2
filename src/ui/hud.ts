@@ -8,11 +8,12 @@ import type { ViewName } from '../render/views/view';
 import { el, formatNumber } from './dom';
 import { icon, resourceIcon, type IconName } from './icons';
 import { moodIcon } from './panel-colony';
+import { t, tx } from '../i18n';
 
 const VIEWS: { name: ViewName; label: string; icon: IconName }[] = [
-  { name: 'surface', label: 'Basis', icon: 'house' },
-  { name: 'planet', label: 'Planet', icon: 'globe' },
-  { name: 'system', label: 'System', icon: 'orbit' },
+  { name: 'surface', label: t('viewBase'), icon: 'house' },
+  { name: 'planet', label: t('viewPlanet'), icon: 'globe' },
+  { name: 'system', label: t('viewSystem'), icon: 'orbit' },
 ];
 
 const MOOD_COLOR: Partial<Record<IconName, string>> = {
@@ -39,10 +40,10 @@ export class Hud {
   private speedLabel = el('span', {}, 'x1');
   private moodIcon = icon('smile', '#5fe08a');
   private moodShown = '';
-  private quizButton = el('button', { class: 'seg-btn', title: 'Wissens-Quiz' }, icon('brain'));
+  private quizButton = el('button', { class: 'seg-btn', title: t('hudQuiz') }, icon('brain'));
   private peoplesButton = el(
     'button',
-    { class: 'seg-btn', title: 'Völker: Krieg, Frieden, Bündnis' },
+    { class: 'seg-btn', title: t('hudPeoples') },
     icon('handshake'),
   );
 
@@ -62,12 +63,12 @@ export class Hud {
   private resBar(actions: HudActions): HTMLElement {
     const res = el('div', { class: 'panel res-bar' });
     for (const id of RESOURCE_IDS)
-      res.append(this.item(id, resourceIcon(id), RESOURCE_INFO[id].name));
+      res.append(this.item(id, resourceIcon(id), tx(RESOURCE_INFO[id].name)));
     res.append(el('span', { class: 'divider' }));
-    res.append(this.item('energy', icon('zap', '#ffd25a'), 'Energie: erzeugt / verbraucht'));
-    res.append(this.item('drones', icon('bot', '#7fd4ff'), 'Freie Bau-Drohnen'));
-    res.append(this.item('housing', icon('shield', '#c9d4e3'), 'Platz für Einheiten'));
-    const people = this.item('people', this.moodIcon, 'Bewohner und Laune: Bewohner / Wohnplätze');
+    res.append(this.item('energy', icon('zap', '#ffd25a'), t('hudEnergy')));
+    res.append(this.item('drones', icon('bot', '#7fd4ff'), t('hudDrones')));
+    res.append(this.item('housing', icon('shield', '#c9d4e3'), t('hudHousing')));
+    const people = this.item('people', this.moodIcon, t('hudPeople'));
     people.classList.add('click');
     people.onclick = () => actions.openColony();
     res.append(people);
@@ -92,7 +93,7 @@ export class Hud {
   private toolBar(actions: HudActions): HTMLElement {
     const speed = el(
       'button',
-      { class: 'seg-btn', title: 'Spiel-Geschwindigkeit', onclick: () => this.cycleSpeed() },
+      { class: 'seg-btn', title: t('hudSpeed'), onclick: () => this.cycleSpeed() },
       icon('fast-forward'),
       this.speedLabel,
     );
@@ -107,7 +108,7 @@ export class Hud {
       speed,
       el(
         'button',
-        { class: 'seg-btn', title: 'Menü', onclick: () => actions.openMenu() },
+        { class: 'seg-btn', title: t('hudMenu'), onclick: () => actions.openMenu() },
         icon('menu'),
       ),
     );

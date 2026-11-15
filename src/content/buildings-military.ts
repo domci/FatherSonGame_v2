@@ -1,14 +1,18 @@
 import type { BuildingDef } from './buildings';
+import { L } from './text';
 
 /** Army and defense buildings (M3). */
 export const MILITARY_BUILDINGS: readonly BuildingDef[] = [
   {
     id: 'barracks',
-    name: 'Kaserne',
+    name: L('Kaserne', 'Barracks'),
     category: 'military',
     size: 3,
     tier: 2,
-    description: 'Bildet Raumsoldaten mit Laser-Gewehren aus.',
+    description: L(
+      'Bildet Raumsoldaten mit Laser-Gewehren aus.',
+      'Trains space soldiers with laser rifles.',
+    ),
     trains: ['infantry'],
     levels: [
       { cost: { regolith: 250, food: 40 }, hp: 700, energy: -4, armor: 2 },
@@ -18,12 +22,15 @@ export const MILITARY_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'vehicleFactory',
-    name: 'Fahrzeugfabrik',
+    name: L('Fahrzeugfabrik', 'Vehicle Factory'),
     category: 'military',
     size: 4,
     tier: 3,
     requires: 'lasers',
-    description: 'Baut schwere Laser-Panzer. Panzer brauchen Metall.',
+    description: L(
+      'Baut schwere Laser-Panzer. Panzer brauchen Metall.',
+      'Builds heavy laser tanks. Tanks need metal.',
+    ),
     trains: ['tank', 'flakTank'],
     levels: [
       { cost: { regolith: 700, diamonds: 25 }, hp: 1200, energy: -8, armor: 3 },
@@ -33,12 +40,15 @@ export const MILITARY_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'wall',
-    name: 'Mauer',
+    name: L('Mauer', 'Wall'),
     category: 'defense',
     size: 1,
     tier: 1,
     buildSeconds: 6,
-    description: 'Hält Bodentruppen auf. Billig und stabil.',
+    description: L(
+      'Hält Bodentruppen auf. Billig und stabil.',
+      'Stops ground troops. Cheap and strong.',
+    ),
     levels: [
       { cost: { regolith: 25 }, hp: 500, energy: 0, armor: 6 },
       { cost: { regolith: 60 }, hp: 800, energy: 0, armor: 8 },
@@ -47,12 +57,15 @@ export const MILITARY_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'turret',
-    name: 'Geschützturm',
+    name: L('Geschützturm', 'Gun Turret'),
     category: 'defense',
     size: 2,
     tier: 2,
     requires: 'lasers',
-    description: 'Schießt automatisch mit Lasern auf Feinde in der Nähe.',
+    description: L(
+      'Schießt automatisch mit Lasern auf Feinde in der Nähe.',
+      'Shoots lasers at nearby enemies by itself.',
+    ),
     levels: [
       {
         cost: { regolith: 220, diamonds: 8 },
@@ -79,13 +92,15 @@ export const MILITARY_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'shieldReactor',
-    name: 'Schildreaktor',
+    name: L('Schildreaktor', 'Shield Reactor'),
     category: 'defense',
     size: 2,
     tier: 3,
     requires: 'shields',
-    description:
+    description: L(
       'Macht eine Kraftfeld-Kuppel. Sie fängt Schaden ab und lädt sich wieder auf. Braucht viel Energie.',
+      'Makes a force field dome. It stops damage and charges up again. Needs a lot of energy.',
+    ),
     levels: [
       {
         cost: { regolith: 600, diamonds: 30 },
@@ -112,13 +127,16 @@ export const MILITARY_BUILDINGS: readonly BuildingDef[] = [
   },
   {
     id: 'forceField',
-    name: 'Kraftfeld-Wand',
+    name: L('Kraftfeld-Wand', 'Force Field Wall'),
     category: 'defense',
     size: 1,
     tier: 2,
     buildSeconds: 10,
     requires: 'shields',
-    description: 'Eine Wand aus Energie. Repariert sich selbst, solange genug Energie da ist.',
+    description: L(
+      'Eine Wand aus Energie. Repariert sich selbst, solange genug Energie da ist.',
+      'A wall made of energy. Repairs itself while there is enough energy.',
+    ),
     levels: [
       { cost: { regolith: 40, diamonds: 2 }, hp: 450, energy: -1, armor: 4, regen: 20 },
       { cost: { regolith: 90, diamonds: 4 }, hp: 700, energy: -1, armor: 5, regen: 30 },

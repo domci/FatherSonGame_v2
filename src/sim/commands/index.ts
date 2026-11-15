@@ -35,6 +35,7 @@ import {
   type MoveCommand,
   type TrainCommand,
 } from './units';
+import { L } from '../../content/text';
 
 /** Every action of a player (or the AI) is one of these. Later they can go over the network. */
 export type Command =
@@ -97,8 +98,8 @@ export const COMMAND_TYPES: readonly string[] = Object.keys(HANDLERS);
 
 export function applyCommand(state: GameState, cmd: Command): CommandResult {
   if (cmd.type === 'join') return join(state, cmd);
-  if (!state.players[cmd.player]) return fail('Unbekannter Spieler.');
-  if (state.winner) return fail('Das Spiel ist vorbei.');
+  if (!state.players[cmd.player]) return fail(L('Unbekannter Spieler.', 'Unknown player.'));
+  if (state.winner) return fail(L('Das Spiel ist vorbei.', 'The game is over.'));
   const handler = HANDLERS[cmd.type] as (s: GameState, c: Command) => CommandResult;
   return handler(state, cmd);
 }

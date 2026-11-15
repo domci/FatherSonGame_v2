@@ -1,0 +1,51 @@
+import type { Loc } from '../../content/text';
+
+export const STORY = {
+  goalBuild: { de: 'Baut: {b}', en: 'Build: {b}' },
+  goalPeople: { de: 'Habt {n} Bewohner (jetzt {now})', en: 'Have {n} residents (now {now})' },
+  goalResearch: { de: 'Erforscht etwas', en: 'Research something' },
+  goalQuiz: { de: 'Beantwortet eine Quizfrage richtig', en: 'Answer a quiz question correctly' },
+  hideMission: { de: 'Mission ausblenden', en: 'Hide mission' },
+  missionStep: { de: 'Mission „{m}“ · {a} von {b}', en: 'Mission “{m}” · {a} of {b}' },
+  reward: { de: 'Belohnung', en: 'Reward' },
+  missionName: { de: 'Mission „{m}“', en: 'Mission “{m}”' },
+  toBase: { de: 'Zur Basis', en: 'To the base' },
+  attack: { de: 'Angriff!', en: 'Attack!' },
+  beaten: { de: 'Besiegte Feinde: {n}', en: 'Enemies beaten: {n}' },
+  lostB: { de: 'Verlorene Gebäude: {n}', en: 'Buildings lost: {n}' },
+  lostU: { de: 'Verlorene Einheiten: {n}', en: 'Units lost: {n}' },
+  awayFor: { de: 'Du warst {t} weg', en: 'You were away for {t}' },
+  whileAway: { de: 'Während du weg warst …', en: 'While you were away …' },
+  noRes: { de: 'Keine neuen Rohstoffe.', en: 'No new resources.' },
+  next2: { de: 'Weiter', en: 'Next' },
+  lostToPeople: {
+    de: 'Euer {c} ist zerstört. Die {w} haben gewonnen. Versucht es noch einmal!',
+    en: 'Your {c} is destroyed. The {w} have won. Try again!',
+  },
+  lostToSide: {
+    de: 'Euer {c} ist zerstört. {w} hat gewonnen. Versucht es noch einmal!',
+    en: 'Your {c} is destroyed. {w} has won. Try again!',
+  },
+  wonOne: {
+    de: 'Ihr habt den {c} der {p} zerstört. Der Planet gehört euch!',
+    en: 'You destroyed the {c} of the {p}. The planet is yours!',
+  },
+  together: { de: 'Zusammen mit {n}.', en: 'Together with {n}.' },
+  and: { de: ' und ', en: ' and ' },
+  wonAll: {
+    de: 'Alle Feinde sind besiegt. Das Sonnensystem gehört euch!',
+    en: 'All enemies are beaten. The solar system is yours!',
+  },
+  gameOver: { de: 'Spiel vorbei', en: 'Game over' },
+  victory: { de: 'Sieg!', en: 'Victory!' },
+  defeat: { de: 'Niederlage', en: 'Defeat' },
+  toMenu: { de: 'Zum Hauptmenü', en: 'To main menu' },
+  watchOn: { de: 'Weiter ansehen', en: 'Keep watching' },
+  onlineDefeat: {
+    de: 'Euer {c} ist zerstört. Ihr könnt auf eurem Planeten neu anfangen. Die anderen spielen weiter.',
+    en: 'Your {c} is destroyed. You can start again on your planet. The others play on.',
+  },
+  beatenTitle: { de: 'Besiegt', en: 'Defeated' },
+  restart: { de: 'Neu anfangen', en: 'Start again' },
+  toLobby: { de: 'Zur Lobby', en: 'To the lobby' },
+} as const satisfies Record<string, Loc>;

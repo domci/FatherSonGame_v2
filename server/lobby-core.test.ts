@@ -70,7 +70,7 @@ describe('lobby: accounts, worlds, reports (M7)', () => {
     const lobby = new LobbyCore(memoryKv(), () => now);
     const a = await lobby.createAccount('Roter Falke 7');
     const first = await lobby.strike(a!.id);
-    expect(first.text).toContain('Verwarnung');
+    expect(first.text?.de).toContain('Verwarnung');
     expect(first.chatBanUntil).toBe(0);
     const second = await lobby.strike(a!.id);
     expect(second.chatBanUntil).toBe(3_600_000);

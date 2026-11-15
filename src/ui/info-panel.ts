@@ -13,6 +13,7 @@ import { peoplesKey, peoplesPanel } from './panel-peoples';
 import { text } from './panel-kit';
 import { nameOfUnit } from '../sim/names';
 import type { UnitId } from '../content/units';
+import { t, tx } from '../i18n';
 
 /** Several selected units: how many of each kind, and what they can do together. */
 function multiPanel(session: Session, ids: number[]): HTMLElement[] {
@@ -21,16 +22,13 @@ function multiPanel(session: Session, ids: number[]): HTMLElement[] {
     const type = findEntity(session.state, id)?.unit?.type;
     if (type) counts.set(type, (counts.get(type) ?? 0) + 1);
   }
-  const list = [...counts].map(
-    ([t, n]) => `${n}× ${nameOfUnit(session.state, viewerOf(session.state), t)}`,
+  const list = [...counts].map(([type, n]) =>
+    t('unitCount', { n, u: tx(nameOfUnit(session.state, viewerOf(session.state), type)) }),
   );
   return [
-    header(`${ids.length} Einheiten`, 'Auswahl'),
+    header(t('nUnits', { n: ids.length }), t('selection')),
     text(list.join(', ')),
-    text(
-      'Tippt auf den Boden zum Laufen (sie kämpfen unterwegs) oder auf einen Feind.',
-      'p-text muted',
-    ),
+    text(t('multiHelp'), 'p-text muted'),
     ...boardButtons(session, ids),
   ];
 }
@@ -53,7 +51,7 @@ export class InfoPanel {
         this.root.append(
           el(
             'button',
-            { class: 'icon-btn close', title: 'Schließen', onclick: () => this.session.select([]) },
+            { class: 'icon-btn close', title: t('close'), onclick: () => this.session.select([]) },
             icon('x'),
           ),
           ...parts,

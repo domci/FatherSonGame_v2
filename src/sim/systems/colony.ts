@@ -19,13 +19,26 @@ import { nameOfBuilding } from '../names';
 import { playerStats, type PlayerStats } from '../stats';
 import type { ColonyState, GameState, PlayerState } from '../state';
 import { amount } from '../wallet';
+import { L, fmt, type Loc } from '../../content/text';
 
-function missingText(state: GameState, owner: SideId, id: NeedId): string {
-  const name = (b: 'waterOxygenPlant' | 'greenhouse'): string => nameOfBuilding(state, owner, b);
+function missingText(state: GameState, owner: SideId, id: NeedId): Loc {
+  const name = (b: 'waterOxygenPlant' | 'greenhouse'): Loc => nameOfBuilding(state, owner, b);
   if (id === 'food')
-    return `Keine Nahrung mehr! Eure Bewohner werden krank. Hilfe: ${name('greenhouse')} bauen oder Spinnen jagen.`;
-  const what = id === 'oxygen' ? 'Kein Sauerstoff' : 'Kein Wasser';
-  return `${what} mehr! Eure Bewohner werden krank. Hilfe: ${name('waterOxygenPlant')} bauen.`;
+    return fmt(
+      L(
+        'Keine Nahrung mehr! Eure Bewohner werden krank. Hilfe: {b} bauen oder Spinnen jagen.',
+        'No food left! Your residents get sick. Help: build a {b} or hunt spiders.',
+      ),
+      { b: name('greenhouse') },
+    );
+  const what = id === 'oxygen' ? L('Kein Sauerstoff', 'No oxygen') : L('Kein Wasser', 'No water');
+  return fmt(
+    L(
+      '{w} mehr! Eure Bewohner werden krank. Hilfe: {b} bauen.',
+      '{w} left! Your residents get sick. Help: build a {b}.',
+    ),
+    { w: what, b: name('waterOxygenPlant') },
+  );
 }
 
 /** Everybody breathes, drinks and eats. Returns the share that was missing (0..1). */
@@ -81,9 +94,24 @@ function report(state: GameState, owner: SideId, grew: boolean, left: boolean): 
     } else if (c.met[id] >= 1 && warned) c.warned = c.warned.filter((n) => n !== id);
   }
   if (grew && c.people % 5 === 0)
-    tell(state, owner, `Die Kolonie wächst: ${c.people} Bewohner.`, 'good');
+    tell(
+      state,
+      owner,
+      fmt(L('Die Kolonie wächst: {n} Bewohner.', 'The colony grows: {n} residents.'), {
+        n: c.people,
+      }),
+      'good',
+    );
   if (left)
-    tell(state, owner, 'Ein Bewohner hat eure Kolonie verlassen. Sorgt für bessere Laune!', 'bad');
+    tell(
+      state,
+      owner,
+      L(
+        'Ein Bewohner hat eure Kolonie verlassen. Sorgt für bessere Laune!',
+        'A resident has left your colony. Make the mood better!',
+      ),
+      'bad',
+    );
 }
 
 /** The people in the domes: needs, sickness, mood, new people and people who leave. */

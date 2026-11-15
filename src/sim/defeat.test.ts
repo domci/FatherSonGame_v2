@@ -25,7 +25,7 @@ describe('defeat and victory with many sides', () => {
     destroyCore(s, 'ai', 'player');
     expect(s.players.ai?.defeated).toBe(true);
     expect(s.winner).toBeUndefined();
-    expect(s.events.at(-1)?.text).toContain('ist besiegt');
+    expect(s.events.at(-1)?.text.de).toContain('ist besiegt');
     tick(s);
     expect(s.world.entities.some((e) => e.owner === 'ai')).toBe(false);
     expect(s.marks.some((m) => m.owner === 'ai' && m.kind === 'unit')).toBe(true);

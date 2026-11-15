@@ -1,9 +1,11 @@
+import { same } from '../content/text';
 import { viewerOf } from '../sim/viewer';
 import type { Session } from '../app/session';
 import { QUIZ_BY_ID, QUIZ_RULES, QUIZ_TOPICS, type QuizQuestion } from '../content/quiz';
 import { isRight, quizStatus } from '../sim/quiz';
 import { el } from './dom';
 import { icon } from './icons';
+import { t, tx } from '../i18n';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -11,7 +13,7 @@ function leftText(session: Session): string {
   const quiz = session.state.players[viewerOf(session.state)]?.quiz;
   if (!quiz) return '';
   const left = quizStatus(quiz, session.state.time).left;
-  return `Richtig = ${QUIZ_RULES.reward} Wissenskristall. Noch ${left} Fragen in dieser Stunde.`;
+  return t('quizLeft', { r: QUIZ_RULES.reward, n: left });
 }
 
 /** After the answer: colors, explanation and the buttons to go on. */
@@ -26,7 +28,7 @@ function showResult(
     if (o.order[i] === 0) b.classList.add('right');
     else if (i === o.choice) b.classList.add('wrong');
   });
-  const title = o.right ? 'Richtig! +1 Wissenskristall' : 'Leider falsch. Kurze Pause: 1 Minute.';
+  const title = o.right ? t('quizRight') : t('quizWrong');
   box.append(
     el(
       'div',
@@ -34,12 +36,12 @@ function showResult(
       icon(o.right ? 'check' : 'x'),
       el('b', {}, title),
     ),
-    el('p', { class: 'p-text' }, o.q.explain),
+    el('p', { class: 'p-text' }, tx(o.q.explain)),
     el(
       'button',
       { class: 'm-item primary', onclick: o.next },
       icon('play'),
-      el('span', {}, 'Weiter'),
+      el('span', {}, t('next')),
     ),
   );
 }
@@ -62,17 +64,13 @@ function questionBox(session: Session, close: () => void): HTMLElement | null {
         },
       },
       el('span', { class: 'quiz-letter' }, LETTERS[i] ?? ''),
-      el('span', {}, q.answers[a] ?? ''),
+      el('span', {}, tx(q.answers[a] ?? same(''))),
     ),
   );
   box.append(
-    el(
-      'button',
-      { class: 'icon-btn close', title: 'Später beantworten', onclick: close },
-      icon('x'),
-    ),
-    el('div', { class: 'p-sub' }, `Wissens-Quiz · ${QUIZ_TOPICS[q.topic]}`),
-    el('h2', { class: 'quiz-q' }, q.question),
+    el('button', { class: 'icon-btn close', title: t('later'), onclick: close }, icon('x')),
+    el('div', { class: 'p-sub' }, t('quizSub', { t: tx(QUIZ_TOPICS[q.topic]) })),
+    el('h2', { class: 'quiz-q' }, tx(q.question)),
     ...buttons,
     el('p', { class: 'p-text muted quiz-left' }, leftText(session)),
   );

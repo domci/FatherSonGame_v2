@@ -15,6 +15,7 @@ import { atmosphereMaterial, planetMaterial, REGOLITH } from '../space-materials
 import { solidMaterial } from '../materials';
 import type { Faction } from '../../content/factions';
 import { textLabel } from './labels';
+import { t } from '../../i18n';
 
 /** Where a base sits on its planet (latitude, longitude in radians, planet frame). */
 interface BaseSpot {
@@ -103,7 +104,7 @@ export class SpaceBody {
     );
     const title =
       kind === 'home'
-        ? `${body.name} (Heimat)`
+        ? `${body.name} (${t('home')})`
         : owner
           ? `${body.name} (${owner.name})`
           : body.name;

@@ -1,6 +1,8 @@
 import type { BuildingId } from './buildings';
 import type { ResearchId } from './research';
 import type { UnitId } from './units';
+import { L } from './text';
+import type { Loc } from './text';
 
 /** One step of the computer player's plan. Counts are totals, not "build n more". */
 export type AiStep =
@@ -140,15 +142,24 @@ export const AI_TUNING: Record<Difficulty, AiTuning> = {
   },
 };
 
-export const DIFFICULTY_NAMES: Record<Difficulty, string> = {
-  easy: 'Leicht',
-  normal: 'Mittel',
-  hard: 'Schwer',
+export const DIFFICULTY_NAMES: Record<Difficulty, Loc> = {
+  easy: L('Leicht', 'Easy'),
+  normal: L('Mittel', 'Medium'),
+  hard: L('Schwer', 'Hard'),
 };
 
 /** One line per level for the new game dialog. */
-export const DIFFICULTY_HELP: Record<Difficulty, string> = {
-  easy: 'Die Gegner bleiben hinter euch zurück und greifen erst spät und schwach an.',
-  normal: 'Die Gegner wachsen etwas langsamer als ihr. Angriffe erst, wenn ihr bereit seid.',
-  hard: 'Die Gegner halten mit euch mit und greifen früher an.',
+export const DIFFICULTY_HELP: Record<Difficulty, Loc> = {
+  easy: L(
+    'Die Gegner bleiben hinter euch zurück und greifen erst spät und schwach an.',
+    'Opponents stay behind you and attack late and weakly.',
+  ),
+  normal: L(
+    'Die Gegner wachsen etwas langsamer als ihr. Angriffe erst, wenn ihr bereit seid.',
+    'Opponents grow a bit slower than you. Attacks only when you are ready.',
+  ),
+  hard: L(
+    'Die Gegner halten mit euch mit und greifen früher an.',
+    'Opponents keep up with you and attack earlier.',
+  ),
 };

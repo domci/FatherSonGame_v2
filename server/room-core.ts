@@ -118,7 +118,7 @@ export class RoomCore {
     for (const [p, m] of this.members)
       if (m.account === account) {
         this.disconnect(p);
-        p.close(4000, 'Auf einem anderen Gerät geöffnet.');
+        p.close(4000, 'Opened on another device.');
       }
     this.members.set(peer, { account, side, name, sent: 0, second: 0 });
     peer.send(JSON.stringify(welcome(side)));

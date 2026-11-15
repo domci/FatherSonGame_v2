@@ -7,6 +7,7 @@ import type { GameState } from '../state';
 import { landingSpot, unloadShip } from '../transport';
 import { isBlocked, runBlockade } from '../space/blockade';
 import { homeOwner, hostile } from '../relations';
+import { L, fmt } from '../../content/text';
 
 export interface FlightOptions {
   /** The game is closed right now (catch-up). */
@@ -33,13 +34,21 @@ function land(state: GameState, ship: Entity, zone: string): void {
     tell(
       state,
       ship.owner,
-      `${nameOfUnit(state, ship.owner, 'transport')} ist auf ${where} gelandet.`,
+      fmt(L('{s} ist auf {w} gelandet.', '{s} has landed on {w}.'), {
+        s: nameOfUnit(state, ship.owner, 'transport'),
+        w: where,
+      }),
       'info',
     );
   }
   const victim = homeOwner(state, zone);
   if (count > 0 && isHuman(state, victim) && hostile(state, victim, ship.owner))
-    addEvent(state, 'Alarm! Feindliche Truppen sind gelandet!', 'bad', victim);
+    addEvent(
+      state,
+      L('Alarm! Feindliche Truppen sind gelandet!', 'Alarm! Enemy troops have landed!'),
+      'bad',
+      victim,
+    );
 }
 
 /** Transport ships fly between planets (timestamps, so it also works offline). */
@@ -50,7 +59,15 @@ export function transportSystem(state: GameState, opts: FlightOptions): void {
     if (!zone || ship.ship.phaseEndsAt > state.time) continue;
     if (mustWait(state, ship, zone, opts)) continue;
     if (isBlocked(state, ship, zone, opts) && !runBlockade(state, ship, zone)) {
-      tell(state, ship.owner, 'Blockade! Euer Transportschiff wurde abgeschossen.', 'bad');
+      tell(
+        state,
+        ship.owner,
+        L(
+          'Blockade! Euer Transportschiff wurde abgeschossen.',
+          'Blockade! Your transport ship was shot down.',
+        ),
+        'bad',
+      );
       continue;
     }
     land(state, ship, zone);

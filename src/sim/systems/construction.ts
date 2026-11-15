@@ -6,6 +6,7 @@ import { nameOfBuilding, nameOfUnit } from '../names';
 import { equipBuilding, findEntity, spawnUnit, spawnWarship } from '../spawn';
 import type { Entity } from '../entity';
 import type { GameState } from '../state';
+import { L, fmt } from '../../content/text';
 
 function finishConstruction(state: GameState, site: Entity): void {
   if (!site.building || !site.construction) return;
@@ -20,7 +21,11 @@ function finishConstruction(state: GameState, site: Entity): void {
   state.world.removeComponent(site, 'construction');
   if (site.owner) {
     const name = nameOfBuilding(state, site.owner, def.id);
-    tell(state, site.owner, `${name} fertig${level > 1 ? ` (Stufe ${level})` : ''}.`, 'good');
+    const text =
+      level > 1
+        ? fmt(L('{n} fertig (Stufe {l}).', '{n} done (level {l}).'), { n: name, l: level })
+        : fmt(L('{n} fertig.', '{n} done.'), { n: name });
+    tell(state, site.owner, text, 'good');
   }
 }
 
@@ -38,7 +43,9 @@ function spawnTrained(state: GameState, b: Entity, unit: Entity['unit'] & object
     tell(
       state,
       b.owner,
-      `${nameOfUnit(state, b.owner, unit.type)} bereit. Wartet im Orbit.`,
+      fmt(L('{u} bereit. Wartet im Orbit.', '{u} ready. Waiting in orbit.'), {
+        u: nameOfUnit(state, b.owner, unit.type),
+      }),
       'good',
     );
     return;
@@ -61,7 +68,12 @@ function spawnTrained(state: GameState, b: Entity, unit: Entity['unit'] & object
     });
     e.position = { ...b.position };
   }
-  tell(state, b.owner, `${nameOfUnit(state, b.owner, unit.type)} bereit.`, 'good');
+  tell(
+    state,
+    b.owner,
+    fmt(L('{u} bereit.', '{u} ready.'), { u: nameOfUnit(state, b.owner, unit.type) }),
+    'good',
+  );
 }
 
 /** Finishes units in training queues. Works for long offline times too. */

@@ -8,6 +8,7 @@ import { playerStats } from '../sim/stats';
 import { el } from './dom';
 import { RESOURCE_ICON, type IconName } from './icons';
 import { header, section, stat, text } from './panel-kit';
+import { t, tx } from '../i18n';
 
 export function moodIcon(mood: number): IconName {
   if (mood >= 60) return 'smile';
@@ -15,18 +16,19 @@ export function moodIcon(mood: number): IconName {
 }
 
 export function moodWord(mood: number): string {
-  if (mood >= 80) return 'Sehr froh';
-  if (mood >= 60) return 'Froh';
-  if (mood >= 35) return 'Geht so';
-  return 'Unglücklich';
+  if (mood >= 80) return t('moodVeryHappy');
+  if (mood >= 60) return t('moodHappy');
+  if (mood >= 35) return t('moodOk');
+  return t('moodSad');
 }
 
 /** What a building does for the people: room, healing, mood. */
 export function colonyStats(lvl: BuildingLevel): HTMLElement[] {
   const out: HTMLElement[] = [];
-  if (lvl.residents) out.push(stat('users', 'Wohnplätze', String(lvl.residents), '#9fe0b0'));
-  if (lvl.heals) out.push(stat('heart-pulse', 'Heilt', `${lvl.heals} pro Minute`, '#ff6b81'));
-  if (lvl.mood) out.push(stat('smile', 'Laune', `+${lvl.mood}`, '#ffd25a'));
+  if (lvl.residents) out.push(stat('users', t('homes'), String(lvl.residents), '#9fe0b0'));
+  if (lvl.heals)
+    out.push(stat('heart-pulse', t('heals'), t('perMinute', { n: lvl.heals }), '#ff6b81'));
+  if (lvl.mood) out.push(stat('smile', t('mood'), `+${lvl.mood}`, '#ffd25a'));
   return out;
 }
 
@@ -40,7 +42,9 @@ function reasons(session: Session): HTMLElement {
   for (const p of moodParts(c, playerStats(session.state, viewerOf(session.state)))) {
     const sign = p.value > 0 ? '+' : '';
     const cls = p.value < 0 ? 'bad' : 'good';
-    list.append(el('div', { class: `mood-row ${cls}` }, el('b', {}, `${sign}${p.value}`), p.text));
+    list.append(
+      el('div', { class: `mood-row ${cls}` }, el('b', {}, `${sign}${p.value}`), tx(p.text)),
+    );
   }
   return list;
 }
@@ -51,15 +55,12 @@ function tip(session: Session): string {
   const c = s.players[viewerOf(s)]?.colony;
   const stats = playerStats(s, viewerOf(s));
   if (!c) return '';
-  if (NEED_IDS.some((id) => c.met[id] < 1))
-    return 'Es fehlt etwas zum Leben! Baut mehr Anlagen für Luft, Wasser und Nahrung.';
-  if (c.sick >= 1) return 'Kranke arbeiten nicht. Eine Krankenstation macht sie schneller gesund.';
-  if (healthy(c) < stats.jobs)
-    return 'Zu wenig Arbeiter. Baut Wohn-Kuppeln, dann kommen neue Bewohner.';
-  if (c.people >= stats.residents)
-    return 'Alle Wohnplätze sind voll. Neue Bewohner brauchen eine Wohn-Kuppel.';
-  if (c.mood < 60) return 'Bei guter Laune (ab 60) kommen neue Bewohner. Parks helfen.';
-  return 'Alles gut! Bei freien Wohnplätzen kommen neue Bewohner.';
+  if (NEED_IDS.some((id) => c.met[id] < 1)) return t('tipNeeds');
+  if (c.sick >= 1) return t('tipSick');
+  if (healthy(c) < stats.jobs) return t('tipWorkers');
+  if (c.people >= stats.residents) return t('tipFull');
+  if (c.mood < 60) return t('tipMood');
+  return t('tipOk');
 }
 
 /** The colony window: people, work, needs and why they feel like they do. */
@@ -73,20 +74,29 @@ export function colonyPanel(session: Session): HTMLElement[] {
   const needs = NEED_IDS.map((id) => {
     const per = c.people * NEEDS_PER_PERSON[id];
     const color = c.met[id] < 1 ? '#ff6b81' : RESOURCE_INFO[id].color;
-    return stat(RESOURCE_ICON[id], RESOURCE_INFO[id].name, `${per.toFixed(1)} pro Minute`, color);
+    return stat(
+      RESOURCE_ICON[id],
+      tx(RESOURCE_INFO[id].name),
+      t('perMinute', { n: per.toFixed(1) }),
+      color,
+    );
   });
   return [
-    header('Eure Kolonie', 'Bewohner'),
-    stat('users', 'Bewohner', `${c.people} von ${stats.residents} Plätzen`),
-    stat('heart-pulse', 'Krank', String(Math.round(c.sick)), c.sick >= 1 ? '#ff6b81' : undefined),
+    header(t('yourColony'), t('residents')),
+    stat('users', t('residents'), t('ofPlaces', { a: c.people, b: stats.residents })),
+    stat('heart-pulse', t('sick'), String(Math.round(c.sick)), c.sick >= 1 ? '#ff6b81' : undefined),
     stat(
       'hammer',
-      'Arbeit',
-      `${Math.min(stats.jobs, Math.round(healthy(c)))} von ${stats.jobs} Plätzen (${pct(workShare(c, stats))})`,
+      t('work'),
+      t('workVal', {
+        a: Math.min(stats.jobs, Math.round(healthy(c))),
+        b: stats.jobs,
+        p: pct(workShare(c, stats)),
+      }),
     ),
-    stat(moodIcon(c.mood), 'Laune', `${Math.round(c.mood)} – ${moodWord(c.mood)}${trend}`),
-    section('Sie brauchen', ...needs),
-    section('Darum ist die Laune so', reasons(session)),
+    stat(moodIcon(c.mood), t('mood'), `${Math.round(c.mood)} – ${moodWord(c.mood)}${trend}`),
+    section(t('theyNeed'), ...needs),
+    section(t('moodWhy'), reasons(session)),
     text(tip(session), 'p-text muted'),
   ];
 }

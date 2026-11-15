@@ -2,6 +2,7 @@ import type { PlayerId, SideId } from './entity';
 import { addEvent } from './game';
 import { isSide, sidesOf } from './relations';
 import type { GameEvent, GameState } from './state';
+import type { Loc } from '../content/text';
 
 /**
  * A person plays this side. The first seat ('player') always counts as a person
@@ -33,7 +34,7 @@ export function isAway(state: GameState, id: PlayerId | undefined, offline: bool
 export function tell(
   state: GameState,
   owner: PlayerId | undefined,
-  text: string,
+  text: Loc,
   kind: GameEvent['kind'],
 ): void {
   if (isHuman(state, owner)) addEvent(state, text, kind, owner);
@@ -42,7 +43,7 @@ export function tell(
 /** One news line for each person, from their own view (undefined = nothing for them). */
 export function tellHumans(
   state: GameState,
-  say: (viewer: SideId) => [string, GameEvent['kind']] | undefined,
+  say: (viewer: SideId) => [Loc, GameEvent['kind']] | undefined,
 ): void {
   for (const id of humanSides(state)) {
     const line = say(id);

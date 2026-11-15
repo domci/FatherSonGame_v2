@@ -4,6 +4,7 @@ import type { Entity, PlayerId } from '../entity';
 import type { GameState } from '../state';
 import { amount } from '../wallet';
 import { MINUTE } from '../clock';
+import { L } from '../../content/text';
 
 /** Air planes burn gas (fuel) while they fly or fight. */
 export function needsFuel(e: Entity): boolean {
@@ -48,6 +49,14 @@ export function fuelSystem(state: GameState, dtMs: number): void {
     player.resources.gas = left >= 1 ? left : 0;
     if (left >= 1) continue;
     ground(state, planes);
-    tell(state, owner, 'Kein Gas mehr! Eure Flugzeuge bleiben stehen.', 'bad');
+    tell(
+      state,
+      owner,
+      L(
+        'Kein Gas mehr! Eure Flugzeuge bleiben stehen.',
+        'Out of gas! Your aircraft stay on the ground.',
+      ),
+      'bad',
+    );
   }
 }

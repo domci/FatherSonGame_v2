@@ -10,6 +10,7 @@ import { findEntity } from '../spawn';
 import { playerStats } from '../stats';
 import type { GameState, Mark } from '../state';
 import { addResources } from '../wallet';
+import { L, fmt } from '../../content/text';
 
 export function armorOf(state: GameState, e: Entity): number {
   if (e.building) {
@@ -49,7 +50,10 @@ function reward(state: GameState, dead: Entity, killer: Entity | undefined): voi
   const player = killer?.owner ? state.players[killer.owner] : undefined;
   if (!food || !player) return;
   addResources(player, { food }, playerStats(state, player.id).storage);
-  tell(state, player.id, `+${food} Nahrung (${dead.egg ? 'Ei' : 'Spinne'}).`, 'good');
+  const text = dead.egg
+    ? L('+{n} Nahrung (Ei).', '+{n} food (egg).')
+    : L('+{n} Nahrung (Spinne).', '+{n} food (spider).');
+  tell(state, player.id, fmt(text, { n: food }), 'good');
 }
 
 function markKind(dead: Entity): Mark['kind'] {
@@ -76,10 +80,12 @@ function lostBuilding(state: GameState, dead: Entity, owner: PlayerId, killer?: 
   const type = dead.building.type;
   if (type === 'commandDome') return defeat(state, owner, killer?.owner);
   const name = nameOfBuilding(state, owner, type);
-  tell(state, owner, `${name} wurde zerstört!`, 'bad');
+  tell(state, owner, fmt(L('{n} wurde zerstört!', '{n} was destroyed!'), { n: name }), 'bad');
   if (type === 'wall' || type === 'forceField') return;
   tellHumans(state, (h) =>
-    hostile(state, h, owner) ? [`Feind: ${name} zerstört.`, 'good'] : undefined,
+    hostile(state, h, owner)
+      ? [fmt(L('Feind: {n} zerstört.', 'Enemy {n} destroyed.'), { n: name }), 'good']
+      : undefined,
   );
 }
 

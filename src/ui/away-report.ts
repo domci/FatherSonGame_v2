@@ -3,6 +3,7 @@ import type { CatchUpReport } from '../sim/update';
 import type { GameEvent } from '../sim/state';
 import { el, formatDuration, formatNumber } from './dom';
 import { icon, resourceIcon } from './icons';
+import { t, tx } from '../i18n';
 
 function gainRows(report: CatchUpReport): HTMLElement[] {
   return RESOURCE_IDS.filter((id) => report.gained[id]).map((id) => {
@@ -11,7 +12,7 @@ function gainRows(report: CatchUpReport): HTMLElement[] {
       'div',
       { class: 'stat' },
       resourceIcon(id),
-      el('span', { class: 'stat-l' }, RESOURCE_INFO[id].name),
+      el('span', { class: 'stat-l' }, tx(RESOURCE_INFO[id].name)),
       el(
         'span',
         { class: v >= 0 ? 'stat-v good' : 'stat-v bad' },
@@ -29,10 +30,10 @@ function battleRows(report: CatchUpReport): HTMLElement | null {
   return el(
     'div',
     { class: 'p-sec' },
-    el('h4', {}, 'Angriff!'),
-    line(`Besiegte Feinde: ${b.defeated}`, 'p-text good'),
-    line(`Verlorene Gebäude: ${b.lostBuildings}`, b.lostBuildings ? 'p-text bad' : 'p-text'),
-    line(`Verlorene Einheiten: ${b.lostUnits}`, b.lostUnits ? 'p-text bad' : 'p-text'),
+    el('h4', {}, t('attack')),
+    line(t('beaten', { n: b.defeated }), 'p-text good'),
+    line(t('lostB', { n: b.lostBuildings }), b.lostBuildings ? 'p-text bad' : 'p-text'),
+    line(t('lostU', { n: b.lostUnits }), b.lostUnits ? 'p-text bad' : 'p-text'),
   );
 }
 
@@ -46,25 +47,25 @@ export function awayReport(
   const happened = events
     .slice(report.eventsBefore)
     .slice(-8)
-    .map((e) => el('li', {}, e.text));
+    .map((e) => el('li', {}, tx(e.text)));
   const overlay = el(
     'div',
     { class: 'screen modal' },
     el(
       'div',
       { class: 'panel dialog' },
-      el('div', { class: 'p-sub' }, `Du warst ${formatDuration(report.elapsedMs)} weg`),
-      el('h2', {}, 'Während du weg warst …'),
+      el('div', { class: 'p-sub' }, t('awayFor', { t: formatDuration(report.elapsedMs) })),
+      el('h2', {}, t('whileAway')),
       gains.length
         ? el('div', { class: 'p-sec' }, ...gains)
-        : el('p', { class: 'p-text' }, 'Keine neuen Rohstoffe.'),
+        : el('p', { class: 'p-text' }, t('noRes')),
       battleRows(report),
       happened.length ? el('ul', { class: 'log' }, ...happened) : null,
       el(
         'button',
         { class: 'm-item primary', onclick: () => close(overlay, onClose) },
         icon('play'),
-        el('span', {}, 'Weiter'),
+        el('span', {}, t('next')),
       ),
     ),
   );

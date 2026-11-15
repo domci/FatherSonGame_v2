@@ -1,6 +1,7 @@
 import type { NewWorld } from '../src/net/protocol';
 import { lobbyOf, roomOf, type Env } from './env';
 import { publicInfo, type AccountRecord } from './lobby-core';
+import { L } from '../src/content/text';
 
 const DIFFICULTIES = ['easy', 'normal', 'hard'];
 
@@ -38,7 +39,11 @@ export function goodWorld(w: NewWorld | undefined): w is NewWorld {
 
 async function createWorld(req: Request, env: Env, a: AccountRecord): Promise<Response> {
   const w = await body<NewWorld>(req);
-  if (!goodWorld(w)) return json({ error: 'Diese Welt geht so nicht.' }, 400);
+  if (!goodWorld(w))
+    return json(
+      { error: L('Diese Welt geht so nicht.', 'This world does not work like this.') },
+      400,
+    );
   const record = await lobbyOf(env).createWorld(a, w);
   const faction = w.faction === 'alien' ? 'alien' : 'human';
   await roomOf(env, record.id).init(record, { account: a.id, name: a.name, faction });
@@ -59,14 +64,14 @@ async function me(req: Request, env: Env, a: AccountRecord): Promise<Response> {
   const b = await body<{ name?: string }>(req);
   return (await lobbyOf(env).rename(a, String(b?.name)))
     ? json({ ok: true })
-    : json({ error: 'Name geht nicht.' }, 400);
+    : json({ error: L('Name geht nicht.', 'This name does not work.') }, 400);
 }
 
 async function byCode(env: Env, code: string, a: AccountRecord): Promise<Response> {
   const w = await lobbyOf(env).byCode(code);
   return w
     ? json(publicInfo(w, a.worlds[w.id]))
-    : json({ error: 'Keine Welt mit diesem Code.' }, 404);
+    : json({ error: L('Keine Welt mit diesem Code.', 'No world with this code.') }, 404);
 }
 
 async function withAccount(
@@ -80,13 +85,13 @@ async function withAccount(
   if (path === '/api/worlds' && req.method === 'POST') return createWorld(req, env, a);
   const code = /^\/api\/worlds\/([0-9A-Za-z]{6})$/.exec(path)?.[1];
   if (code && req.method === 'GET') return byCode(env, code, a);
-  return json({ error: 'Gibt es nicht.' }, 404);
+  return json({ error: L('Gibt es nicht.', 'Does not exist.') }, 404);
 }
 
 /** Parents' page: reports (needs the ADMIN_KEY password). */
 async function admin(req: Request, env: Env): Promise<Response> {
   if (!env.ADMIN_KEY || req.headers.get('x-admin-key') !== env.ADMIN_KEY)
-    return json({ error: 'Kein Zugang.' }, 403);
+    return json({ error: L('Kein Zugang.', 'No access.') }, 403);
   if (req.method === 'GET') return json(await lobbyOf(env).reports());
   const b = await body<{ id?: string; action?: string }>(req);
   const action = b?.action === 'strike' || b?.action === 'ban' ? b.action : 'dismiss';
@@ -98,10 +103,12 @@ export async function handleApi(req: Request, env: Env, path: string): Promise<R
   if (path === '/api/account' && req.method === 'POST') {
     const b = await body<{ name?: string }>(req);
     const made = await lobbyOf(env).createAccount(String(b?.name));
-    return made ? json(made) : json({ error: 'Name geht nicht.' }, 400);
+    return made
+      ? json(made)
+      : json({ error: L('Name geht nicht.', 'This name does not work.') }, 400);
   }
   if (path === '/api/admin/reports') return admin(req, env);
   const a = await account(req, env);
-  if (!a) return json({ error: 'Bitte neu anmelden.' }, 401);
+  if (!a) return json({ error: L('Bitte neu anmelden.', 'Please log in again.') }, 401);
   return withAccount(req, env, path, a);
 }

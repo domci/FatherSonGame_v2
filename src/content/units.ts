@@ -1,6 +1,8 @@
 import type { ResearchId } from './research';
 import type { ResourceAmounts } from './resources';
 import { AIR_SPACE_UNITS, type AirSpaceId } from './units-air-space';
+import { L } from './text';
+import type { Loc } from './text';
 
 export type UnitId =
   'drone' | 'hunter' | 'infantry' | 'tank' | 'miningShip' | 'transport' | 'spider' | AirSpaceId;
@@ -10,7 +12,7 @@ export type Hits = 'ground' | 'air' | 'all';
 
 export interface UnitDef {
   id: UnitId;
-  name: string;
+  name: Loc;
   hp: number;
   /** Tiles per second (surface) or AU per minute (ships). */
   speed: number;
@@ -50,7 +52,7 @@ const NO_WEAPON = { damage: 0, range: 0, cooldownMs: 0 } as const;
 export const UNITS: Record<UnitId, UnitDef> = {
   drone: {
     id: 'drone',
-    name: 'Bau-Drohne',
+    name: L('Bau-Drohne', 'Builder Drone'),
     hp: 40,
     speed: 4,
     flying: true,
@@ -62,7 +64,7 @@ export const UNITS: Record<UnitId, UnitDef> = {
   },
   hunter: {
     id: 'hunter',
-    name: 'Jäger',
+    name: L('Jäger', 'Hunter'),
     hp: 90,
     speed: 2.5,
     flying: false,
@@ -76,7 +78,7 @@ export const UNITS: Record<UnitId, UnitDef> = {
   },
   infantry: {
     id: 'infantry',
-    name: 'Raumsoldat',
+    name: L('Raumsoldat', 'Space Soldier'),
     hp: 110,
     speed: 2.3,
     flying: false,
@@ -90,7 +92,7 @@ export const UNITS: Record<UnitId, UnitDef> = {
   },
   tank: {
     id: 'tank',
-    name: 'Laser-Panzer',
+    name: L('Laser-Panzer', 'Laser Tank'),
     hp: 450,
     speed: 1.8,
     flying: false,
@@ -105,7 +107,7 @@ export const UNITS: Record<UnitId, UnitDef> = {
   },
   miningShip: {
     id: 'miningShip',
-    name: 'Mining-Schiff',
+    name: L('Mining-Schiff', 'Mining Ship'),
     hp: 150,
     speed: 1,
     flying: true,
@@ -117,7 +119,7 @@ export const UNITS: Record<UnitId, UnitDef> = {
   },
   transport: {
     id: 'transport',
-    name: 'Transportschiff',
+    name: L('Transportschiff', 'Transport Ship'),
     hp: 400,
     speed: 1,
     flying: true,
@@ -130,7 +132,7 @@ export const UNITS: Record<UnitId, UnitDef> = {
   },
   spider: {
     id: 'spider',
-    name: 'Spinnenwesen',
+    name: L('Spinnenwesen', 'Spider Creature'),
     hp: 60,
     speed: 2,
     flying: false,

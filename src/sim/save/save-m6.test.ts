@@ -35,7 +35,7 @@ describe('save and load with many peoples (M6)', () => {
     const loaded = fromSaveData(old);
     expect(loaded.settings.opponents).toBe(1);
     expect(loaded.players.player?.name).toBe('Ihr');
-    expect(loaded.players.ai?.name).toBe('Schwarm Xar');
+    expect(loaded.players.ai?.name).toBe('Xar');
     expect(loaded.players.ai?.color).toBe('#ff5d6c');
     expect(loaded.relations).toEqual({});
     expect(loaded.offers).toEqual([]);

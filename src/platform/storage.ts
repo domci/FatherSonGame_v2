@@ -1,5 +1,6 @@
 import { get, set, del } from 'idb-keyval';
 import type { SaveData } from '../sim/save/save';
+import { L, LocError } from '../content/text';
 
 const KEY = 'fathersongame-v2-slot1';
 
@@ -25,7 +26,7 @@ export function exportSave(data: SaveData): void {
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `spielstand-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `crashlanded-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -38,11 +39,11 @@ export function importSaveFile(): Promise<unknown> {
     input.accept = 'application/json,.json';
     input.onchange = async () => {
       const file = input.files?.[0];
-      if (!file) return reject(new Error('Keine Datei.'));
+      if (!file) return reject(new LocError(L('Keine Datei.', 'No file.')));
       try {
         resolve(JSON.parse(await file.text()));
       } catch {
-        reject(new Error('Datei ist kein Spielstand.'));
+        reject(new LocError(L('Datei ist kein Spielstand.', 'The file is not a saved game.')));
       }
     };
     input.click();

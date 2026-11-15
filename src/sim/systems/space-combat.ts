@@ -7,6 +7,7 @@ import { warships } from '../space/places';
 import type { GameState } from '../state';
 import { dealDamage, hitDamage } from './damage';
 import { placeName } from './fleet';
+import { L, fmt } from '../../content/text';
 
 /** Who fights at one place: war ships, ground cannons that shoot into orbit, mining ships. */
 interface Place {
@@ -59,9 +60,22 @@ function report(state: GameState, dead: Entity, place: string): void {
   const name = nameOfUnit(state, dead.owner, dead.unit.type);
   const where = placeName(state, place);
   const owner = dead.owner;
-  tell(state, owner, `${name} bei ${where} zerstört!`, 'bad');
+  tell(
+    state,
+    owner,
+    fmt(L('{n} bei {w} zerstört!', '{n} destroyed at {w}!'), { n: name, w: where }),
+    'bad',
+  );
   tellHumans(state, (h) =>
-    hostile(state, h, owner) ? [`Feind-${name} bei ${where} zerstört.`, 'good'] : undefined,
+    hostile(state, h, owner)
+      ? [
+          fmt(L('Feind-{n} bei {w} zerstört.', 'Enemy {n} destroyed at {w}.'), {
+            n: name,
+            w: where,
+          }),
+          'good',
+        ]
+      : undefined,
   );
 }
 

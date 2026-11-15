@@ -13,6 +13,7 @@ import { isHuman, tell } from '../humans';
 import { isSide, relationOf } from '../relations';
 import type { GameState, Offer } from '../state';
 import { fail, OK, type CommandResult } from './result';
+import { L } from '../../content/text';
 
 /** Peace, alliance or war with another side (or say no to its offer). */
 export interface DiplomacyCommand {
@@ -33,7 +34,15 @@ function dropShield(state: GameState, from: SideId, to: SideId): void {
   const me = state.players[from];
   if (!me || !isHuman(state, to) || (me.shieldUntil ?? 0) <= state.time) return;
   me.shieldUntil = state.time;
-  tell(state, from, 'Euer Anfänger-Schild ist aus, weil ihr Krieg erklärt habt.', 'info');
+  tell(
+    state,
+    from,
+    L(
+      'Euer Anfänger-Schild ist aus, weil ihr Krieg erklärt habt.',
+      'Your beginner shield is off, because you declared war.',
+    ),
+    'info',
+  );
 }
 
 /** Does a computer play this side? (The player side too, in balancing runs.) */
@@ -59,7 +68,7 @@ function propose(state: GameState, from: SideId, to: SideId, kind: Offer['kind']
 
 export function diplomacy(state: GameState, cmd: DiplomacyCommand): CommandResult {
   const from = cmd.player;
-  if (!isSide(from)) return fail('Unbekannter Spieler.');
+  if (!isSide(from)) return fail(L('Unbekannter Spieler.', 'Unknown player.'));
   const why = whyNot(state, from, cmd.side, cmd.action);
   if (why) return fail(why);
   switch (cmd.action) {

@@ -1,85 +1,167 @@
 import { q, type QuizQuestion } from './types';
 
-/** Mathe. The first answer is always the right one. */
+/** Mathe. The first answer is always the right one. German first, then English. */
 export const MATH: readonly QuizQuestion[] = [
-  q('math', 'seven-eight', 'Was ist 7 × 8?', ['56', '54', '48', '64'], '7 × 8 = 56.'),
+  q(
+    'math',
+    'seven-eight',
+    ['Was ist 7 × 8?', ['56', '54', '48', '64'], '7 × 8 = 56.'],
+    ['What is 7 × 8?', ['56', '54', '48', '64'], '7 × 8 = 56.'],
+  ),
   q(
     'math',
     'day-minutes',
-    'Wie viele Minuten hat ein Tag?',
-    ['1440', '1000', '2400', '360'],
-    '24 Stunden × 60 Minuten = 1440 Minuten.',
+    [
+      'Wie viele Minuten hat ein Tag?',
+      ['1440', '1000', '2400', '360'],
+      '24 Stunden × 60 Minuten = 1440 Minuten.',
+    ],
+    [
+      'How many minutes does a day have?',
+      ['1440', '1000', '2400', '360'],
+      '24 hours × 60 minutes = 1440 minutes.',
+    ],
   ),
   q(
     'math',
     'cube-corners',
-    'Wie viele Ecken hat ein Würfel?',
-    ['8', '6', '12', '4'],
-    'Ein Würfel hat 8 Ecken, 6 Flächen und 12 Kanten.',
+    [
+      'Wie viele Ecken hat ein Würfel?',
+      ['8', '6', '12', '4'],
+      'Ein Würfel hat 8 Ecken, 6 Flächen und 12 Kanten.',
+    ],
+    [
+      'How many corners does a cube have?',
+      ['8', '6', '12', '4'],
+      'A cube has 8 corners, 6 faces and 12 edges.',
+    ],
   ),
   q(
     'math',
     'eighth',
-    'Was ist die Hälfte von einem Viertel?',
-    ['Ein Achtel', 'Ein Halb', 'Ein Sechstel', 'Zwei Viertel'],
-    'Teilt man ein Viertel in zwei Teile, bekommt man zwei Achtel.',
+    [
+      'Was ist die Hälfte von einem Viertel?',
+      ['Ein Achtel', 'Ein Halb', 'Ein Sechstel', 'Zwei Viertel'],
+      'Teilt man ein Viertel in zwei Teile, bekommt man zwei Achtel.',
+    ],
+    [
+      'What is half of a quarter?',
+      ['One eighth', 'One half', 'One sixth', 'Two quarters'],
+      'If you cut a quarter into two parts, you get two eighths.',
+    ],
   ),
   q(
     'math',
     'percent',
-    'Wie viel sind 15 % von 200?',
-    ['30', '15', '20', '35'],
-    '10 % von 200 sind 20, 5 % sind 10. Zusammen 30.',
+    [
+      'Wie viel sind 15 % von 200?',
+      ['30', '15', '20', '35'],
+      '10 % von 200 sind 20, 5 % sind 10. Zusammen 30.',
+    ],
+    [
+      'How much is 15 % of 200?',
+      ['30', '15', '20', '35'],
+      '10 % of 200 is 20, 5 % is 10. Together 30.',
+    ],
     12,
   ),
   q(
     'math',
     'prime',
-    'Welche Zahl ist eine Primzahl?',
-    ['13', '15', '21', '27'],
-    '13 kann man nur durch 1 und 13 teilen. 15 = 3 × 5, 21 = 3 × 7, 27 = 3 × 9.',
+    [
+      'Welche Zahl ist eine Primzahl?',
+      ['13', '15', '21', '27'],
+      '13 kann man nur durch 1 und 13 teilen. 15 = 3 × 5, 21 = 3 × 7, 27 = 3 × 9.',
+    ],
+    [
+      'Which number is a prime number?',
+      ['13', '15', '21', '27'],
+      'You can only divide 13 by 1 and 13. 15 = 3 × 5, 21 = 3 × 7, 27 = 3 × 9.',
+    ],
   ),
   q(
     'math',
     'right-angle',
-    'Wie viel Grad hat ein rechter Winkel?',
-    ['90°', '180°', '45°', '360°'],
-    'Ein rechter Winkel ist ein Viertel von einer ganzen Drehung (360°).',
+    [
+      'Wie viel Grad hat ein rechter Winkel?',
+      ['90°', '180°', '45°', '360°'],
+      'Ein rechter Winkel ist ein Viertel von einer ganzen Drehung (360°).',
+    ],
+    [
+      'How many degrees does a right angle have?',
+      ['90°', '180°', '45°', '360°'],
+      'A right angle is a quarter of a full turn (360°).',
+    ],
   ),
   q(
     'math',
     'hour-seconds',
-    'Wie viele Sekunden hat eine Stunde?',
-    ['3600', '60', '600', '360'],
-    '60 Minuten × 60 Sekunden = 3600 Sekunden.',
+    [
+      'Wie viele Sekunden hat eine Stunde?',
+      ['3600', '60', '600', '360'],
+      '60 Minuten × 60 Sekunden = 3600 Sekunden.',
+    ],
+    [
+      'How many seconds does an hour have?',
+      ['3600', '60', '600', '360'],
+      '60 minutes × 60 seconds = 3600 seconds.',
+    ],
   ),
   q(
     'math',
     'area',
-    'Ein Feld ist 4 m lang und 3 m breit. Wie groß ist seine Fläche?',
-    ['12 m²', '7 m²', '14 m²', '24 m²'],
-    'Fläche = Länge × Breite = 4 × 3 = 12 m². 14 m wäre der Weg einmal außen herum.',
+    [
+      'Ein Feld ist 4 m lang und 3 m breit. Wie groß ist seine Fläche?',
+      ['12 m²', '7 m²', '14 m²', '24 m²'],
+      'Fläche = Länge × Breite = 4 × 3 = 12 m². 14 m wäre der Weg einmal außen herum.',
+    ],
+    [
+      'A field is 4 m long and 3 m wide. How big is its area?',
+      ['12 m²', '7 m²', '14 m²', '24 m²'],
+      'Area = length × width = 4 × 3 = 12 m². 14 m would be the way once around the outside.',
+    ],
   ),
   q(
     'math',
     'double',
-    'Welche Zahl kommt als Nächstes: 2, 4, 8, 16, …?',
-    ['32', '18', '24', '20'],
-    'Jede Zahl ist doppelt so groß wie die vorige: 16 × 2 = 32.',
+    [
+      'Welche Zahl kommt als Nächstes: 2, 4, 8, 16, …?',
+      ['32', '18', '24', '20'],
+      'Jede Zahl ist doppelt so groß wie die vorige: 16 × 2 = 32.',
+    ],
+    [
+      'Which number comes next: 2, 4, 8, 16, …?',
+      ['32', '18', '24', '20'],
+      'Each number is twice as big as the one before: 16 × 2 = 32.',
+    ],
   ),
   q(
     'math',
     'ship-speed',
-    'Ein Raumschiff fliegt 300 km in einer Stunde. Wie weit kommt es in 4 Stunden?',
-    ['1200 km', '304 km', '900 km', '1500 km'],
-    '300 km × 4 = 1200 km.',
+    [
+      'Ein Raumschiff fliegt 300 km in einer Stunde. Wie weit kommt es in 4 Stunden?',
+      ['1200 km', '304 km', '900 km', '1500 km'],
+      '300 km × 4 = 1200 km.',
+    ],
+    [
+      'A spaceship flies 300 km in one hour. How far does it get in 4 hours?',
+      ['1200 km', '304 km', '900 km', '1500 km'],
+      '300 km × 4 = 1200 km.',
+    ],
   ),
   q(
     'math',
     'decimal',
-    'Welche Zahl ist größer: 0,5 oder 0,45?',
-    ['0,5', '0,45', 'Beide sind gleich groß', 'Das kann man nicht sagen'],
-    '0,5 ist dasselbe wie 0,50. Und 50 Hundertstel sind mehr als 45 Hundertstel.',
+    [
+      'Welche Zahl ist größer: 0,5 oder 0,45?',
+      ['0,5', '0,45', 'Beide sind gleich groß', 'Das kann man nicht sagen'],
+      '0,5 ist dasselbe wie 0,50. Und 50 Hundertstel sind mehr als 45 Hundertstel.',
+    ],
+    [
+      'Which number is bigger: 0.5 or 0.45?',
+      ['0.5', '0.45', 'Both are the same', 'You cannot tell'],
+      '0.5 is the same as 0.50. And 50 hundredths are more than 45 hundredths.',
+    ],
     12,
   ),
 ];

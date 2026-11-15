@@ -10,6 +10,7 @@ import type {
 } from '../src/net/protocol';
 import type { SideId } from '../src/sim/entity';
 import { randomCode, sha256 } from './ids';
+import type { Loc } from '../src/content/text';
 
 /** The part of Durable Object storage we use (a Map in tests). */
 export interface Kv {
@@ -152,10 +153,10 @@ export class LobbyCore {
   }
 
   /** One more bad message: warning, chat pause, then out. Returns the text for the person. */
-  async strike(account: string): Promise<{ text: string; chatBanUntil: number; banned: boolean }> {
+  async strike(account: string): Promise<{ text?: Loc; chatBanUntil: number; banned: boolean }> {
     const a = await this.kv.get<AccountRecord>(`acc:${account}`);
     const step = STRIKES[Math.min(STRIKES.length - 1, a?.strikes ?? 0)];
-    if (!a || !step) return { text: '', chatBanUntil: 0, banned: false };
+    if (!a || !step) return { chatBanUntil: 0, banned: false };
     const chatBanUntil = step.banMs > 0 ? this.now() + step.banMs : a.chatBanUntil;
     const banned = a.banned || !!step.out;
     await this.kv.put(`acc:${account}`, { ...a, strikes: a.strikes + 1, chatBanUntil, banned });

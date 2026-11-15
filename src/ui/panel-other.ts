@@ -13,18 +13,19 @@ import { action, header, progress, section, stat, text } from './panel-kit';
 import { nameOfUnit } from '../sim/names';
 import { transportRows } from './panel-transport';
 import { fleetRows } from './panel-fleet';
+import { t, tx } from '../i18n';
 
 const PHASE_TEXT = {
-  docked: 'Im Hafen',
-  outbound: 'Fliegt hin',
-  mining: 'Baut ab',
-  returning: 'Fliegt zurück',
-  landed: 'Gelandet',
+  docked: t('phDocked'),
+  outbound: t('phOutbound'),
+  mining: t('phMining'),
+  returning: t('phReturning'),
+  landed: t('phLanded'),
 } as const;
 
 function targetName(session: Session, id: string | undefined): string {
   if (!id) return '';
-  return id === BELT_ID ? 'Asteroidenring' : (findBody(session.state.system, id)?.name ?? id);
+  return id === BELT_ID ? t('belt') : (findBody(session.state.system, id)?.name ?? id);
 }
 
 function shipRows(session: Session, e: Entity): HTMLElement[] {
@@ -32,12 +33,11 @@ function shipRows(session: Session, e: Entity): HTMLElement[] {
   if (!ship) return [];
   if (e.unit?.type === 'transport') return transportRows(session, e);
   const label = `${PHASE_TEXT[ship.phase]} ${targetName(session, ship.targetBodyId)}`;
-  if (ship.phase === 'docked')
-    return [text(label), text('Öffnet die System-Ansicht und wählt ein Ziel.', 'p-text muted')];
+  if (ship.phase === 'docked') return [text(label), text(t('pickTarget'), 'p-text muted')];
   const rows = [progress(label, ship.phaseStartAt, ship.phaseEndsAt)];
   if (ship.repeat)
     rows.push(
-      action('log-out', 'Nach dieser Runde zurück', {
+      action('log-out', t('recall'), {
         onclick: () => session.command({ type: 'recallShip', player: session.me, shipId: e.id }),
       }),
     );
@@ -45,13 +45,12 @@ function shipRows(session: Session, e: Entity): HTMLElement[] {
 }
 
 const HINTS: Partial<Record<keyof typeof UNITS, string>> = {
-  hunter: 'Tippt auf den Boden zum Laufen, auf eine Spinne oder ein Ei zum Jagen.',
-  infantry:
-    'Tippt auf den Boden: Die Truppe läuft hin und kämpft unterwegs. Tippt auf einen Feind: Angriff!',
-  tank: 'Stark gegen Gebäude. Tippt auf einen Feind: Angriff!',
-  flakTank: 'Schießt nur auf Flugzeuge. Gegen Bodentruppen hilft er nicht.',
-  fighter: 'Fliegt über Mauern und trifft alles. Verbraucht Gas, solange es fliegt oder kämpft.',
-  bomber: 'Wirft Bomben auf Gebäude und Bodentruppen. Verbraucht Gas. Flak ist gefährlich!',
+  hunter: t('hintHunter'),
+  infantry: t('hintInfantry'),
+  tank: t('hintTank'),
+  flakTank: t('hintFlak'),
+  fighter: t('hintFighter'),
+  bomber: t('hintBomber'),
 };
 
 export function unitPanel(session: Session, e: Entity): HTMLElement[] {
@@ -59,56 +58,48 @@ export function unitPanel(session: Session, e: Entity): HTMLElement[] {
   const def = UNITS[e.unit.type];
   const out = [
     header(
-      nameOfUnit(session.state, e.owner, def.id),
-      ownerLabel(session.state, e.owner, 'Einheit'),
+      tx(nameOfUnit(session.state, e.owner, def.id)),
+      ownerLabel(session.state, e.owner, t('unit')),
     ),
   ];
   if (e.health)
     out.push(stat('heart', 'Leben', `${Math.ceil(e.health.hp)} / ${e.health.max}`, '#ff6b81'));
   if (e.attacker) out.push(stat('crosshair', 'Schaden', String(e.attacker.damage), '#ffb35a'));
   if (def.armor) out.push(stat('shield', 'Panzerung', String(def.armor), '#9fb4cc'));
-  if (e.busyWith) out.push(stat('hammer', 'Status', 'Baut gerade', '#ffd25a'));
+  if (e.busyWith) out.push(stat('hammer', t('status'), t('busyBuilding'), '#ffd25a'));
   const hint = HINTS[def.id];
   if (hint && e.owner === session.me) out.push(text(hint, 'p-text muted'));
   return [...out, ...shipRows(session, e)];
 }
 
 export function wildPanel(e: Entity): HTMLElement[] {
-  if (e.egg)
-    return [
-      header('Spinnen-Ei', 'Wildnis'),
-      text('Jäger können es einsammeln: Nahrung!', 'p-text muted'),
-    ];
-  if (e.nest)
-    return [
-      header('Spinnen-Nest', 'Wildnis'),
-      text('Hier wohnen Spinnenwesen. Kommt ihr zu nah, greifen sie an.', 'p-text muted'),
-    ];
+  if (e.egg) return [header(t('egg'), t('wild')), text(t('eggHelp'), 'p-text muted')];
+  if (e.nest) return [header(t('nest'), t('wild')), text(t('nestHelp'), 'p-text muted')];
   return [];
 }
 
 export function bodyPanel(session: Session, bodyId: string): HTMLElement[] {
   const s = session.state;
   const body = bodyId === BELT_ID ? undefined : findBody(s.system, bodyId);
-  const kinds = { rocky: 'Gesteinsplanet', gas: 'Gasplanet', ice: 'Eisplanet' } as const;
+  const kinds = { rocky: t('kRocky'), gas: t('kGas'), ice: t('kIce') } as const;
   const mineable = body?.mineable ?? s.system.belt.mineable;
   const out: HTMLElement[] = [
-    header(body?.name ?? 'Asteroidenring', body ? kinds[body.kind] : 'Felsbrocken voller Metall'),
+    header(body?.name ?? t('belt'), body ? kinds[body.kind] : t('beltDesc')),
     section(
-      'Rohstoffe',
+      t('resources'),
       el(
         'div',
         { class: 'tags' },
         ...mineable.map((r) =>
-          el('span', { class: 'tag' }, resourceIcon(r), RESOURCE_INFO[r].name),
+          el('span', { class: 'tag' }, resourceIcon(r), tx(RESOURCE_INFO[r].name)),
         ),
       ),
     ),
   ];
   if (body)
-    out.push(stat('sun', 'Sonnenlicht', `${Math.round(body.solarFactor * 100)} %`, '#ffd25a'));
+    out.push(stat('sun', t('sunlight'), `${Math.round(body.solarFactor * 100)} %`, '#ffd25a'));
   out.push(...lookButton(session, bodyId), ...fleetRows(session, bodyId));
-  if (bodyId === viewerHome(s)) return [...out, text('Euer Heimatplanet', 'p-text good')];
+  if (bodyId === viewerHome(s)) return [...out, text(t('homePlanet'), 'p-text good')];
   const owner = homeOwner(s, bodyId);
   if (owner) out.push(...homeRows(session, owner, bodyId));
   return [...out, ...shipButtons(session, bodyId)];
@@ -121,14 +112,11 @@ function homeRows(session: Session, owner: SideId, bodyId: string): HTMLElement[
   if (!p) return [];
   const rel = relationLabel(s, owner);
   const line = stat('flag', p.name, rel.name, rel.color);
-  if (p.defeated) return [line, text('Dieses Volk ist besiegt.', 'p-text muted')];
+  if (p.defeated) return [line, text(t('defeatedPeople'), 'p-text muted')];
   const war = relationOf(s, viewerOf(s), owner) === 'war';
   return [
     line,
-    text(
-      war ? 'Hier lebt ein Feind!' : 'Mit diesem Volk ist kein Krieg.',
-      war ? 'p-text bad' : 'p-text muted',
-    ),
+    text(war ? t('enemyHere') : t('noWar'), war ? 'p-text bad' : 'p-text muted'),
     ...(war ? transportButtons(session, bodyId) : []),
   ];
 }
@@ -137,9 +125,8 @@ function homeRows(session: Session, owner: SideId, bodyId: string): HTMLElement[
 function lookButton(session: Session, bodyId: string): HTMLElement[] {
   const s = session.state;
   if (canViewSurface(s, viewerOf(s), bodyId))
-    return [action('eye', 'Oberfläche ansehen', { onclick: () => session.goZone(bodyId) })];
-  if (homeOwner(s, bodyId))
-    return [text('Fremde Basen seht ihr erst mit dem Fernradar (Forschung).', 'p-text muted')];
+    return [action('eye', t('lookSurface'), { onclick: () => session.goZone(bodyId) })];
+  if (homeOwner(s, bodyId)) return [text(t('needRadar'), 'p-text muted')];
   return [];
 }
 
@@ -150,7 +137,7 @@ function transportButtons(session: Session, bodyId: string): HTMLElement[] {
       (e) => e.owner === session.me && e.unit.type === 'transport' && e.ship.phase === 'docked',
     );
   return ready.map((ship) =>
-    action('plane-takeoff', `Transportschiff #${ship.id} hinschicken`, {
+    action('plane-takeoff', t('sendTransport', { n: ship.id }), {
       onclick: () =>
         session.command({ type: 'fly', player: session.me, shipId: ship.id, targetId: bodyId }),
     }),
@@ -163,10 +150,9 @@ function shipButtons(session: Session, bodyId: string): HTMLElement[] {
     .entities.filter(
       (e) => e.owner === session.me && e.unit.type === 'miningShip' && e.ship.phase === 'docked',
     );
-  if (docked.length === 0)
-    return [text('Kein freies Mining-Schiff. Baut eins im Raumhafen.', 'p-text muted')];
+  if (docked.length === 0) return [text(t('noMiner'), 'p-text muted')];
   return docked.map((ship) =>
-    action('rocket', `Mining-Schiff #${ship.id} hierher schicken`, {
+    action('rocket', t('sendMiner', { n: ship.id }), {
       onclick: () =>
         session.command({
           type: 'sendShip',
