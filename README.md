@@ -39,6 +39,18 @@ Diese Adresse im Tablet-Browser öffnen.
 
 Neue Version holen: `git pull` und dann wieder `bun run dev`.
 
+## 3D-Modelle bauen (optional)
+
+Eigene Modelle (Glaskuppel, Spinne, Alien-Kokon, Sporenschiff, Eier, Nest) entstehen aus Python-Skripten
+mit Blender. Nur nötig, wenn man ein Modell ändern will:
+
+```sh
+sh tools/models/setup.sh   # einmal: Blender 5.3 als Python-Modul
+bun run models             # alle Modelle bauen und komprimieren
+```
+
+Alles dazu (Werkzeuge, Ablauf, neue Modelle): [docs/models.md](docs/models.md).
+
 ## Kurze Spielanleitung
 
 - **Mission:** Oben links steht die nächste Aufgabe. Jede geschaffte Aufgabe gibt eine Belohnung.

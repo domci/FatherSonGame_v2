@@ -6,3 +6,8 @@ playwright-report
 *.log
 .DS_Store
 .wrangler
+
+# Blender model pipeline (raw exports, Python venv)
+tools/models/out/
+.venv-blender
+__pycache__/

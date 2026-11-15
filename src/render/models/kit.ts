@@ -11,6 +11,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { KIT_MATERIALS, type KitMaterial } from './kit-materials';
+import { makeLods } from './lod';
 
 /** Kenney Space Kit parts (CC0). */
 export const KENNEY = [
@@ -74,7 +75,15 @@ export const QUATERNIUS = [
   'mech_heavy',
 ] as const;
 
-export type KitName = (typeof KENNEY)[number] | (typeof QUATERNIUS)[number];
+/** Own models, built with Blender scripts (tools/models/, see docs/models.md). */
+export const BLENDER = ['dome', 'pod', 'spider', 'spore_ship', 'egg', 'nest'] as const;
+
+export type BlenderName = (typeof BLENDER)[number];
+export type KitName = (typeof KENNEY)[number] | (typeof QUATERNIUS)[number] | BlenderName;
+
+export function isBlender(name: string): name is BlenderName {
+  return (BLENDER as readonly string[]).includes(name);
+}
 
 interface KitEntry {
   scene: Object3D;
@@ -86,16 +95,23 @@ interface KitEntry {
 const cache = new Map<KitName, KitEntry>();
 
 function urlOf(name: KitName): string {
-  const folder = (QUATERNIUS as readonly string[]).includes(name) ? 'quaternius' : 'kenney';
+  const folder = (QUATERNIUS as readonly string[]).includes(name)
+    ? 'quaternius'
+    : isBlender(name)
+      ? 'blender'
+      : 'kenney';
   return `${import.meta.env.BASE_URL}models/${folder}/${name}.glb`;
 }
 
-/** Centers the model on x/z and puts its lowest point at y = 0. */
-function normalize(scene: Object3D): Object3D {
+/**
+ * Centers the model on x/z and puts its lowest point at y = 0.
+ * Blender models are already built around their pivot, so they stay as they are.
+ */
+function normalize(scene: Object3D, keep: boolean): Object3D {
   const box = new Box3().setFromObject(scene);
   const c = box.getCenter(new Vector3());
   const holder = new Group();
-  scene.position.set(-c.x, -box.min.y, -c.z);
+  if (!keep) scene.position.set(-c.x, -box.min.y, -c.z);
   holder.add(scene);
   return holder;
 }
@@ -121,12 +137,13 @@ export function loadKit(): Promise<void> {
   loading ??= (async () => {
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
-    const names: KitName[] = [...KENNEY, ...QUATERNIUS];
+    const names: KitName[] = [...KENNEY, ...QUATERNIUS, ...BLENDER];
     await Promise.all(
       names.map(async (name) => {
         const gltf = await loader.loadAsync(urlOf(name));
         const skinned = prepare(gltf.scene, (KENNEY as readonly string[]).includes(name));
-        const scene = normalize(gltf.scene);
+        makeLods(gltf.scene);
+        const scene = normalize(gltf.scene, isBlender(name));
         const size = new Box3().setFromObject(scene).getSize(new Vector3());
         cache.set(name, { scene, size, animations: gltf.animations, skinned });
       }),

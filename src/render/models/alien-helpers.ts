@@ -1,4 +1,4 @@
-import type { MaterialName, ModelPart, Part } from './parts';
+import type { KitPart, MaterialName, ModelPart, Part } from './parts';
 
 /** Flat living ground under an alien building, with small glowing bumps. */
 export function mound(size: number, glow: MaterialName = 'glowGreen'): Part[] {
@@ -60,15 +60,15 @@ export function veins(n: number, len: number, mat: MaterialName = 'glowGreen'): 
   });
 }
 
-/** An egg-shaped pod. */
+/** An egg-shaped chitin pod with lobes and glowing veins (Blender model 'pod', radius 1, height 2). */
 export function pod(
   x: number,
   z: number,
   r: number,
   h: number,
   mat: MaterialName = 'chitin',
-): Part {
-  return { shape: 'sphere', size: [r], scale: [1, h / r, 1], pos: [x, h * 0.55, z], mat };
+): KitPart {
+  return { kit: 'pod', scale: [r, h, r], pos: [x, -h * 0.45, z], mats: { shell: mat } };
 }
 
 /** Ribs around a pod. */

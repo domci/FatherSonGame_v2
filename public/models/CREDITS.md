@@ -10,6 +10,9 @@ All models and sounds here are public domain (CC0 1.0). Crediting is not require
   (https://quaternius.com), CC0 1.0
   (meshopt-optimized copies from the `@netforge/asset-library-files` npm package).
 
+- `blender/` – own models (glass dome, alien pod, spider, spore ship, eggs, nest), made for this game with the
+  Blender scripts in `tools/models/blender/` (see `docs/models.md`). Same license as the game code.
+
 Materials are replaced in code (`src/render/models/kit.ts`, `alien-materials.ts`),
 so colors here may differ from the game.
 

@@ -86,3 +86,15 @@ Short notes when something went wrong or was surprising. Newest on top.
 - Eine Sitzung sieht neue Variablen einer Cloud-Umgebung erst, wenn sie neu startet (neuer Thread).
 - Eine lokale Ausnahme in `.git/info/exclude` (`viewer.ts`) hat `src/sim/viewer.ts` aus dem Commit gehalten. Lokal war
   alles grün, CI rot. Vor dem Push: `git status --ignored` ansehen, oder in einem frischen `git worktree` prüfen.
+
+## 2026-11-15 – Eigene Modelle mit Blender (headless)
+
+- Blender 5.3 gibt es als Python-Modul: `pip install bpy==5.3.0` (nur Python 3.13). Läuft im Cloud-Container ohne
+  Bildschirm. `bmesh` und `mathutils` erst nach `import bpy` importieren.
+- `bpy.ops.object.join()` übernimmt die Modifier des ersten Objekts für das ganze Ergebnis (ein Wireframe-Modifier
+  machte aus 6k Dreiecken 46k). Modifier vor dem Join anwenden (`lib.apply_all`).
+- Die meshopt-Bridge von Blenders glTF-Export fehlt im pip-`bpy`. Kein Problem: Komprimieren macht glTF Transform.
+- Flach schattierte Modelle (Kuppel-Gitter) lassen sich schlecht vereinfachen: Jede Kante teilt die Punkte.
+  Die LOD-Stufen bleiben dort größer als das Ziel.
+- Kenney-Modelle werden beim Laden zentriert. Eigene Modelle nicht: Sie sind schon um ihren Drehpunkt gebaut
+  (sonst rutscht z. B. die Kuppel wegen der Schleuse vorne nach hinten).

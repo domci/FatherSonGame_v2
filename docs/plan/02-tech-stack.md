@@ -19,6 +19,7 @@
 | CI | **GitHub Actions** | Jede Änderung: Typprüfung, Lint, Tests, Build. |
 | Hosting | **GitHub Pages** | Kostenlos. Jede neue Version ist sofort spielbar per Link. |
 | 3D-Modelle | **glTF/GLB**-Dateien | Standard-Format. Gebäude nicht mehr im Code "basteln" (Lehre aus V1). |
+| Eigene Modelle | **Blender 5.3** (headless, Python-Skripte) + **glTF Transform** + **meshoptimizer** | Detaillierte Modelle (Kuppel, Spinne, Alien-Kokon ...), Detail-Stufen (LOD), klein komprimiert. Anleitung: [docs/models.md](../models.md), ADR 0010. |
 | Multiplayer (M7) | **Colyseus** (Node.js Game-Server) | Verbreitet, gut dokumentiert, TypeScript. Wird erst in M7 genau geprüft. |
 
 ## Was andere Vibe-Coder nutzen

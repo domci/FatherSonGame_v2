@@ -12,7 +12,7 @@ import {
   type Object3D,
 } from 'three/webgpu';
 import { domeGlassMaterial, glassMaterial, solidMaterial } from '../materials';
-import { kitModel, remapMaterials, type KitName } from './kit';
+import { isBlender, kitModel, remapMaterials, type KitName } from './kit';
 import { alienGlow, bone, chitin, flesh, membrane } from './alien-materials';
 import { tendril } from './shapes';
 
@@ -116,6 +116,8 @@ const MATERIALS: Record<MaterialName, () => Material> = {
   shieldBlue: () => glassMaterial(0x7fd8ff),
 };
 
+const SEE_THROUGH: readonly MaterialName[] = ['glass', 'domeGlass', 'membrane', 'shieldBlue'];
+
 type Maker = (a: number, b: number, c: number) => BufferGeometry;
 
 const SHAPES: Record<Part['shape'], Maker> = {
@@ -136,8 +138,20 @@ function geometry(p: Part): BufferGeometry {
   return SHAPES[p.shape](a, b, c);
 }
 
+/** Blender models name their materials like the game (MaterialName): use the game ones. */
+export function blenderMaterials(obj: Object3D): void {
+  obj.traverse((o) => {
+    if (!(o instanceof Mesh)) return;
+    const name = o.userData.kitMat as MaterialName;
+    if (!(name in MATERIALS)) return;
+    o.material = MATERIALS[name]();
+    o.castShadow = !SEE_THROUGH.includes(name);
+  });
+}
+
 function kitMesh(p: KitPart): Object3D {
   const obj = kitModel(p.kit);
+  if (isBlender(p.kit)) blenderMaterials(obj);
   if (p.mats) {
     const map: Partial<Record<string, () => Material>> = {};
     for (const [from, to] of Object.entries(p.mats)) if (to) map[from] = MATERIALS[to];
@@ -148,8 +162,6 @@ function kitMesh(p: KitPart): Object3D {
   if (p.name) obj.name = p.name;
   return obj;
 }
-
-const SEE_THROUGH: readonly MaterialName[] = ['glass', 'domeGlass', 'membrane', 'shieldBlue'];
 
 function shapeMesh(p: Part): Object3D {
   const mesh = new Mesh(geometry(p), MATERIALS[p.mat]());
