@@ -98,3 +98,14 @@ Short notes when something went wrong or was surprising. Newest on top.
   Die LOD-Stufen bleiben dort größer als das Ziel.
 - Kenney-Modelle werden beim Laden zentriert. Eigene Modelle nicht: Sie sind schon um ihren Drehpunkt gebaut
   (sonst rutscht z. B. die Kuppel wegen der Schleuse vorne nach hinten).
+
+## 2026-11-15 – Deutsch und Englisch (i18n)
+
+- Die Sim läuft online auf dem Server und in jedem Browser. Darum speichert sie Texte als `Loc` ({de, en}),
+  nie als fertigen String. Erst die UI wählt mit `tx()` die Sprache.
+- `t()` auf Modul-Ebene läuft beim Import. Darum lädt ein Sprachwechsel die Seite neu.
+- Schnell-Chat schickt nur die Nummer der Nachricht: Jeder liest sie in seiner Sprache.
+- Playwright: `locale: 'de-DE'` in der Config, sonst sieht der Test die Browser-Sprache des Containers (Englisch).
+- Ein E2E-Test, der `e.text.startsWith` nutzt, bricht leise, wenn `text` ein Objekt wird: Typen im Test mitpflegen.
+- Live-Tests gegen crashlanded.dom-builds.com: `bunx playwright test -c tests/live/live.config.ts`
+  (`LIVE_URL` für eine andere Adresse).
