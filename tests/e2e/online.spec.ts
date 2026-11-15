@@ -7,17 +7,25 @@ interface Online {
   gameDebug: {
     session: {
       me: string;
-      state: { players: Record<string, { name: string; here?: boolean }> };
+      state: {
+        players: Record<string, { name: string; here?: boolean }>;
+        system: { homes: string[] };
+      };
       net: { world: { code: string } };
     };
   };
 }
 
-async function online(browser: Browser, errors: string[]): Promise<Page> {
-  // Small windows: two 3D games in software rendering are slow in CI.
+async function newPage(browser: Browser, errors: string[]): Promise<Page> {
+  // Small windows: more 3D games in software rendering are slow in CI.
   const ctx = await browser.newContext({ viewport: { width: 900, height: 600 } });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(e.message));
+  return page;
+}
+
+async function online(browser: Browser, errors: string[]): Promise<Page> {
+  const page = await newPage(browser, errors);
   await page.goto('/');
   await page.getByRole('button', { name: /Online spielen/ }).click();
   await page.locator('.name-pick').first().click();
@@ -25,23 +33,39 @@ async function online(browser: Browser, errors: string[]): Promise<Page> {
   return page;
 }
 
+/** Opens a shared world link in a new browser: pick a name, pick the people, play. */
+async function viaLink(browser: Browser, errors: string[], link: string): Promise<Page> {
+  const page = await newPage(browser, errors);
+  await page.goto(link);
+  await page.locator('.name-pick').first().click();
+  await page.locator('[data-faction=alien]').click();
+  await page.getByRole('button', { name: /^Beitreten$/ }).click();
+  // The third 3D game in software rendering can take a while.
+  await expect(page.locator('.hud')).toBeVisible({ timeout: 180_000 });
+  return page;
+}
+
 test('online: make a world, a friend joins with the code, chat', async ({ browser }) => {
-  test.setTimeout(300_000);
+  test.setTimeout(540_000);
   const errors: string[] = [];
   const a = await online(browser, errors);
   await a.getByRole('button', { name: /Neue Welt/ }).click();
+  await a.getByRole('button', { name: /^2$/ }).click();
   await a.getByRole('button', { name: /Welt bauen/ }).click();
   await expect(a.locator('.hud')).toBeVisible({ timeout: 90_000 });
   const code = await a.evaluate(
     () => (window as unknown as Online).gameDebug.session.net.world.code,
   );
 
-  const b = await online(browser, errors);
-  await b.locator('.code-input').fill(code);
-  await b.getByRole('button', { name: /Mit Code beitreten/ }).click();
-  await b.locator('[data-faction=alien]').click();
-  await b.getByRole('button', { name: /^Beitreten$/ }).click();
-  await expect(b.locator('.hud')).toBeVisible({ timeout: 90_000 });
+  // The invite in the pause menu shows the link.
+  await a.getByTitle('Menü').click();
+  await a.getByRole('button', { name: /Freunde einladen/ }).click();
+  const link = await a.locator('.share-link').inputValue();
+  expect(link).toContain(`#welt=${code}`);
+  await a.getByRole('button', { name: /Fertig/ }).click();
+  await a.getByRole('button', { name: /Weiter/ }).click();
+
+  const b = await viaLink(browser, errors, link);
 
   // Both browsers replay the same world: A sees B's seat and that B is there.
   const players = (p: Page): Promise<string> =>
@@ -72,5 +96,14 @@ test('online: make a world, a friend joins with the code, chat', async ({ browse
     timeout: 30_000,
   });
   await expect(a.locator('.chat-line')).toHaveCount(1);
+
+  // 2 computers + 2 people fill the 4 start planets: the next person gets a new planet.
+  // (B leaves the page first: three 3D games in software rendering are too slow.)
+  await b.context().close();
+  const c = await viaLink(browser, errors, link);
+  const homes = (p: Page): Promise<number> =>
+    p.evaluate(() => (window as unknown as Online).gameDebug.session.state.system.homes.length);
+  expect(await c.evaluate(() => (window as unknown as Online).gameDebug.session.me)).toBe('s4');
+  await expect.poll(() => homes(a), { timeout: 30_000 }).toBe(5);
   expect(errors).toEqual([]);
 });

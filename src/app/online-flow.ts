@@ -186,16 +186,18 @@ export class OnlineFlow {
       const state = await game.start();
       await startGame(this.root, state, {
         online: game,
-        onQuit: (problem) => this.afterGame(a, problem),
+        onQuit: (problem) => this.afterGame(a, w, problem),
       });
     } catch (e) {
       game.leave();
-      this.afterGame(a, e instanceof Error ? e : new Error(text(e)));
+      this.afterGame(a, w, e instanceof Error ? e : new Error(text(e)));
     }
   }
 
-  private afterGame(a: StoredAccount, problem?: Error): void {
-    if (problem instanceof OnlineError && problem.code === 'reload') return location.reload();
+  private afterGame(a: StoredAccount, w: WorldInfo, problem?: Error): void {
+    // A new version is online: load it fresh (no cached page) and go straight back into this world.
+    if (problem instanceof OnlineError && problem.code === 'reload')
+      return location.replace(`${location.pathname}?v=${Date.now()}#welt=${w.code}`);
     if (problem instanceof OnlineError && problem.code === 'auth') {
       storeAccount(undefined);
       return this.pickName(errorText(problem));

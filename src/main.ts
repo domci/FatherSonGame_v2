@@ -79,7 +79,7 @@ async function showMenu(): Promise<void> {
 function start(): void {
   const linked = codeInHash(location.hash);
   if (!linked) return void showMenu();
-  history.replaceState(null, '', location.pathname + location.search);
+  history.replaceState(null, '', location.pathname);
   new OnlineFlow(root(), () => void showMenu(), linked).start();
 }
 
