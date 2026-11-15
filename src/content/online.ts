@@ -4,6 +4,8 @@ export const ONLINE = {
   shieldMs: 3 * 24 * 60 * 60_000,
   /** War on a person only if they have at least this share of your progress (strength range). */
   minStrength: 0.5,
-  /** Most sides in one world (people + computers). */
+  /** Most sides when a world is made (people + computers). */
   maxSides: 4,
+  /** A world grows when more people come (one new planet each), up to this many sides. */
+  maxGrownSides: 12,
 } as const;

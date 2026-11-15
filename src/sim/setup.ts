@@ -1,21 +1,24 @@
 import { AI_TUNING } from '../content/ai';
 import { START_RESOURCES } from '../content/resources';
-import { aiFaction, PLAYER_NAME, SIDE_COLORS, SIDE_NAMES } from '../content/sides';
+import { aiFaction, PLAYER_NAME, sideColor, SIDE_NAMES } from '../content/sides';
 import { MINUTE } from './clock';
 import { newColony } from './colony';
 import { newQuiz } from './quiz';
 import { newMission } from './systems/mission';
 import { AI_IDS, type AiId, type PlayerId, type SideId } from './entity';
 import { generateSurface, type SurfaceMap } from './generation/surface';
+import { generateSolarSystem, type SolarSystem } from './generation/solar-system';
+import { addHomePlanet } from './generation/home-planets';
 import { spawn, spawnBuilding, spawnUnit } from './spawn';
 import type { Faction, GameSettings, GameState, PlayerState } from './state';
 
 /** Name of a side: "Ihr" for the player, the next free name of its people for a computer. */
 export function sideName(id: SideId, faction: Faction): string {
   if (id === 'player') return PLAYER_NAME;
+  const index = (AI_IDS as readonly string[]).indexOf(id);
+  if (index < 0) return id;
   const names = SIDE_NAMES[faction];
-  const nth = Math.floor(AI_IDS.indexOf(id) / 2);
-  return names[nth % names.length] ?? id;
+  return names[Math.floor(index / 2) % names.length] ?? id;
 }
 
 export function makePlayer(id: SideId, faction: Faction, homeBodyId: string): PlayerState {
@@ -23,7 +26,7 @@ export function makePlayer(id: SideId, faction: Faction, homeBodyId: string): Pl
     id,
     faction,
     name: sideName(id, faction),
-    color: SIDE_COLORS[id],
+    color: sideColor(id),
     resources: { ...START_RESOURCES },
     research: { done: [] },
     homeBodyId,
@@ -65,6 +68,13 @@ export function opponentCount(state: GameState): number {
 export function homeCount(settings: GameSettings): number {
   const computers = settings.opponent ? settings.opponents : 0;
   return Math.max(2, computers + 1 + (settings.humans ?? 0));
+}
+
+/** The solar system of a game: from the seed, plus the planets an online world added later. */
+export function buildSystem(seed: number, settings: GameSettings): SolarSystem {
+  const system = generateSolarSystem(seed, homeCount(settings));
+  for (let i = 0; i < (settings.extraHomes ?? 0); i++) addHomePlanet(system);
+  return system;
 }
 
 /** Time between the first attacks of two computer sides (they do not all come at once). */

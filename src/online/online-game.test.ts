@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { RoomCore, type Peer } from '../../server/room-core';
 import { digest } from '../net/digest';
 import type { ClientMessage, ServerMessage } from '../net/protocol';
-import { createOnlineWorld } from '../sim/online';
+import { applyCommand } from '../sim/commands';
+import { createOnlineWorld, freeSeats } from '../sim/online';
 import { OnlineGame, OnlineError, type Link, type LinkStatus } from './online-game';
 
 const T0 = 1_800_000_000_000;
@@ -102,6 +103,8 @@ describe('online game in the browser (M7)', () => {
 
   it('a full world says no at the start', async () => {
     const { room } = setup(1);
+    for (let seat = freeSeats(room.state)[0]; seat; seat = freeSeats(room.state)[0])
+      applyCommand(room.state, { type: 'join', player: seat, faction: 'human', name: seat });
     await new OnlineGame(new FakeLink(room, 'acc1')).start();
     const late = new OnlineGame(new FakeLink(room, 'acc9'));
     await expect(late.start()).rejects.toBeInstanceOf(OnlineError);

@@ -122,6 +122,8 @@ export interface GameSettings {
   online?: boolean;
   /** Online: places for more people (after the computer sides). */
   humans?: number;
+  /** Online: home planets added later for more people (the world grows). */
+  extraHomes?: number;
 }
 
 /** Short-lived marks for effects (explosions). Not saved. */

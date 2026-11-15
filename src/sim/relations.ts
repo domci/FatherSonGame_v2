@@ -5,6 +5,17 @@ import type { GameState } from './state';
 /** All sides that can play, in a fixed order: the player first, then the computers. */
 export const SIDE_IDS: readonly SideId[] = ['player', ...AI_IDS];
 
+/** Place of a side in the side order (also the index of its home in `system.homes`). */
+export function sideIndex(id: SideId): number {
+  const i = SIDE_IDS.indexOf(id);
+  return i >= 0 ? i : Number(id.slice(1));
+}
+
+/** Is this text the id of a side (for saves and messages from outside)? */
+export function isSideKey(id: string): id is SideId {
+  return (SIDE_IDS as readonly string[]).includes(id) || /^s\d{1,3}$/.test(id);
+}
+
 export function isSide(id: PlayerId | undefined): id is SideId {
   return !!id && id !== 'wild';
 }
@@ -44,9 +55,13 @@ export function relationSince(state: GameState, a: SideId, b: SideId): number {
   return state.relations[pairKey(a, b)]?.since ?? 0;
 }
 
-/** Sides in this game, in order. */
+/** Sides in this game, in order (the first 4, then the extra seats of online worlds). */
 export function sidesOf(state: GameState): SideId[] {
-  return SIDE_IDS.filter((id) => !!state.players[id]);
+  const extra = Object.keys(state.players).filter(
+    (id): id is SideId => isSideKey(id) && !SIDE_IDS.includes(id) && !!state.players[id],
+  );
+  extra.sort((a, b) => sideIndex(a) - sideIndex(b));
+  return [...SIDE_IDS.filter((id) => !!state.players[id]), ...extra];
 }
 
 /** Sides that still play (not defeated). */

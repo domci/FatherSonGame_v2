@@ -10,13 +10,10 @@ import {
   type Sprite,
 } from 'three/webgpu';
 import { color, float, smoothstep, uniform, uv } from 'three/tsl';
-import { bodyPosition, type Body, type SolarSystem } from '../../sim/generation/solar-system';
+import { bodyPosition, type Body } from '../../sim/generation/solar-system';
 import { atmosphereMaterial, planetMaterial, REGOLITH } from '../space-materials';
 import { solidMaterial } from '../materials';
 import type { Faction } from '../../content/factions';
-import { aiFaction, SIDE_COLORS } from '../../content/sides';
-import { AI_IDS } from '../../sim/entity';
-import { sideName } from '../../sim/setup';
 import { textLabel } from './labels';
 
 /** Where a base sits on its planet (latitude, longitude in radians, planet frame). */
@@ -85,6 +82,8 @@ export class SpaceBody {
 
   /** false when the side that lived here is out of the game (no ring). */
   alive = true;
+  /** Who lived here when this was made (a new look when that changes, see space-homes). */
+  key = '';
 
   constructor(
     readonly body: Body,
@@ -166,20 +165,4 @@ export class SpaceBody {
     this.placeLights(this.enemyLights, r);
     if (ring) this.addRing(r, parseInt(ring.slice(1), 16), 0.035);
   }
-}
-
-/** All planets. Homes of computer sides get the base lights of that side's people. */
-export function spaceBodies(system: SolarSystem, faction: Faction): Map<string, SpaceBody> {
-  const out = new Map<string, SpaceBody>();
-  for (const b of system.bodies) {
-    const i = system.homes.indexOf(b.id);
-    const id = AI_IDS[i - 1];
-    if (!id) {
-      out.set(b.id, new SpaceBody(b, i === 0 ? 'home' : 'other', faction));
-      continue;
-    }
-    const f = aiFaction(faction, i - 1);
-    out.set(b.id, new SpaceBody(b, 'enemy', f, { name: sideName(id, f), color: SIDE_COLORS[id] }));
-  }
-  return out;
 }

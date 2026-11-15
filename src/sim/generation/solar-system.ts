@@ -71,7 +71,7 @@ function uniqueName(rng: Rng, used: Set<string>): string {
   return name;
 }
 
-function makeBody(
+export function makeBody(
   rng: Rng,
   index: number,
   orbitRadius: number,

@@ -3,6 +3,7 @@ import { digest } from '../src/net/digest';
 import { Lockstep } from '../src/net/lockstep';
 import type { ServerMessage } from '../src/net/protocol';
 import type { SideId } from '../src/sim/entity';
+import { ONLINE } from '../src/content/online';
 import { createOnlineWorld } from '../src/sim/online';
 import { RoomCore, type Peer } from './room-core';
 
@@ -25,6 +26,18 @@ class FakeBrowser implements Peer {
   close(): void {
     this.closed = true;
   }
+}
+
+/** People come until the world is full (it grows up to the most sides). */
+function fillWorld(room: RoomCore): FakeBrowser[] {
+  const out: FakeBrowser[] = [];
+  for (let i = 0; i < 20; i++) {
+    const b = new FakeBrowser();
+    const who = { account: `more${i}`, name: `Gast ${i}`, faction: 'human' as const };
+    if (room.connect(b, who, () => ({ t: 'pong' }))) break;
+    out.push(b);
+  }
+  return out;
 }
 
 function setup(): { room: RoomCore; clock: { t: number } } {
@@ -127,6 +140,9 @@ describe('world server room (M7)', () => {
     const { room, clock } = setup();
     const a = join(room, 'acc1', 'Roter Falke 1');
     const b = join(room, 'acc2', 'Blauer Komet 2');
+    const more = fillWorld(room);
+    expect(more.length).toBe(ONLINE.maxGrownSides - 3);
+    expect(room.state.system.homes).toHaveLength(ONLINE.maxGrownSides);
     const c = new FakeBrowser();
     expect(
       room.connect(c, { account: 'acc3', name: 'X', faction: 'human' }, () => ({ t: 'pong' })),

@@ -14,12 +14,33 @@ export const SIDE_NAMES: Record<Faction, readonly string[]> = {
 };
 
 /** One color per side, for lists, labels and planet rings. */
-export const SIDE_COLORS: Record<SideId, string> = {
+export const SIDE_COLORS: Record<'player' | AiId, string> = {
   player: '#5fd0ff',
   ai: '#ff5d6c',
   ai2: '#ffa03a',
   ai3: '#c08bff',
 };
+
+/** Colors of the extra seats of big online worlds (`s4`, `s5`, …), in turn. */
+export const EXTRA_COLORS: readonly string[] = [
+  '#7cffb2',
+  '#ff8fd8',
+  '#f2ff6b',
+  '#6b8cff',
+  '#ffb38a',
+  '#61f2e8',
+  '#d9d9d9',
+  '#b6ff5c',
+];
+
+export function sideColor(id: SideId): string {
+  if (id in SIDE_COLORS) return SIDE_COLORS[id as keyof typeof SIDE_COLORS];
+  const n = Number(id.slice(1)) - 4;
+  return (
+    EXTRA_COLORS[((n % EXTRA_COLORS.length) + EXTRA_COLORS.length) % EXTRA_COLORS.length] ??
+    '#ffffff'
+  );
+}
 
 /** People of the computer sides: the first is the other people, then they take turns. */
 export function aiFaction(player: Faction, index: number): Faction {

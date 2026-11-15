@@ -2,10 +2,9 @@ import { World } from 'miniplex';
 import type { Difficulty } from '../content/ai';
 import { FACTIONS } from '../content/factions';
 import type { Entity, PlayerId, SideId } from './entity';
-import { generateSolarSystem } from './generation/solar-system';
 import { generateSurface } from './generation/surface';
 import { createRng } from './rng';
-import { ensureOpponents, homeCount, makePlayer, setupBase, setupNests } from './setup';
+import { buildSystem, ensureOpponents, makePlayer, setupBase, setupNests } from './setup';
 import {
   SAVE_VERSION,
   type Faction,
@@ -39,7 +38,7 @@ export function createGame(options: NewGameOptions): GameState {
     opponents: options.opponent === false ? 0 : (options.opponents ?? 1),
     ...(options.online ? { online: true, humans: options.online.humans } : {}),
   };
-  const system = generateSolarSystem(options.seed, homeCount(settings));
+  const system = buildSystem(options.seed, settings);
   const home = system.homeBodyId;
   const map = generateSurface(options.seed, home);
   const state: GameState = {

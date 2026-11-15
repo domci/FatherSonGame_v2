@@ -17,7 +17,6 @@ import {
 import { BELT_ID, type SolarSystem } from '../../sim/generation/solar-system';
 import type { GameState } from '../../sim/state';
 import { knowsBase } from '../../sim/visibility';
-import type { Faction } from '../../content/factions';
 import { createStars } from '../stars';
 import {
   baseToCenter,
@@ -28,7 +27,8 @@ import {
   turnToBase,
 } from '../zoom';
 import { beltObject, orbitLine, selectionMarker, sunObject } from './system-objects';
-import { spaceBodies, type SpaceBody } from './space-bodies';
+import type { SpaceBody } from './space-bodies';
+import { homesKey, refreshBody } from './space-homes';
 import { SpaceOrbit } from './space-orbit';
 import { SpaceShips } from './space-ships';
 import { SpaceFleet } from './space-fleet';
@@ -61,7 +61,9 @@ export class SpaceView implements View {
   readonly scene = new Scene();
   readonly camera = new PerspectiveCamera(50, 1, 0.01, 6000);
   readonly orbit: SpaceOrbit;
-  private bodies: Map<string, SpaceBody>;
+  private bodies = new Map<string, SpaceBody>();
+  private homesKey = '';
+  private orbits = new Set<number>();
   private ships = new SpaceShips();
   private fleet: SpaceFleet;
   private belt: Object3D;
@@ -73,16 +75,13 @@ export class SpaceView implements View {
   /** What the camera looks at (follows a new planet smoothly). */
   private look = new Vector3();
 
-  constructor(system: SolarSystem, faction: Faction, dom: HTMLElement) {
+  constructor(state: GameState, dom: HTMLElement) {
+    const system = state.system;
     this.focusId = system.homeBodyId;
     this.scene.background = new Color(0x010208);
     this.scene.add(createStars(3000, 5000), sunObject(system.sunRadius));
     this.scene.add(new AmbientLight(0x303848, 0.5), new PointLight(0xfff0dd, 4, 0, 0));
-    this.bodies = spaceBodies(system, faction);
-    for (const b of this.bodies.values()) {
-      this.scene.add(b.group, orbitLine(b.body.orbitRadius));
-      this.pickables.push(b.sphere);
-    }
+    this.syncBodies(state);
     this.belt = beltObject(system);
     const picker = beltPicker(system);
     this.pickables.push(picker);
@@ -97,7 +96,31 @@ export class SpaceView implements View {
     this.focusId = focusId;
   }
 
+  /** Planets: new ones (a growing online world), and new looks when people come or go. */
+  private syncBodies(state: GameState): void {
+    const key = homesKey(state);
+    if (key === this.homesKey) return;
+    this.homesKey = key;
+    for (const body of state.system.bodies) {
+      const old = this.bodies.get(body.id);
+      const made = refreshBody(state, body, old);
+      if (!made) continue;
+      if (old) {
+        this.scene.remove(old.group);
+        this.pickables = this.pickables.filter((p) => p !== old.sphere);
+      }
+      if (!this.orbits.has(body.orbitRadius)) {
+        this.orbits.add(body.orbitRadius);
+        this.scene.add(orbitLine(body.orbitRadius));
+      }
+      this.bodies.set(body.id, made);
+      this.scene.add(made.group);
+      this.pickables.push(made.sphere);
+    }
+  }
+
   update(state: GameState, ui: ViewUi, dtMs: number): void {
+    this.syncBodies(state);
     const gone = new Set(
       Object.values(state.players)
         .filter((p) => p?.defeated)

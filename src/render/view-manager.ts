@@ -50,8 +50,7 @@ export class ViewManager {
     const surface = this.surfaceFor(this.focusId);
     if (!surface) throw new Error('home surface missing');
     this.current = surface;
-    const faction = state.players[viewerOf(state)]?.faction ?? 'human';
-    this.space = new SpaceView(state.system, faction, canvas);
+    this.space = new SpaceView(state, canvas);
     this.setActive('surface');
     canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: true });
     canvas.addEventListener('touchmove', (e) => this.onTouch(e), { passive: true });

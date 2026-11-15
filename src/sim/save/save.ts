@@ -1,8 +1,7 @@
 import { World } from 'miniplex';
 import type { Entity, PlayerId } from '../entity';
-import { generateSolarSystem } from '../generation/solar-system';
 import { generateSurface } from '../generation/surface';
-import { ensureOpponents, homeCount } from '../setup';
+import { buildSystem, ensureOpponents } from '../setup';
 import {
   SAVE_VERSION,
   type AiState,
@@ -71,7 +70,7 @@ export function fromSaveData(raw: unknown): GameState {
     time: data.time,
     world: new World<Entity>(clone(data.entities)),
     players: clone(data.players),
-    system: generateSolarSystem(data.seed, homeCount(data.settings)),
+    system: buildSystem(data.seed, data.settings),
     surfaces,
     events: clone(data.events),
     settings: clone(data.settings),

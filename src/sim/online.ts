@@ -4,7 +4,8 @@ import { AI_IDS, type SideId } from './entity';
 import { createGame } from './game';
 import { generateSurface } from './generation/surface';
 import { humanSides, isHuman, isOnline, tellHumans } from './humans';
-import { setRelation, SIDE_IDS } from './relations';
+import { setRelation, sideIndex } from './relations';
+import { addHomePlanet } from './generation/home-planets';
 import { makePlayer, setupBase, setupNests } from './setup';
 import type { Faction, GameState } from './state';
 import { progressOf } from './ai/strength';
@@ -49,17 +50,31 @@ export function createOnlineWorld(o: OnlineWorldOptions): GameState {
   return state;
 }
 
-/** Seats for people that nobody has taken yet. */
+/**
+ * Seats for people that nobody has taken yet: first the places of the start, then planets
+ * that were added later, then a new planet (while the world may still grow).
+ */
 export function freeSeats(state: GameState): SideId[] {
   if (!isOnline(state)) return [];
   const computers = state.settings.opponent ? state.settings.opponents : 0;
-  const seats = AI_IDS.slice(computers, computers + (state.settings.humans ?? 0));
+  const seats: SideId[] = AI_IDS.slice(computers, computers + (state.settings.humans ?? 0));
+  const homes = state.system.homes.length;
+  for (let i = 1 + computers + (state.settings.humans ?? 0); i < homes; i++) seats.push(`s${i}`);
+  if (homes < ONLINE.maxGrownSides) seats.push(`s${homes}`);
   return seats.filter((id) => !state.players[id]);
 }
 
 /** Home planet of a seat (same order as the homes of the solar system). */
 export function seatHome(state: GameState, seat: SideId): string | undefined {
-  return state.system.homes[SIDE_IDS.indexOf(seat)];
+  return state.system.homes[sideIndex(seat)];
+}
+
+/** The world grows: a new planet for a seat that has none yet. */
+function growFor(state: GameState, seat: SideId): void {
+  while (state.system.homes.length <= sideIndex(seat)) {
+    addHomePlanet(state.system);
+    state.settings.extraHomes = (state.settings.extraHomes ?? 0) + 1;
+  }
 }
 
 /** People start in peace with each other (war needs a declaration, see shieldRule). */
@@ -70,6 +85,7 @@ export function makePeace(state: GameState, side: SideId): void {
 
 /** A person takes a free seat: a new base on its planet, with spiders and a beginner shield. */
 export function seatPerson(state: GameState, seat: SideId, faction: Faction, name: string): void {
+  growFor(state, seat);
   const zone = seatHome(state, seat);
   if (!zone) return;
   const map = (state.surfaces[zone] ??= generateSurface(state.seed, zone));

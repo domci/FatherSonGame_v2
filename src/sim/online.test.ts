@@ -48,7 +48,7 @@ describe('online worlds (M7)', () => {
     expect(s.players.player?.name).toBe('Roter Falke');
     expect(s.players.player?.shieldUntil).toBe(T0 + ONLINE.shieldMs);
     expect(s.ai.ai).toBeDefined();
-    expect(freeSeats(s)).toEqual(['ai2', 'ai3']);
+    expect(freeSeats(s)).toEqual(['ai2', 'ai3', 's4']);
     expect(s.system.homes).toHaveLength(4);
   });
 
@@ -65,7 +65,7 @@ describe('online worlds (M7)', () => {
     expect(things.some((e) => e.nest)).toBe(true);
     expect(relationOf(s, 'player', 'ai2')).toBe('peace');
     expect(relationOf(s, 'ai', 'ai2')).toBe('war');
-    expect(freeSeats(s)).toEqual([]);
+    expect(freeSeats(s)).toEqual(['s3']);
     expect(applyCommand(s, { type: 'join', player: 'ai2', faction: 'human', name: 'X' }).ok).toBe(
       false,
     );
@@ -149,7 +149,7 @@ describe('online worlds (M7)', () => {
     expect(applyCommand(s, { type: 'leave', player: 'ai2' }).ok).toBe(true);
     expect(s.players.ai2).toBeUndefined();
     expect(s.world.entities.some((e) => e.owner === 'ai2')).toBe(false);
-    expect(freeSeats(s)).toEqual(['ai2']);
+    expect(freeSeats(s)).toEqual(['ai2', 's3']);
     expect(applyCommand(s, { type: 'leave', player: 'player' }).ok).toBe(false);
   });
 

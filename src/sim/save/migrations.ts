@@ -1,4 +1,4 @@
-import { SIDE_COLORS } from '../../content/sides';
+import { sideColor } from '../../content/sides';
 import { newColony } from '../colony';
 import { AI_IDS, type SideId } from '../entity';
 import { sideName } from '../setup';
@@ -43,7 +43,7 @@ function withNames(players: unknown): Record<string, unknown> {
     else
       out[id] = {
         name: sideName(id, p.faction === 'human' ? 'human' : 'alien'),
-        color: SIDE_COLORS[id],
+        color: sideColor(id),
         ...p,
       };
   }

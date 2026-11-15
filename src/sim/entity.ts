@@ -4,8 +4,10 @@ import type { UnitId } from '../content/units';
 /** Computer sides. 'ai' is the first one (old saves have only this one). */
 export const AI_IDS = ['ai', 'ai2', 'ai3'] as const;
 export type AiId = (typeof AI_IDS)[number];
-/** A side that plays: the human player or a computer. */
-export type SideId = 'player' | AiId;
+/** Online: more people than the first 4 sides get seats `s4`, `s5`, … (number = place in the side order). */
+export type ExtraId = `s${number}`;
+/** A side that plays: the human player, a computer, or (online) one more person. */
+export type SideId = 'player' | AiId | ExtraId;
 /** Owner of an entity. 'wild' = spiders and their nests. */
 export type PlayerId = SideId | 'wild';
 
