@@ -55,6 +55,7 @@ function withTsSeed(root: string, app: App, run: () => number) {
 }
 
 // Runs related tests; at the budget it kills the whole process group and passes.
+// Any other signal death is a failure.
 function related(app: App, cwd: string, files: string[]): Promise<number> {
   const budget = app.relatedBudgetSec ?? 60;
   return new Promise((resolve) => {
@@ -64,9 +65,9 @@ function related(app: App, cwd: string, files: string[]): Promise<number> {
       console.log(`[checks] ${app.name}/related: over ${budget}s budget, stopped. CI covers it.`);
       resolve(0);
     }, budget * 1000);
-    child.on("exit", (code) => {
+    child.on("exit", (code, signal) => {
       clearTimeout(timer);
-      resolve(code ?? 0);
+      resolve(code ?? (signal ? 1 : 0));
     });
   });
 }
@@ -77,7 +78,7 @@ export async function push(root: string, files: string[], opts: { fallback: bool
   if (opts.toMain) {
     const risky = (config.riskyPaths ?? []).map((g) => new Bun.Glob(g));
     const hits = files.filter((f) => risky.some((g) => g.match(f)));
-    if (hits.length) console.log(`[checks] WARNING risky path on main → push to test instead:\n  ${hits.join("\n  ")}`);
+    if (hits.length) console.log(`[checks] WARNING risky path on the default branch → push to test instead:\n  ${hits.join("\n  ")}`);
   }
   const apps = config.apps.filter((a) => opts.fallback || files.some((f) => inApp(a, f)));
   for (const app of apps) {
@@ -132,7 +133,8 @@ export function install(repo: string, opts: { ci?: boolean } = {}) {
 }
 
 export function check(repo: string) {
-  const files = existsSync(path.join(repo, ciFile[1])) ? [...managed, ciFile] : managed;
+  // The vendored copy has no ci/ template; skip the CI drift check there.
+  const files = existsSync(path.join(repo, ciFile[1])) && existsSync(path.join(kitDir, ciFile[0])) ? [...managed, ciFile] : managed;
   const drift = files.filter(([from, to]) => {
     const target = path.join(repo, to);
     return !existsSync(target) || readFileSync(target, "utf8") !== readFileSync(path.join(kitDir, from), "utf8");
