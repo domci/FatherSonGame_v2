@@ -1,0 +1,6 @@
+#!/bin/sh
+# Staged-file format + lint (.dev-kit.json "preCommit").
+# No kit_root here: git already runs hooks at the worktree top, and unsetting its
+# env would drop GIT_INDEX_FILE, so `commit -a` / `commit <path>` would lint nothing.
+set -eu
+bun "$(dirname "$0")/../dc-kit.ts" commit

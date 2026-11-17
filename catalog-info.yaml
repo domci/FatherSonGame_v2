@@ -1,0 +1,16 @@
+# Hand-written: System, Components, links, annotations. Edit freely.
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata: { name: bruchlandung, description: Bruchlandung / Crashlanded, a father-son browser space strategy game with online worlds }
+spec: { owner: dom }
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: bruchlandung
+  description: Vite + Three.js game served by a Cloudflare Worker with Durable Objects (lobby, world rooms) and Workers AI chat moderation
+  links:
+    - { title: Production, url: "https://crashlanded.dom-builds.com" }
+  annotations:
+    dom/domains: crashlanded.dom-builds.com
+spec: { type: website, lifecycle: live, owner: dom, system: bruchlandung }

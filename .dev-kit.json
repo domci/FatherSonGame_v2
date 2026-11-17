@@ -1,0 +1,11 @@
+{
+  "riskyPaths": ["wrangler.jsonc", "tools/deploy.sh", ".github/workflows/**"],
+  "apps": [
+    {
+      "name": "bruchlandung",
+      "dir": ".",
+      "lint": "bun run lint",
+      "typecheck": "bun run typecheck"
+    }
+  ]
+}

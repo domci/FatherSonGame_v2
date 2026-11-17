@@ -17,7 +17,9 @@
     "check": "bun run typecheck && bun run lint && bun run test && bun run build",
     "server": "bun run build && wrangler dev -c wrangler.local.jsonc",
     "deploy": "sh tools/deploy.sh",
-    "models": "sh tools/models/build.sh"
+    "models": "sh tools/models/build.sh",
+    "ci:deploy": "bun run deploy",
+    "rollback:prod": "bun tools/rollback.ts"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

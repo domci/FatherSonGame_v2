@@ -1,0 +1,10 @@
+#!/bin/sh
+# Lint + typecheck the apps a push touches; tests belong to CI.
+set -eu
+kit="$(cd "$(dirname "$0")/.." && pwd)"
+. "$kit/hooks/lib.sh"
+kit_root
+changed="$(mktemp)"
+trap 'rm -f "$changed"' EXIT
+kit_changed "$changed"
+bun "$kit/dc-kit.ts" push "$changed"

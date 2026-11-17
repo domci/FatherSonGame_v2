@@ -10,7 +10,7 @@ const SIM_FORBIDDEN = [
 ];
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'node_modules', 'playwright-report', 'test-results', '.wrangler'] },
+  { ignores: ['.dev-kit', 'dist', 'coverage', 'node_modules', 'playwright-report', 'test-results', '.wrangler'] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   prettier,

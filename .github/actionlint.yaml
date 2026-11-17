@@ -1,0 +1,3 @@
+# Jog runner labels for actionlint: actionlint -config-file .github/actionlint.yaml .github/workflows/ci.yml
+self-hosted-runner:
+  labels: [jog-4vcpu, jog-8vcpu, jog-16vcpu]
