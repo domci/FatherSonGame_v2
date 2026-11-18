@@ -103,11 +103,10 @@ jobs:
       - run: HUSKY=0 bun install --frozen-lockfile
       - run: bun run test
 
-  # Holds deploy secrets: ubuntu-latest until the Jog DPA is signed.
   preview:
     needs: [plan, checks]
     if: vars.AUTO_DEPLOY == '1' && github.ref == 'refs/heads/test' && github.event_name == 'push' && !failure() && !cancelled()
-    runs-on: ubuntu-latest
+    runs-on: jog-4vcpu
     timeout-minutes: 20
     outputs:
       url: ${{ steps.deploy.outputs.url }}
@@ -165,11 +164,11 @@ jobs:
       - run: test "$RED" != true
         env: { RED: "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" }
 
-  # Prod: every green main push, direct or PR merge. Holds prod secrets: ubuntu-latest.
+  # Prod: every green main push, direct or PR merge.
   deploy:
     needs: ci-green
     if: always() && vars.AUTO_DEPLOY == '1' && needs.ci-green.result == 'success' && github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: jog-4vcpu
     timeout-minutes: 30
     concurrency: { group: deploy-prod, cancel-in-progress: false }
     steps:
@@ -195,7 +194,7 @@ jobs:
   notify-red:
     needs: [ci-green, deploy]
     if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(needs.*.result, 'failure')
-    runs-on: ubuntu-latest
+    runs-on: jog-4vcpu
     timeout-minutes: 2
     permissions: {}
     steps:
